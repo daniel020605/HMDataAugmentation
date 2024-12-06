@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
-VISITED_DOCS_FILE = './docs/visited_docs.txt'
+VISITED_DOCS_FILE = './dir/visited_docs.txt'
 
 
 def get_document_by_id(object_id, version, catalog_name, language):
@@ -108,12 +108,12 @@ if __name__ == '__main__':
     if catalog_tree_list:
         leaf_nodes = find_leaf_nodes(catalog_tree_list)
         # 将leaf_nodes数据存储到本地
-        with open('./docs/leaf_nodes.txt', 'w') as file:
+        with open('./dir/leaf_nodes.txt', 'w') as file:
             for node in leaf_nodes:
                 file.write(node + '\n')
 
     # 读取leaf_nodes.txt的数据，并逐个请求文档内容
-    with open('./docs/leaf_nodes.txt', 'r') as file:
+    with open('./dir/leaf_nodes.txt', 'r') as file:
         for line in tqdm(file):
             doc_pipe(line.strip())
 
