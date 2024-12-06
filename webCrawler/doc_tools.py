@@ -2,8 +2,8 @@ import os
 
 
 # 替换文档中的换行符
-def change_line():
-    for root, dirs, files in os.walk('docs'):
+def change_line(path):
+    for root, dirs, files in os.walk(path):
         for file in files:
             file_path = os.path.join(root, file)
             try:
@@ -15,5 +15,6 @@ def change_line():
                 print(f"Skipping file due to encoding error: {file_path}")
 
 
+# "harmonyos-guides-V5" "harmonyos-guides-V5" "best-practices-V5"
 if __name__ == '__main__':
-    change_line()
+    change_line("best-practices-V5")

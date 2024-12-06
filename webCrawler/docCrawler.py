@@ -38,7 +38,7 @@ def get_content(response):
         for element in elements:
             if element.get_text().strip() and not element.find_parents(['p', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ol', 'ul']):
                 non_empty_elements.append(element)
-                print(element.get_text())
+                # print(element.get_text())
 
         return non_empty_elements
     else:
@@ -92,30 +92,33 @@ def mark_document_as_visited(object_id):
         file.write(object_id + '\n')
 
 
-def doc_pipe(doc_name):
-    document = get_document_by_id(doc_name, "", "harmonyos-guides-V5", "cn")
+def doc_pipe(topic, doc_name):
+    document = get_document_by_id(doc_name, "", topic, "cn")
     if document:
         doc_paragraphs = get_content(document)
         # print(document.json())
-        with open(f'./docs/{doc_name}.txt', 'w') as file:
+        with open(f'./{topic}/{doc_name}.txt', 'w') as file:
             for paragraph in doc_paragraphs:
                 file.write(paragraph.get_text() + '\n')
 
 
-if __name__ == '__main__':
-    doc_pipe("start-with-ets-stage-V5")
-    catalog_tree_list = get_catalog("harmonyos-guides-V5")
+def get_by_topic(topic):
+    catalog_tree_list = get_catalog(topic)
     if catalog_tree_list:
         leaf_nodes = find_leaf_nodes(catalog_tree_list)
         # 将leaf_nodes数据存储到本地
-        with open('./dir/leaf_nodes.txt', 'w') as file:
+        with open(f'./dir/{topic}_leaf_nodes.txt', 'w') as file:
             for node in leaf_nodes:
                 file.write(node + '\n')
 
     # 读取leaf_nodes.txt的数据，并逐个请求文档内容
-    with open('./dir/leaf_nodes.txt', 'r') as file:
+    with open(f'./dir/{topic}_leaf_nodes.txt', 'r') as file:
         for line in tqdm(file):
-            doc_pipe(line.strip())
+            doc_pipe(topic, line.strip())
+
+if __name__ == '__main__':
+    # "harmonyos-guides-V5" "harmonyos-guides-V5" "best-practices-V5"
+    get_by_topic("best-practices-V5")
 
     # 计算/docs目录下的文件包括多少字符：9402554
 
