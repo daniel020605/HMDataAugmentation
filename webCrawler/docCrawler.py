@@ -117,8 +117,9 @@ def get_by_topic(topic):
             doc_pipe(topic, line.strip())
 
 if __name__ == '__main__':
-    # "harmonyos-guides-V5" "harmonyos-guides-V5" "best-practices-V5"
-    get_by_topic("best-practices-V5")
+    # 需要提前创建对应文件夹
+    # "harmonyos-guides-V5" "harmonyos-guides-V5" "best-practices-V5" "harmonyos-releases-V5" "harmonyos-faqs-V5"
+    get_by_topic("harmonyos-faqs-V5")
 
     # 计算/docs目录下的文件包括多少字符：9402554
 
