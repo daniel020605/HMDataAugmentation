@@ -2,8 +2,14 @@ import os
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 
-os.environ["OPENAI_API_KEY"] = "sk-Y5El1ncQxjD6o3MM84Ea9572F68d4a2e85341d2847225807"
-os.environ["OPENAI_BASE_URL"] = "https://api.xiaoai.plus/v1"
+import configparser
+
+config = configparser.ConfigParser()
+config.read("../secret.properties")
+
+os.environ["OPENAI_API_KEY"] = config.get("DEFAULT", "OPENAI_API_KEY")
+os.environ["OPENAI_BASE_URL"] = config.get("DEFAULT", "OPENAI_BASE_URL")
+
 
 embedding = OpenAIEmbeddings()
 # 向量数据库保存位置

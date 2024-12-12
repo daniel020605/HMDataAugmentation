@@ -7,7 +7,6 @@ url_generate = "http://localhost:11434/api/generate"
 url_chat = "http://localhost:11434/api/chat"
 
 
-
 def get_generate_response(url, data):
     response = requests.post(url, json=data)
     response_dict = json.loads(response.text)
