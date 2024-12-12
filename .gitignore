@@ -1,3 +1,4 @@
 .idea
 ./webCrawler/docs/*
 ./webCrawler/ArkTsReposOnGithub.txt
+./secret.properties
