@@ -3,6 +3,7 @@ from urllib.request import urlopen
 from urllib.request import Request
 import json
 import urllib.parse  # 导入 URL 编码库
+import os
 
 from webCrawler.githubCheck import check_for_ets_folder
 
@@ -17,27 +18,12 @@ def get_results(search, headers, page, pageSize, minStars, latestPushTime):
 
     # 创建请求对象
     req = Request(url, headers=headers)
-    response = urlopen(req).read()  # 发送请求并读取响应
-    result = json.loads(response.decode())  # 将响应解析为 JSON 格式
-    return result  # 返回解析后的结果
+    response = urlopen(req).read()
+    result = json.loads(response.decode())
+    return result
 
-
-if __name__ == '__main__':
-    # 指定 TypeScript 语言的搜索关键词
-    search = 'language:typescript (鸿蒙 OR arkts OR ArkTS OR harmony OR Harmony)'  # 需要对搜索关键词进行编码
-
-    # 设置请求头，包含 GitHub 的 Personal Access Token 进行身份验证
-    headers = {
-        'User-Agent': 'Mozilla/5.0',
-        'Authorization': 'token your_token',  #todo: 替换为你的 GitHub token
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-    }
-
-    repos_list = []
-    stars_list = []
-
-    page = 1  # 从第1页开始
+def get_repos_list():
+    page = 1
     pageSize = 50
     minStars = 5
     latestPushTime = '2021-06-02'
@@ -53,22 +39,56 @@ if __name__ == '__main__':
         for item in results['items']:
             # 将仓库的编号、名称和克隆 URL 保存到 repos_list 中
             repos_list.append([item["name"], item["clone_url"]])
-            stars_list.append(item["stargazers_count"])  # 保存仓库的星标数
-
-
-        print(f"Page {page} has {len(results['items'])} repositories.")  # 打印当前页的仓库数量
-
-        page += 1  # 请求下一页
+        page += 1
 
         time.sleep(1)  # 适当休眠，避免请求过于频繁
 
-    print(f"Total page {page - 1} has {len(repos_list)}")
-    with open("./ArkTsReposOnGithub.txt", "w", encoding="utf-8") as f:
-        count = 1
-        for i in range(len(repos_list)):
-            print(repos_list[i][1])
-            if check_for_ets_folder(repos_list[i][0], repos_list[i][1]):
-                f.write(f"{count},{repos_list[i][0]},{repos_list[i][1]}\n")
-                count += 1
+    print(f"符合筛选要求的仓库数为：{len(repos_list)}")
 
-    print(f"Total repositories fetched: {len(repos_list)}")
+    return repos_list
+
+
+if __name__ == '__main__':
+    # 指定搜索关键词
+    search = 'language:typescript (鸿蒙 OR arkts OR ArkTS OR harmony OR Harmony)'
+
+    # 设置请求头，包含 GitHub 的 Personal Access Token 进行身份验证
+    headers = {
+        'User-Agent': 'Mozilla/5.0',
+        'Authorization': 'token your_token',  #todo: 替换为你的 GitHub token
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    }
+
+    repos_list = []  # 存储仓库数据
+    file_path = "./ArkTsReposOnGithub.txt"
+
+    # 检查文件是否已经完成列表获取
+    file_completed = False
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+            if lines and lines[0].strip() == "# COMPLETED":
+                file_completed = True
+                print("文件已完成列表获取，将直接进入检查阶段。")
+    except FileNotFoundError:
+        pass  # 文件不存在时继续爬取
+
+
+
+    if not file_completed:
+        repos_list = get_repos_list()
+        with open("./ArkTsReposOnGithub.txt", "w", encoding="utf-8") as f:
+            count = 1
+            for i in range(len(repos_list)):
+                if check_for_ets_folder(repos_list[i][0], repos_list[i][1]):
+                    f.write(f"{count},{repos_list[i][0]},{repos_list[i][1]},0\n")  # 使用系统的换行符
+                    count += 1
+
+        # 在第一行加上#COMPLETED
+        with open("./ArkTsReposOnGithub.txt", "r+", encoding="utf-8") as f:
+            content = f.read()
+            f.seek(0, 0)  # 移动到文件开头
+            f.write(f"# COMPLETED\n" + content)  # 使用系统的换行符
+
+        print(f"总计爬取到符合筛选要求的仓库数为：{count}")

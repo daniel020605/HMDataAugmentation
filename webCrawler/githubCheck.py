@@ -1,7 +1,8 @@
 import urllib.request
 import json
 
-# GitHub API 访问的基础 URL
+#用于对检索到的仓库进行检查 检查方式为检查是否存在.ets文件
+
 BASE_URL = "https://api.github.com"
 
 # 设置请求头，包含 GitHub 的 Personal Access Token 进行身份验证
@@ -61,9 +62,9 @@ def check_for_ets_folder(owner, repo_url):
                 # 检查是否包含 ets 文件夹
                 for file in tree:
                     if file['type'] == 'blob' and file['path'].endswith('.ets'):
-                        print(repo_url + ' 包含 .ets 文件')
+                        print(repo_url + ' 包含 .ets 文件，为ArkTs代码，符合要求')
                         return True  # 找到 ets 文件夹，返回 True
-                print(repo_url + '不包含 .ets 文件,不为ArkTS代码')
+                print(repo_url + ' 不包含 .ets 文件,不为ArkTS代码')
                 return False  # 没有找到 ets 文件夹
             else:
                 print(repo_url+'无法获取文件树')
