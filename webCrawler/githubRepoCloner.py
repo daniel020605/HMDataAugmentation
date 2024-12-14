@@ -27,7 +27,7 @@ for line_index, line in enumerate(lines):
             subprocess.run(["git", "clone", repo_url, os.path.join(clone_directory, repo_name)], check=True)
 
             # 克隆完成后更新状态为1
-            lines[line_index] = f"{repo_id},{repo_name},{repo_url},1{os.linesep}"
+            lines[line_index] = f"{repo_id},{repo_name},{repo_url},1\n"
 
             # 立即写回更新的行
             with open(file_path, "w", encoding="utf-8") as file:
