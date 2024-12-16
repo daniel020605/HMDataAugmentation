@@ -2,16 +2,16 @@ import time
 from urllib.request import urlopen
 from urllib.request import Request
 import json
-import urllib.parse  # 导入 URL 编码库
-import os
+import urllib.parse
 
-from webCrawler.githubCheck import check_for_ets_folder
+from webCrawler.githubChecker import check_for_ets_folder
+from webCrawler.repoCloner import clone_repos
 
 
 # 定义获取结果的函数
 def get_results(search, headers, page, pageSize, minStars, latestPushTime):
     # 对搜索条件进行 URL 编码，确保 URL 中的中文和空格被正确转义
-    encoded_search = urllib.parse.quote(search)  # 对搜索字符串进行编码
+    encoded_search = urllib.parse.quote(search)
     encoded_latest_time = urllib.parse.quote(latestPushTime)
     # 构造 GitHub API 的请求 URL
     url = f'https://api.github.com/search/repositories?q={encoded_search}%20stars:>={minStars}%20pushed:>={encoded_latest_time}&page={page}&per_page={pageSize}&sort=stars&order=desc'
@@ -22,22 +22,15 @@ def get_results(search, headers, page, pageSize, minStars, latestPushTime):
     result = json.loads(response.decode())
     return result
 
-def get_repos_list():
-    page = 1
-    pageSize = 50
-    minStars = 5
-    latestPushTime = '2021-06-02'
-
+def get_repos_list(search, headers, page, pageSize, minStars, latestPushTime):
     while True:
         # 获取当前页的数据
         results = get_results(search, headers, page, pageSize, minStars, latestPushTime)
 
-        if not results['items']:  # 如果没有仓库返回，停止爬取
+        if not results['items']:
             break
 
-        # 遍历当前页的每个仓库
         for item in results['items']:
-            # 将仓库的编号、名称和克隆 URL 保存到 repos_list 中
             repos_list.append([item["name"], item["clone_url"]])
         page += 1
 
@@ -51,6 +44,10 @@ def get_repos_list():
 if __name__ == '__main__':
     # 指定搜索关键词
     search = 'language:typescript (鸿蒙 OR arkts OR ArkTS OR harmony OR Harmony)'
+    page = 1
+    pageSize = 50
+    minStars = 5
+    latestPushTime = '2021-01-01'
 
     # 设置请求头，包含 GitHub 的 Personal Access Token 进行身份验证
     headers = {
@@ -70,25 +67,25 @@ if __name__ == '__main__':
             lines = f.readlines()
             if lines and lines[0].strip() == "# COMPLETED":
                 file_completed = True
-                print("文件已完成列表获取，将直接进入检查阶段。")
+                print("文件已完成列表获取。")
     except FileNotFoundError:
-        pass  # 文件不存在时继续爬取
-
-
+        pass
 
     if not file_completed:
-        repos_list = get_repos_list()
+        repos_list = get_repos_list(search, headers, page, pageSize, minStars, latestPushTime)
         with open("./ArkTsReposOnGithub.txt", "w", encoding="utf-8") as f:
             count = 1
             for i in range(len(repos_list)):
                 if check_for_ets_folder(repos_list[i][0], repos_list[i][1]):
-                    f.write(f"{count},{repos_list[i][0]},{repos_list[i][1]},0\n")  # 使用系统的换行符
+                    f.write(f"{count},{repos_list[i][0]},{repos_list[i][1]},0\n")
                     count += 1
 
         # 在第一行加上#COMPLETED
-        with open("./ArkTsReposOnGithub.txt", "r+", encoding="utf-8") as f:
+        with open(file_path, "r+", encoding="utf-8") as f:
             content = f.read()
-            f.seek(0, 0)  # 移动到文件开头
-            f.write(f"# COMPLETED\n" + content)  # 使用系统的换行符
+            f.seek(0, 0)
+            f.write(f"# COMPLETED\n" + content)
 
-        print(f"总计爬取到符合筛选要求的仓库数为：{count}")
+        print(f"符合筛选要求的仓库数为：{count}")
+
+    clone_repos("./ArkTsReposOnGithub.txt","github_cloned_repos")

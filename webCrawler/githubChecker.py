@@ -46,11 +46,7 @@ def check_for_ets_folder(owner, repo_url):
     try:
         # 从仓库 URL 获取仓库名称
         repo_name = repo_url.split('/')[-1].replace('.git', '')  # 从 URL 获取 repo 名称
-
-        # 提取 owner 和 repo 名称
         owner = repo_url.split('/')[-2]
-
-        # 获取默认分支
         branch = get_default_branch(owner, repo_name)
 
         # 获取最新 commit SHA
@@ -59,18 +55,18 @@ def check_for_ets_folder(owner, repo_url):
             # 获取文件树
             tree = get_tree(owner, repo_name, sha)
             if tree:
-                # 检查是否包含 ets 文件夹
+                # 检查是否包含 ets 文件
                 for file in tree:
                     if file['type'] == 'blob' and file['path'].endswith('.ets'):
                         print(repo_url + ' 包含 .ets 文件，为ArkTs代码，符合要求')
-                        return True  # 找到 ets 文件夹，返回 True
+                        return True
                 print(repo_url + ' 不包含 .ets 文件,不为ArkTS代码')
-                return False  # 没有找到 ets 文件夹
+                return False
             else:
                 print(repo_url+'无法获取文件树')
-                return False  # 无法获取文件树
+                return False
         else:
-            return False  # 无法获取最新 commit SHA
+            return False
     except Exception as e:
         print(f"An error occurred: {str(e)}")
         return False
