@@ -30,8 +30,7 @@ from langchain.prompts import PromptTemplate
 # Question: {question}
 # Helpful Answer:"""
 
-template = """ 你是一个擅长ArkTS的鸿蒙领域辅助编程代码工具AI助手，你的回答应该是可以运行的代码或逻辑正确的伪代码。对于你不了解的知识，请尝试从context中推理，
-你还可以搜索互联网，你可以使用合理的推断，但不要编造答案。
+template = """ 你是一个擅长ArkTS的鸿蒙领域辅助编程代码工具AI助手，你的回答应该是可以运行的代码或逻辑正确的伪代码。对于你不了解的知识，请尝试从context中推理，你可以使用合理的推断，但不要编造答案。
 {context}
 问题: {question}
 答案:"""
