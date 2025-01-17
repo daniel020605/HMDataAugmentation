@@ -19,6 +19,9 @@ def read_repos(file_path):
 
 def clone_repo(repo_url, clone_path):
     try:
+        if not os.path.exists(clone_path):
+            os.makedirs(clone_path, exist_ok=True)
+
         headers = {
             'Authorization': f'token {GITHUB_TOKEN}',
             'Accept': 'application/vnd.github.v3+json'
@@ -33,7 +36,6 @@ def clone_repo(repo_url, clone_path):
             for chunk in response.iter_content(chunk_size=8192):
                 file.write(chunk)
 
-        os.makedirs(clone_path, exist_ok=True)
         subprocess.run(['tar', '-xzf', tarball_path, '--strip-components=1', '-C', clone_path], check=True)
         os.remove(tarball_path)
     except (requests.RequestException, subprocess.CalledProcessError) as e:
@@ -54,15 +56,23 @@ def run_pipeline(clone_path):
 
 def delete_repo(clone_path):
     try:
-        subprocess.run(['rm', '-rf', clone_path], check=True)
+        if os.path.exists(clone_path):
+            subprocess.run(['rm', '-rf', clone_path], check=True)
+        else:
+            print(f"Path {clone_path} does not exist, skipping deletion.")
     except subprocess.CalledProcessError as e:
         print(f"Error deleting {clone_path}: {e}")
 
 def main():
-    repos = read_repos('repos.txt')
+    repos = read_repos('extracted_urls.txt')
     for repo_url in repos:
         repo_name = repo_url.split('/')[-1]
         clone_path = os.path.join("/Users/daniel/Desktop/Android/", repo_name)
+        output_path = f"./functions/{repo_name}.json"
+
+        if os.path.exists(output_path):
+            print(f"Output for {repo_name} already exists, skipping.")
+            continue
 
         try:
             clone_repo(repo_url, clone_path)
