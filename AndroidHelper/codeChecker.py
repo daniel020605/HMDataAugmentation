@@ -28,42 +28,43 @@ def run_command(command, cwd=None):
     except Exception as e:
         print(f"Error while executing command: {e}")
         return False
+def change_gradlew_permissions(project_path):
+    chmod_command = f"chmod +x {project_path}/gradlew"
+    return run_command(chmod_command)
+
+def sync_project_with_gradle_files(project_path):
+    print("Syncing project with Gradle files...")
+    sync_command = "./gradlew --refresh-dependencies"
+    return run_command(sync_command, cwd=project_path)
+
+def run_lint_check(project_path):
+    print("Running lint...")
+    lint_command = "./gradlew lint"
+    return run_command(lint_command, cwd=project_path)
+
+def build_project(project_path):
+    print("Building the project...")
+    build_command = "./gradlew build"
+    return run_command(build_command, cwd=project_path)
 
 def check_and_build_android_project(project_path):
-    """
-    对指定路径下的 Android 项目进行代码检查和编译
-    """
     if not os.path.exists(project_path):
         print(f"Error: Path {project_path} does not exist.")
         return False
 
-    chmod_command = f"chmod +x {project_path}/gradlew"
-    chmod_success = run_command(chmod_command)
-    if not chmod_success:
+    if not change_gradlew_permissions(project_path):
         print("Error while changing gradlew permissions.")
         return False
 
-    # Step 1: Sync project with Gradle files
-    print("Syncing project with Gradle files...")
-    sync_command = "./gradlew --refresh-dependencies"
-    sync_success = run_command(sync_command, cwd=project_path)
-    if not sync_success:
+    if not sync_project_with_gradle_files(project_path):
         print("Sync failed. Please check the errors and try again.")
         return False
 
-    # Step 2: Run lint to check the code
-    print("Running lint...")
-    lint_command = "./gradlew lint"
-    lint_success = run_command(lint_command, cwd=project_path)
-    if not lint_success:
+    if not run_lint_check(project_path):
         print("Lint failed. Please fix the issues and try again.")
         return False
 
-    # Step 3: Build the project
-    print("Building the project...")
-    build_command = "./gradlew build"
-    build_success = run_command(build_command, cwd=project_path)
-    if not build_success:
+    if not build_project(project_path):
         print("Build failed. Please check the errors and try again.")
         return False
 
