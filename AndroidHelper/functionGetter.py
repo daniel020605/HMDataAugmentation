@@ -2,6 +2,7 @@ import os
 import subprocess
 import requests
 
+from AndroidHelper.UIGetter import get_UI
 from AndroidHelper.codeChecker import check_and_build_android_project
 from AndroidHelper.projectAnalyser import extract_functions_from_project, save_functions_to_json
 from AndroidHelper.projectPreprocessor import gradle_source_replace
@@ -46,11 +47,14 @@ def run_pipeline(clone_path):
         project_name = clone_path.split('/')[-1]
         project_path = "/Users/daniel/Desktop/Android/" + project_name
         output_path = f"./functions/{project_name}.json"
+        UI_path = "./UI/"
 
+        # 任务列表
         # gradle_source_replace(project_path)
         # check_and_build_android_project(project_path)
-        functions_dict = extract_functions_from_project(project_path)
-        save_functions_to_json(functions_dict, output_path)
+        get_UI(project_path, UI_path)
+        # functions_dict = extract_functions_from_project(project_path)
+        # save_functions_to_json(functions_dict, output_path)
     except Exception as e:
         print(f"Error running pipeline in {clone_path}: {e}")
 
@@ -70,9 +74,10 @@ def main():
         clone_path = os.path.join("/Users/daniel/Desktop/Android/", repo_name)
         output_path = f"./functions/{repo_name}.json"
 
-        if os.path.exists(output_path):
-            print(f"Output for {repo_name} already exists, skipping.")
-            continue
+        # 重复检查
+        # if os.path.exists(output_path):
+        #     print(f"Output for {repo_name} already exists, skipping.")
+        #     continue
 
         try:
             clone_repo(repo_url, clone_path)
