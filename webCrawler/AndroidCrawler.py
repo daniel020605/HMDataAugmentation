@@ -11,10 +11,13 @@ import logging
 
 urllib3.disable_warnings(InsecureRequestWarning)
 MAX_DEPTH = 3
-
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 error_log_file = 'error_log.txt'
 csv_file = 'crawled_files.csv'
+
+# 开关变量和特定字符串
+FILTER_ENABLED = True
+FILTER_STRING = 'https://developer.android.com/reference'
 
 def fetch_url_content(url):
     session = requests.Session()
@@ -40,11 +43,18 @@ def parse_android_docs(content, base_url):
     for link in soup.find_all('a', href=True):
         href = link['href']
         if href.startswith('http') or href.startswith('https'):
-            docs.append(href)
+            full_url = href
         elif href.startswith('//'):
-            docs.append(f"https:{href}")
+            full_url = f"https:{href}"
         elif href.startswith('/'):
-            docs.append(urljoin(base_url, href))
+            full_url = urljoin(base_url, href)
+        else:
+            continue
+
+        if FILTER_ENABLED and not full_url.startswith(FILTER_STRING):
+            continue
+
+        docs.append(full_url)
     return docs
 
 def save_docs(docs, output_dir, base_url, depth):
