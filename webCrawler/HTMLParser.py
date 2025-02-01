@@ -1,9 +1,14 @@
 import os
 from bs4 import BeautifulSoup
 
-def html_to_text(html_content):
+def get_article(html_content):
     soup = BeautifulSoup(html_content, 'html.parser')
     article = soup.find('article')
+    return article
+def html_to_text(html_content):
+    if not html_content:
+        return ''  # 或者返回其他适当的默认值
+    article = get_article(html_content)
     if article:
         text = article.get_text()
         # 清除空行和[NBSP]

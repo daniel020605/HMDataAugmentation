@@ -8,7 +8,7 @@ import urllib3
 from urllib3.exceptions import InsecureRequestWarning
 from urllib.parse import urljoin
 import logging
-from HTMLParser import html_to_text
+from HTMLParser import html_to_text, get_article
 from NJUBoxClient import NJUBoxClient
 import configparser
 
@@ -18,7 +18,7 @@ config.read("../secret.properties")
 
 urllib3.disable_warnings(InsecureRequestWarning)
 MAX_DEPTH = 3
-LOCAL_STORAGE = False
+LOCAL_STORAGE = True
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 error_log_file = 'error_log.txt'
 csv_file = 'crawled_files.csv'
@@ -73,8 +73,21 @@ def parse_android_docs(content, base_url):
 
         docs.append(full_url)
     return docs
+def is_url_crawled(url):
+    if not os.path.exists(csv_file):
+        # 如果没有则创建
+        with open(csv_file, 'w', newline='', encoding='utf-8') as csvfile:
+            csvwriter = csv.writer(csvfile)
+            csvwriter.writerow(['url', 'file', 'depth', 'parent_url'])
+        return False
+    with open(csv_file, 'r', encoding='utf-8') as csvfile:
+        csvreader = csv.reader(csvfile)
+        for row in csvreader:
+            if row[0] == url:
+                return True
+    return False
 
-def save_docs(docs, output_dir, base_url, depth):
+def save_docs(docs, output_dir, base_url, depth, parent_url=None):
     if depth > MAX_DEPTH:
         return
 
@@ -88,14 +101,13 @@ def save_docs(docs, output_dir, base_url, depth):
             if not is_url_crawled(doc):
                 logging.info(f"Fetching URL: {doc}")
                 doc_content = fetch_url_content(doc)
-                doc_content = html_to_text(doc_content)
                 if doc_content is None:
                     continue
 
                 try:
                     with open(file_path, 'w', encoding='utf-8') as file:
-                        file.write(doc_content)
-
+                        # file.write(html_to_text(doc_content))
+                        file.write(str(get_article(doc_content)))
                     if not LOCAL_STORAGE:
                         try:
                             njuClient.uploadFile(file_path, NJU_REPO_ID, '/', 'Android开发文档')
@@ -105,8 +117,7 @@ def save_docs(docs, output_dir, base_url, depth):
                             with open(error_log_file, 'a') as f:
                                 f.write(f"Error uploading {file_path} to NJUBox: {e}\n")
 
-
-                    csvwriter.writerow([doc, file_path, depth])
+                    csvwriter.writerow([doc, file_path, depth, parent_url])
                     csvfile.flush()  # 确保数据及时写入文件
                     logging.info(f"Saved document: {doc_name}")
                 except Exception as e:
@@ -114,22 +125,7 @@ def save_docs(docs, output_dir, base_url, depth):
                         f.write(f"Error saving {doc}: {e}\n")
                 time.sleep(2)
                 new_docs = parse_android_docs(doc_content, base_url)
-                save_docs(new_docs, output_dir, base_url, depth + 1)
-
-def is_url_crawled(url):
-    if not os.path.exists(csv_file):
-        # 如果没有则创建
-        with open(csv_file, 'w', newline='', encoding='utf-8') as csvfile:
-            csvwriter = csv.writer(csvfile)
-            csvwriter.writerow(['url', 'file', 'depth'])
-        return False
-    with open(csv_file, 'r', encoding='utf-8') as csvfile:
-        csvreader = csv.reader(csvfile)
-        for row in csvreader:
-            if row[0] == url:
-                return True
-    return False
-
+                save_docs(new_docs, output_dir, base_url, depth + 1, doc)
 def main():
 
     content = fetch_url_content(BASE_URL)
