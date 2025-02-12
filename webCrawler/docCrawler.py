@@ -1,3 +1,5 @@
+import os
+
 import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
@@ -31,13 +33,13 @@ def get_content(response):
     if response.status_code == 200:
         soup = BeautifulSoup(response.content, 'html.parser')
 
-        # 查找并提取所有<p>和<pre>标签内容
-        elements = soup.find_all(['p', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ol', 'ul'])
+        # elements = soup.find_all(['p', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ol', 'ul', 'table'])
+        elements = soup.find_all(['body'])
         non_empty_elements = []
 
         for element in elements:
-            if element.get_text().strip() and not element.find_parents(['p', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ol', 'ul']):
-                non_empty_elements.append(element)
+            if str(element).strip():
+                non_empty_elements.append(str(element).strip())
                 # print(element.get_text())
 
         return non_empty_elements
@@ -96,13 +98,18 @@ def doc_pipe(topic, doc_name):
     document = get_document_by_id(doc_name, "", topic, "cn")
     if document:
         doc_paragraphs = get_content(document)
+        # Ensure the directory exists
+        os.makedirs(f'./{topic}', exist_ok=True)
         # print(document.json())
         with open(f'./{topic}/{doc_name}.txt', 'w') as file:
             for paragraph in doc_paragraphs:
-                file.write(paragraph.get_text() + '\n')
+                file.write(paragraph + '\n')
 
 
 def get_by_topic(topic):
+    # Ensure the directory exists
+    os.makedirs('./dir', exist_ok=True)
+
     catalog_tree_list = get_catalog(topic)
     if catalog_tree_list:
         leaf_nodes = find_leaf_nodes(catalog_tree_list)
@@ -118,8 +125,12 @@ def get_by_topic(topic):
 
 if __name__ == '__main__':
     # 需要提前创建对应文件夹
-    # "harmonyos-guides-V5" "harmonyos-guides-V5" "best-practices-V5" "harmonyos-releases-V5" "harmonyos-faqs-V5"
+    # "harmonyos-guides-V5" "harmonyos-references-V5" "best-practices-V5" "harmonyos-releases-V5" "harmonyos-faqs-V5"
+    get_by_topic("harmonyos-references-V5")
+    get_by_topic("harmonyos-releases-V5")
+    get_by_topic("best-practices-V5")
     get_by_topic("harmonyos-faqs-V5")
+    get_by_topic("harmonyos-guides-V5")
 
     # 计算/docs目录下的文件包括多少字符：9402554
 
