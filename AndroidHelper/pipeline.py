@@ -3,7 +3,7 @@ from codeChecker import check_and_build_android_project
 from projectPreprocessor import gradle_source_replace
 
 if __name__ == '__main__':
-    project_name = "android-final"
+    project_name = "AndroidPicker"
     project_path = "/Users/daniel/Desktop/Android/" + project_name
     output_path = f"./functions/{project_name}.json"
 

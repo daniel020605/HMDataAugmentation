@@ -27,5 +27,5 @@ def gradle_source_replace(project_path):
         file.write(new_content)
 
 if __name__ == '__main__':
-    project_path = "/Users/daniel/Desktop/Android/FakeBiliBili"
+    project_path = "/Users/daniel/Desktop/Android/AndroidPicker"
     gradle_source_replace(project_path)
