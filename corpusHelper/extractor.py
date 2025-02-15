@@ -3,162 +3,253 @@ import os
 from bs4 import BeautifulSoup
 import re
 
-def process_file(file_path):
-    
+from docutils.nodes import description
+from tqdm import tqdm
+
+
+def is_file_processed(file_path, output_folder):
+    output_file_path = os.path.join(output_folder, os.path.basename(file_path).replace('.html', '.sql'))
+    return os.path.exists(output_file_path)
+
+def process_file(file_path, output_folder):
+    if is_file_processed(file_path, output_folder):
+        print(f"Skipping already processed file: {file_path}")
+        return
+
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+    sql_statements = ""
+
     with open(file_path, 'r', encoding='utf-8') as file:
         html_content = file.read()
     soup = BeautifulSoup(html_content, 'html.parser')
 
-    # 根据文件内容调用相应的处理函数
+    if os.path.basename(file_path).startswith("errorcode"):
+        sql_statements += extract_error_code_info(soup)
     if soup.find('div', {'id': '\\"成员变量\\"'}):
-        extract_class_info(soup)
+        sql_statements += (extract_class_info(soup))
     if soup.find('div', {'id': '\\"枚举\\"'}):
-        find_enum_section(soup)
+        sql_statements += (find_enum_section(soup))
     if soup.find('div', {'id': '\\"枚举类型说明\\"'}):
-        find_enum_section2(soup)
+        sql_statements += (find_enum_section2(soup))
     if soup.find('div', {'id': '\\"函数说明\\"'}):
-        find_functions_section(soup)
+        sql_statements += (find_functions_section(soup))
     if soup.find('div', {'id': '\\"成员变量\\"'}):
-        extract_class_info(soup)
+        sql_statements += (extract_class_info(soup))
     if soup.find('div', {'id': '\\"类型定义\\"'}):
-        extract_type_definitions(soup)
+        sql_statements += (extract_type_definitions(soup))
+    if soup.find('div', {'id': '\\"pub-attribs\\"'}):
+        sql_statements += (extract_struct_info(soup))
+
+    output_file_path = os.path.join(output_folder, os.path.basename(file_path).replace('.html', '.sql'))
+    with open(output_file_path, 'w', encoding='utf-8') as output_file:
+        output_file.write(sql_statements + '\n')
+
+
+def extract_error_code_info(soup):
+    error_codes = []
+
+    sections = soup.find_all('div', class_='\\"section\\"')
+    for section in sections:
+        error_code = section.find('h4').text.strip()
+        error_info_tag = section.find('p', string='错误信息')
+        error_info = error_info_tag.find_next_sibling('p').text.strip() if error_info_tag and error_info_tag.find_next_sibling('p') else ''
+        error_description_tag = section.find('p', string='错误描述')
+        error_description = error_description_tag.find_next_sibling('p').text.strip() if error_description_tag and error_description_tag.find_next_sibling('p') else ''
+        possible_causes_tag = section.find('p', string='可能原因')
+        possible_causes = [li.text.strip() for li in possible_causes_tag.find_next_sibling('ol').find_all('li')] if possible_causes_tag and possible_causes_tag.find_next_sibling('ol') else []
+        handling_steps_tag = section.find('p', string='处理步骤')
+        handling_steps = [li.text.strip() for li in handling_steps_tag.find_next_sibling('ol').find_all('li')] if handling_steps_tag and handling_steps_tag.find_next_sibling('ol') else []
+
+        error_codes.append({
+            "error_code": error_code,
+            "error_info": error_info,
+            "error_description": error_description,
+            "possible_causes": possible_causes,
+            "handling_steps": handling_steps
+        })
+
+    sql_statements = ""
+    for error in error_codes:
+        sql_statements += f"INSERT INTO ErrorCodes (ErrorCode, ErrorInfo, ErrorDescription, PossibleCauses, HandlingSteps) VALUES ('{error['error_code']}', '{error['error_info']}', '{error['error_description']}', '{json.dumps(error['possible_causes'], ensure_ascii=False)}', '{json.dumps(error['handling_steps'], ensure_ascii=False)}');\n"
+
+    return sql_statements
+
 
 
 def find_enum_section(soup):
-# 定位到 id 为 "枚举" 的 div 标签
     enum_section = soup.find('div', {'id': '\\"枚举\\"'})
     res = ""
 
-    if enum_section:
-        # 提取枚举数据
-        enum_data = []
-        for row in enum_section.find_all('tr')[1:]:  # 跳过表头
-            name_cell, desc_cell = row.find_all('td')
-            enum_name = name_cell.find('a').text.strip()
-            description = desc_cell.text.strip()
-            enum_values = re.findall(r'(\w+)\s*=\s*(\d+)', name_cell.text)
-            for value_name, value in enum_values:
-                enum_data.append((enum_name, value_name, value, description))
+    system_capability = ''
+    api_level = ''
 
-        # 生成插入语句
+    overview_section = soup.find('div', {'id': '\\"概述\\"'})
+    if overview_section:
+        # Extract system capability
+        system_capability_tag = overview_section.find('p', text=re.compile(r'系统能力：'))
+        if system_capability_tag:
+            system_capability = system_capability_tag.text.split('：')[-1].strip()
+
+        # Extract API level
+        api_level_tag = overview_section.find('p', text=re.compile(r'起始版本：'))
+        if api_level_tag:
+            api_level = api_level_tag.text.split('：')[-1].strip()
+
+    if enum_section:
+        enum_data = []
+        for row in enum_section.find_all('tr')[1:]:
+            name_cell, desc_cell = row.find_all('td')
+            name_anchor = name_cell.find('a')
+            if name_anchor:
+                enum_name = name_anchor.text.strip()
+                description = desc_cell.text.strip()
+                enum_values = re.findall(r'(\w+)\s*=\s*(\d+)', name_cell.text)
+                for value_name, value in enum_values:
+                    enum_data.append((enum_name, value_name, value, description+api_level))
+
         for enum_name, value_name, value, description in enum_data:
-            res.append(f"INSERT INTO HMEnums (EnumName, SystemCapability, EnumValueName, EnumValue, Description) VALUES ('{enum_name}', 'SystemCapability.Communication.Bluetooth.Core', '{value_name}', '{value}', '{description}');\n")
+            res += f"INSERT INTO HMEnums (EnumName, SystemCapability, EnumValueName, EnumValue, Description) VALUES ('{enum_name}', '{system_capability}', '{value_name}', '{value}', '{description}');\n"
         return res
     else:
         print("未找到 id 为 '枚举' 的 div 标签")
+        return ''
+
 
 def find_enum_section2(soup):
-    # 定位到 id 为 "枚举类型说明" 的 div 标签
     enum_type_section = soup.find('div', {'id': '\\"枚举类型说明\\"'})
     res = ""
 
+    system_capability = ''
+    api_level = ''
+
+    overview_section = soup.find('div', {'id': '\\"概述\\"'})
+    if overview_section:
+        # Extract system capability
+        system_capability_tag = overview_section.find('p', text=re.compile(r'系统能力：'))
+        if system_capability_tag:
+            system_capability = system_capability_tag.text.split('：')[-1].strip()
+
+        # Extract API level
+        api_level_tag = overview_section.find('p', text=re.compile(r'起始版本：'))
+        if api_level_tag:
+            api_level = api_level_tag.text.split('：')[-1].strip()
+
     if enum_type_section:
-        # 找到下一个 div 标签
         next_div = enum_type_section.find_next('div')
-        
+
         if next_div:
-            # 提取枚举数据
             enum_name = next_div.find('h4').text.strip().replace('[h2]', '')
-            description = next_div.find('p', text='定义签名验签参数类型。').text.strip()
+            description_tag = next_div.find('p', text='定义签名验签参数类型。')
+            description = description_tag.text.strip() if description_tag else ''
             enum_data = []
-            
-            for row in next_div.find_all('tr')[1:]:  # 跳过表头
+
+            for row in next_div.find_all('tr')[1:]:
                 value_name, value_desc = row.find_all('td')
                 value_name = value_name.text.strip()
                 value_desc = value_desc.text.strip()
-                enum_data.append((enum_name, value_name, value_desc, description))
-            
-            # 生成插入语句
+                enum_data.append((enum_name, value_name, value_desc, description + api_level))
+
             for enum_name, value_name, value_desc, description in enum_data:
-                res.append(f"INSERT INTO HMEnums (EnumName, SystemCapability, EnumValueName, EnumValue, Description) VALUES ('{enum_name}', 'SystemCapability.Communication.Bluetooth.Core', '{value_name}', NULL, '{value_desc}');")
+                res += f"INSERT INTO HMEnums (EnumName, SystemCapability, EnumValueName, EnumValue, Description) VALUES ('{enum_name}', '{system_capability}', '{value_name}', NULL, '{value_desc}');\n"
         else:
             print("未找到下一个 div 标签")
         return res
     else:
         print("未找到 id 为 '枚举类型说明' 的 div 标签")
+        return ''
 
 
 def find_functions_section(soup):
-    # 定位到 id 为 "函数说明" 的 div 标签
     function_section = soup.find('div', {'id': '\\"函数说明\\"'})
     res = ""
-    
+
+    system_capability = ''
+    api_level = ''
+
+    overview_section = soup.find('div', {'id': '\\"概述\\"'})
+    if overview_section:
+        # Extract system capability
+        system_capability_tag = overview_section.find('p', text=re.compile(r'系统能力：'))
+        if system_capability_tag:
+            system_capability = system_capability_tag.text.split('：')[-1].strip()
+
+        # Extract API level
+        api_level_tag = overview_section.find('p', text=re.compile(r'起始版本：'))
+        if api_level_tag:
+            api_level = api_level_tag.text.split('：')[-1].strip()
+
     if function_section:
-        # 找到接下来的所有 div 标签
         next_divs = function_section.find_all_next('div', class_='\\"section\\"')
-        
+
         for next_div in next_divs:
-            try:
-                function_name = next_div.find('h4').text.strip().replace('[h2]', '')
-                function_signature = next_div.find('pre', class_='\\"screen\\"').text.strip()
-                description = next_div.find('p', string='描述').find_next_sibling('p').text.strip()
-                # version = next_div.find('p', string='起始版本：').find_next_sibling('p').text.strip()
-                
-                # 提取返回类型
-            # 提取返回类型
+            function_name_tag = next_div.find('h4')
+            function_signature_tag = next_div.find('pre', class_='\\"screen\\"')
+            description_tag = next_div.find('p', string='描述')
+
+            if function_name_tag and function_signature_tag:
+                function_name = function_name_tag.text.strip().replace('[h2]', '')
+                function_signature = function_signature_tag.text.strip()
+                description = description_tag.find_next_sibling('p').text.strip() if description_tag else ''
+
                 return_type_match = re.match(r'^(const\s+)?(\w+\s*\*?)', function_signature)
                 return_type = return_type_match.group(2) if return_type_match else ''
-                
-      
-                # 提取参数
+
                 parameters = []
-                param_section = next_div.find('p', string='参数:').find_next_sibling('div', class_='\\"tablenoborder\\"')
-                if param_section:
-                    for row in param_section.find_all('tr')[1:]:  # 跳过表头
-                        param_name, param_desc = row.find_all('td')
-                        param_name = param_name.text.strip()
-                        param_desc = param_desc.text.strip()
-                        param_type = re.search(r'\b(\w+)\b', param_desc).group(1) if re.search(r'\b(\w+)\b', param_desc) else ''
-                        parameters.append({
-                            "param_name": param_name,
-                            "param_type": param_type,
-                            "required": "true"
-                        })
-   
-                # 将参数列表转换为 JSON 字符串
+                param_section_tag = next_div.find('p', string='参数:')
+                if param_section_tag:
+                    param_section = param_section_tag.find_next_sibling('div', class_='\\"tablenoborder\\"')
+                    if param_section:
+                        for row in param_section.find_all('tr')[1:]:
+                            param_name, param_desc = row.find_all('td')
+                            param_name = param_name.text.strip()
+                            param_desc = param_desc.text.strip()
+                            param_type = re.search(r'\b(\w+)\b', param_desc).group(1) if re.search(r'\b(\w+)\b', param_desc) else ''
+                            parameters.append({
+                                "param_name": param_name,
+                                "param_type": param_type,
+                                "required": "true"
+                            })
+
                 parameters_json = json.dumps(parameters, ensure_ascii=False)
-               
-        
-                # 提取返回值
+
                 return_values = []
-                return_section = next_div.find('p', string='返回：').find_next_sibling('p')
-                while return_section and return_section.name == 'p':
-                    return_value = return_section.text.strip()
-                    if ' - ' in return_value:
-                        value, info = return_value.split(' - ', 1)
-                        return_values.append({
-                            "value": value.strip(),
-                            "info": info.strip()
-                        })
+                return_section = next_div.find('p', string='返回：')
+                if return_section:
                     return_section = return_section.find_next_sibling('p')
-                
-                # 将返回值列表转换为 JSON 字符串
+                    while return_section and return_section.name == 'p':
+                        return_value = return_section.text.strip()
+                        if ' - ' in return_value:
+                            value, info = return_value.split(' - ', 1)
+                            return_values.append({
+                                "value": value.strip(),
+                                "info": info.strip()
+                            })
+                        return_section = return_section.find_next_sibling('p')
+
                 return_values_json = json.dumps(return_values, ensure_ascii=False)
-                
-                 # 提取错误码
+
                 error_codes = []
-                error_section = next_div.find('p', string='返回：').find_next_sibling('p')
-                while error_section and error_section.name == 'p':
-                    error_code = error_section.text.strip()
-                    if ' - ' in error_code:
-                        value, info = error_code.split(' - ', 1)
-                        error_codes.append({
-                            "value": value.strip(),
-                            "info": info.strip()
-                        })
+                error_section = next_div.find('p', string='返回：')
+                if error_section:
                     error_section = error_section.find_next_sibling('p')
-                
-                # 将错误码列表转换为 JSON 字符串
+                    while error_section and error_section.name == 'p':
+                        error_code = error_section.text.strip()
+                        if ' - ' in error_code:
+                            value, info = error_code.split(' - ', 1)
+                            error_codes.append({
+                                "value": value.strip(),
+                                "info": info.strip()
+                            })
+                        error_section = error_section.find_next_sibling('p')
+
                 error_codes_json = json.dumps(error_codes, ensure_ascii=False)
-                
-                # 生成插入语句
-                res.append(f"INSERT INTO HMFunctions (FunctionName, FunctionParameters, ReturnType, ReturnValue, FullFunctionName, RequiredPermissions, SystemCapability, ErrorCodes, Example, FunctionDescription) VALUES ('{function_name}', '{str(parameters_json)}', '{return_type}', '{return_values_json}', '{function_signature}', '-', 'SystemCapability.Communication.Bluetooth.Core', '{error_codes_json}', NULL, '{description}');")
-            except AttributeError:
-                # 跳过不包含函数内容的 div 标签
-                continue
+
+                res += (f"INSERT INTO HMFunctions (FunctionName, FunctionParameters, ReturnType, ReturnValue, FullFunctionName, RequiredPermissions, SystemCapability, ErrorCodes, Example, FunctionDescription) VALUES ('{function_name}', '{str(parameters_json)}', '{return_type}', '{return_values_json}', '{function_signature}', '-', '{system_capability}', '{error_codes_json}', NULL, '{description}');\n")
         return res
     else:
         print("未找到 id 为 '函数说明' 的 div 标签")
+        return ''
 
 
 def extract_class_info(soup):
@@ -168,16 +259,19 @@ def extract_class_info(soup):
     # 提取成员变量
     member_variables = []
     member_section = soup.find('div', {'id': '\\"成员变量\\"'})
+
     if member_section:
         rows = member_section.find_all('tr')[1:]  # 跳过表头
         for row in rows:
-            name_cell, desc_cell = row.find_all('td')
-            member_name = name_cell.text.strip()
-            member_desc = desc_cell.text.strip()
-            member_variables.append({
-                "name": member_name,
-                "description": member_desc
-            })
+            cells = row.find_all('td')
+            if len(cells) == 2:
+                name_cell, desc_cell = cells
+                member_name = name_cell.text.strip()
+                member_desc = desc_cell.text.strip()
+                member_variables.append({
+                    "name": member_name,
+                    "description": member_desc
+                })
 
         # 将成员变量列表转换为 JSON 字符串
         member_variables_json = json.dumps(member_variables, ensure_ascii=False)
@@ -195,10 +289,52 @@ def extract_class_info(soup):
         """
         return sql
 
+
+
+def extract_struct_info(soup):
+    struct_section = soup.find('div', {'id': '\\"pub-attribs\\"'})
+    res = ""
+
+    if struct_section:
+        # Extract class name
+        class_name = soup.find('h1').text.strip()
+
+        # Extract member variables
+        member_variables = []
+        rows = struct_section.find_all('tr')[1:]  # Skip the header row
+        for row in rows:
+            cells = row.find_all('td')
+            if len(cells) == 2:
+                name_cell, desc_cell = cells
+                member_type = name_cell.text.strip().split('\n')[0]
+                member_name = name_cell.text.strip().split('\n')[-1]
+                member_desc = desc_cell.text.strip()
+                member_variables.append({
+                    "type": member_type,
+                    "name": member_name,
+                    "description": member_desc
+                })
+
+        # Convert member variables list to JSON string
+        member_variables_json = json.dumps(member_variables, ensure_ascii=False)
+
+        # Generate SQL insert statement
+        sql = f"""
+        INSERT INTO HMStructs (
+            StructName, MemberVariables
+        ) VALUES (
+            '{class_name}', '{member_variables_json}'
+        );
+        """
+        return sql
+    else:
+        print("未找到 id 为 'pub-attribs' 的 div 标签")
+        return ''
+
 def extract_type_definitions(soup):
     # 定位到 id 为 "类型定义" 的 div 标签
     type_def_section = soup.find('div', {'id': '\\"类型定义\\"'})
-
+    res = ""
     if type_def_section:
         # 提取类型定义数据
         type_definitions = []
@@ -226,17 +362,19 @@ def extract_type_definitions(soup):
 
         # 生成插入语句
         for type_def in type_definitions:
-                    sql = f"INSERT INTO HMTypeDefinitions (TypeName, TypeCategory, Description) VALUES ('{type_def['TypeName']}', '{type_def['TypeCategory']}', '{type_def['Description']}');"
-                    return sql
+            sql = f"INSERT INTO HMTypeDefinitions (TypeName, TypeCategory, Description) VALUES ('{type_def['TypeName']}', '{type_def['TypeCategory']}', '{type_def['Description']}');"
+            res += sql + '\n'
+        return res
     else:
         print("未找到 id 为 '类型定义' 的 div 标签")
 
-def process_folder(folder_path):
+
+def process_folder(folder_path, output_folder):
     for root, dirs, files in os.walk(folder_path):
-        for file in files:
+        for file in tqdm(files):
             if file.endswith('.html'):
                 file_path = os.path.join(root, file)
-                process_file(file_path)
+                process_file(file_path, output_folder)
 
 # with open('/Users/daniel/Desktop/Projects/HMDataAugmentation/webCrawler/harmonyos-references-V5/dataguard-V5.html', 'r', encoding='utf-8') as file:
 #     html_content = file.read()
@@ -247,6 +385,7 @@ def process_folder(folder_path):
 # find_enum_section(soup)
 # find_enum_section2(soup)
 # find_functions_section(soup)
-
-path = '/Users/daniel/Desktop/Projects/HMDataAugmentation/webCrawler/harmonyos-references-V5'
-process_folder(path)
+if __name__ == '__main__':
+    path = './harmonyos-references-V5'
+    output_folder = './harmony-references-V5-sql'
+    process_folder(path, output_folder)
