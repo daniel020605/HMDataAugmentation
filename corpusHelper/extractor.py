@@ -12,7 +12,7 @@ def is_file_processed(file_path, output_folder):
 
 def process_file(file_path, output_folder):
     if is_file_processed(file_path, output_folder):
-        print(f"Skipping already processed file: {file_path}")
+        # print(f"Skipping already processed file: {file_path}")
         return
 
     if not os.path.exists(output_folder):
@@ -39,8 +39,11 @@ def process_file(file_path, output_folder):
         sql_statements += (extract_type_definitions(soup))
     if soup.find('div', {'id': '\\"pub-attribs\\"'}):
         sql_statements += (extract_struct_info(soup))
-    if soup.find('div', {'id': '\\"接口\\"'}):
-        sql_statements += ((soup))
+
+    if soup.find('div', {'id': '\\"子组件\\"'}):
+        sql_statements += (extract_component_info(soup))
+
+
     output_file_path = os.path.join(output_folder, os.path.basename(file_path).replace('.html', '.sql'))
     with open(output_file_path, 'w', encoding='utf-8') as output_file:
         output_file.write(sql_statements + '\n')
@@ -245,7 +248,8 @@ def find_functions_section(soup):
 
                 error_codes_json = json.dumps(error_codes, ensure_ascii=False)
 
-                res += (f"INSERT INTO HMFunctions (FunctionName, FunctionParameters, ReturnType, ReturnValue, FullFunctionName, RequiredPermissions, SystemCapability, ErrorCodes, Example, FunctionDescription) VALUES ('{function_name}', '{str(parameters_json)}', '{return_type}', '{return_values_json}', '{function_signature}', '-', '{system_capability}', '{error_codes_json}', NULL, '{description}');\n")
+                res += (f"INSERT INTO HMFunctions (FunctionName, FunctionParameters, ReturnType, ReturnValue, FullFunctionName, RequiredPermissions, SystemCapability, ErrorCodes, Example, FunctionDescription)"
+                        f" VALUES ('{function_name}', '{str(parameters_json)}', '{return_type}', '{return_values_json}', '{function_signature}', '-', '{system_capability}', '{error_codes_json}', NULL, '{description}');\n")
         return res
     else:
         print("未找到 id 为 '函数说明' 的 div 标签")
@@ -369,6 +373,131 @@ def extract_type_definitions(soup):
         print("未找到 id 为 '类型定义' 的 div 标签")
 
 
+from extractTool import table2json
+
+def extract_component_info(soup):
+    res = ""
+    title_text = ""
+    sub_component_text = ""
+    interfaces_text = ""
+    attributes_text = ""
+    event_text = ""
+    system_capabilities_text = ""
+    params_text = ""
+    example_text = ""
+    note_text = ""
+
+    title_soup = soup.find('h1')
+    if title_soup:
+        title_text = title_soup.text
+
+    sub_component_soup = soup.find('div', {'id': '\\"子组件\\"'})
+    if sub_component_soup:
+        sub_component_text = sub_component_soup.text
+
+    interfaces_soup = soup.find('div', {'id': '\\"接口\\"'})
+
+    if interfaces_soup:
+        function_declare_text = ''
+        function_desc_text = ''
+        sub_meta_api_text = ''
+        sub_system_capability_text = ''
+
+        sub_meta_api = interfaces_soup.find('p', text=re.compile(r'元服务API：'))
+        if sub_meta_api:
+            sub_meta_api_text = sub_meta_api.text
+        sub_system_capability = interfaces_soup.find('p', text=re.compile(r'系统能力：'))
+        if sub_system_capability:
+            sub_system_capability_text = sub_system_capability.text
+
+        function_declare = interfaces_soup.find('p', text=re.compile(r'[a-zA-Z]*\([a-zA-Z:|\s]*\)'))
+        if function_declare:
+            function_declare_text = function_declare.text
+            function_desc = function_declare.next('p')
+            if function_desc:
+                function_desc_text = function_desc.text
+        table_soup = interfaces_soup.find('table')
+        interface_info = table2json(table_soup)
+        # SQL
+
+        # todo: unsolved return_type
+        return_type = 'void'
+        return_values_json = '[]'
+        function_name = function_declare_text.split('(')[0]
+        function_signature = function_declare_text
+        sub_sql = f"INSERT INTO HMFunctions (FunctionName, FunctionParameters, ReturnType, ReturnValue, FullFunctionName, RequiredPermissions, SystemCapability, ErrorCodes, Example, FunctionDescription)"\
+                  f" VALUES ('{function_name}', '{interface_info}', '{return_type}', '{return_values_json}', '{function_signature}', '-', '{sub_system_capability_text}', NULL, NULL, {function_desc_text+sub_meta_api_text+sub_system_capability_text});\n"
+
+        next_div = interfaces_soup.find_next_sibling('div')
+        while next_div and re.match(r'^[a-zA-Z]', next_div.get('id', '')):
+            next_div = next_div.find_next_sibling('div')
+
+
+
+    attributes_soup = soup.find('div', {'id': '\\"属性\\"'})
+    if attributes_soup:
+        # 在接下来的几个div中，解析所有id是英文开头的div，直到遇到非英文开头div截止
+        next_div = attributes_soup.find_next_sibling('div')
+        while next_div and re.match(r'^[a-zA-Z\[]', next_div.get('id', '')):
+            sub_title_text = ''
+            sub_meta_api_text = ''
+            sub_system_capabilities_text = ''
+            sub_table_text = ''
+
+            function_declare_text = ''
+            function_desc_text = ''
+
+            function_declare = next_div.find('p', text=re.compile(r'[a-zA-Z]*\([a-zA-Z:|\s]*\)'))
+            if function_declare:
+                function_declare_text = function_declare.text
+                function_desc = function_declare.next('p')
+                if function_desc:
+                    function_desc_text = function_desc.text
+
+            sub_title = next_div.find('h4')
+            if sub_title:
+                sub_title_text = sub_title.text
+
+            sub_meta_api = next_div.find('p', text=re.compile(r'元服务API：'))
+            if sub_meta_api:
+                sub_meta_api_text = sub_meta_api.text
+
+            sub_system_capabilities = next_div.find('p', text=re.compile(r'系统能力：'))
+            if sub_system_capabilities:
+                sub_system_capabilities_text = sub_system_capabilities.text
+
+            sub_table = next_div.find('table')
+            if sub_table:
+                sub_table_text = table2json(sub_table)
+
+            attributes_text = f"""{{
+                'title': {sub_title_text},
+                'meta_api': {sub_meta_api_text},
+                'system_capabilities': {sub_system_capabilities_text},
+                'function_declare': {function_declare_text},
+                'function_desc': {function_desc_text},
+                'table': {sub_table_text}                
+            }}"""
+
+            next_div = next_div.find_next_sibling('div')
+
+    system_capabilities = soup.find('div', {'id': '\\"系统能力\\"'})
+    system_capabilities_text = system_capabilities.text if system_capabilities else ''
+    params = soup.find('div', {'id': '\\"参数\\"'})
+    note = soup.find('div', {'class': '\\"note\\"'})
+    event = soup.find('div', {'id': '\\"事件\\"'})
+    example = soup.find('div', {'id': '\\"示例\\"'})
+
+    sql = f"""
+    INSERT INTO Components (
+        ComponentName, SubComponents, Attributes, Interfaces, SystemCapabilities, Parameters, Events, RelatedInfo, Description
+    ) VALUES (
+        '{title_text}', '{sub_component_text}', '{attributes_text}', '{interfaces_text}', '{system_capabilities_text}', '{params_text}', {event_text},'{example_text}', '{note_text}'
+    );\n
+    """
+    res += sql
+    return res
+
 def process_folder(folder_path, output_folder):
     for root, dirs, files in os.walk(folder_path):
         for file in tqdm(files):
@@ -386,6 +515,9 @@ def process_folder(folder_path, output_folder):
 # find_enum_section2(soup)
 # find_functions_section(soup)
 if __name__ == '__main__':
-    path = './harmonyos-references-V5'
-    output_folder = './harmony-references-V5-sql'
-    process_folder(path, output_folder)
+    # path = './harmonyos-references-V5'
+    # output_folder = './harmony-references-V5-sql'
+    # process_folder(path, output_folder)
+    output_folder = './'
+    file_path = './harmonyos-references-V5/ts-basic-components-textpicker-V5.html'
+    process_file(file_path, output_folder)
