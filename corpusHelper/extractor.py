@@ -482,14 +482,17 @@ def extract_component_info(soup):
             next_div = next_div.find_next_sibling('div')
 
     system_capabilities = soup.find('div', {'id': '\\"系统能力\\"'})
+    system_capabilities_text = system_capabilities.text if system_capabilities else ''
     params = soup.find('div', {'id': '\\"参数\\"'})
     note = soup.find('div', {'class': '\\"note\\"'})
+    event = soup.find('div', {'id': '\\"事件\\"'})
+    example = soup.find('div', {'id': '\\"示例\\"'})
 
     sql = f"""
     INSERT INTO Components (
-        ComponentName, SubComponents, Attributes, Interfaces, SystemCapabilities, Parameters, RelatedInfo, Description
+        ComponentName, SubComponents, Attributes, Interfaces, SystemCapabilities, Parameters, Events, RelatedInfo, Description
     ) VALUES (
-        '{title_text}', '{sub_component_text}', '{attributes_text}', '{interfaces_text}', '{system_capabilities_text}', '{params_text}', '{related_info_text}', '{description_text}'
+        '{title_text}', '{sub_component_text}', '{attributes_text}', '{interfaces_text}', '{system_capabilities_text}', '{params_text}', {event_text},'{example_text}', '{note_text}'
     );\n
     """
     res += sql
