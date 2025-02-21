@@ -3,7 +3,6 @@ import os
 from bs4 import BeautifulSoup
 import re
 
-from docutils.nodes import description
 from tqdm import tqdm
 
 
@@ -40,7 +39,8 @@ def process_file(file_path, output_folder):
         sql_statements += (extract_type_definitions(soup))
     if soup.find('div', {'id': '\\"pub-attribs\\"'}):
         sql_statements += (extract_struct_info(soup))
-
+    if soup.find('div', {'id': '\\"接口\\"'}):
+        sql_statements += ((soup))
     output_file_path = os.path.join(output_folder, os.path.basename(file_path).replace('.html', '.sql'))
     with open(output_file_path, 'w', encoding='utf-8') as output_file:
         output_file.write(sql_statements + '\n')
@@ -87,12 +87,12 @@ def find_enum_section(soup):
     overview_section = soup.find('div', {'id': '\\"概述\\"'})
     if overview_section:
         # Extract system capability
-        system_capability_tag = overview_section.find('p', text=re.compile(r'系统能力：'))
+        system_capability_tag = overview_section.find('p', string=re.compile(r'系统能力：'))
         if system_capability_tag:
             system_capability = system_capability_tag.text.split('：')[-1].strip()
 
         # Extract API level
-        api_level_tag = overview_section.find('p', text=re.compile(r'起始版本：'))
+        api_level_tag = overview_section.find('p', string=re.compile(r'起始版本：'))
         if api_level_tag:
             api_level = api_level_tag.text.split('：')[-1].strip()
 
@@ -126,12 +126,12 @@ def find_enum_section2(soup):
     overview_section = soup.find('div', {'id': '\\"概述\\"'})
     if overview_section:
         # Extract system capability
-        system_capability_tag = overview_section.find('p', text=re.compile(r'系统能力：'))
+        system_capability_tag = overview_section.find('p', string=re.compile(r'系统能力：'))
         if system_capability_tag:
             system_capability = system_capability_tag.text.split('：')[-1].strip()
 
         # Extract API level
-        api_level_tag = overview_section.find('p', text=re.compile(r'起始版本：'))
+        api_level_tag = overview_section.find('p', string=re.compile(r'起始版本：'))
         if api_level_tag:
             api_level = api_level_tag.text.split('：')[-1].strip()
 
@@ -140,7 +140,7 @@ def find_enum_section2(soup):
 
         if next_div:
             enum_name = next_div.find('h4').text.strip().replace('[h2]', '')
-            description_tag = next_div.find('p', text='定义签名验签参数类型。')
+            description_tag = next_div.find('p', string='定义签名验签参数类型。')
             description = description_tag.text.strip() if description_tag else ''
             enum_data = []
 
@@ -170,12 +170,12 @@ def find_functions_section(soup):
     overview_section = soup.find('div', {'id': '\\"概述\\"'})
     if overview_section:
         # Extract system capability
-        system_capability_tag = overview_section.find('p', text=re.compile(r'系统能力：'))
+        system_capability_tag = overview_section.find('p', string=re.compile(r'系统能力：'))
         if system_capability_tag:
             system_capability = system_capability_tag.text.split('：')[-1].strip()
 
         # Extract API level
-        api_level_tag = overview_section.find('p', text=re.compile(r'起始版本：'))
+        api_level_tag = overview_section.find('p', string=re.compile(r'起始版本：'))
         if api_level_tag:
             api_level = api_level_tag.text.split('：')[-1].strip()
 
