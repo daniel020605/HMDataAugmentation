@@ -11,9 +11,9 @@ def is_file_processed(file_path, output_folder):
     return os.path.exists(output_file_path)
 
 def process_file(file_path, output_folder):
-    if is_file_processed(file_path, output_folder):
-        # print(f"Skipping already processed file: {file_path}")
-        return
+    # if is_file_processed(file_path, output_folder):
+    #     print(f"Skipping already processed file: {file_path}")
+        # return
 
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
@@ -40,7 +40,7 @@ def process_file(file_path, output_folder):
     if soup.find('div', {'id': '\\"pub-attribs\\"'}):
         sql_statements += (extract_struct_info(soup))
 
-    if soup.find('div', {'id': '\\"子组件\\"'}):
+    if soup.find('div', {'id': '\\"子组件\\"'}) or soup.find("div", {'id':'\\"接口\\"'}):
         sql_statements += (extract_component_info(soup))
 
 
@@ -386,6 +386,7 @@ def extract_component_info(soup):
     params_text = ""
     example_text = ""
     note_text = ""
+    interface_info = ""
 
     title_soup = soup.find('h1')
     if title_soup:
@@ -403,21 +404,26 @@ def extract_component_info(soup):
         sub_meta_api_text = ''
         sub_system_capability_text = ''
 
-        sub_meta_api = interfaces_soup.find('p', text=re.compile(r'元服务API：'))
+        sub_meta_api = interfaces_soup.find('strong', string=re.compile(r'元服务API：'))
         if sub_meta_api:
             sub_meta_api_text = sub_meta_api.text
-        sub_system_capability = interfaces_soup.find('p', text=re.compile(r'系统能力：'))
+        sub_system_capability = interfaces_soup.find('strong', string=re.compile(r'系统能力：'))
         if sub_system_capability:
-            sub_system_capability_text = sub_system_capability.text
+            sub_system_capability = sub_system_capability.parent if sub_system_capability.find_parent() else sub_system_capability
+            if sub_system_capability:
+                sub_system_capability_text = sub_system_capability.text
 
-        function_declare = interfaces_soup.find('p', text=re.compile(r'[a-zA-Z]*\([a-zA-Z:|\s]*\)'))
+        function_declare = interfaces_soup.find('p', string=re.compile(r'[a-zA-Z]*\([a-zA-Z:|\s?]*\)'))
         if function_declare:
             function_declare_text = function_declare.text
-            function_desc = function_declare.next('p')
-            if function_desc:
-                function_desc_text = function_desc.text
+            # fix: function_desc_text
+            # function_desc = function_declare.next('p')
+            # if function_desc:
+            #     function_desc_text = function_desc.text
         table_soup = interfaces_soup.find('table')
-        interface_info = table2json(table_soup)
+        if table_soup:
+            interface_info = table2json(table_soup)
+
         # SQL
 
         # todo: unsolved return_type
@@ -426,19 +432,28 @@ def extract_component_info(soup):
         function_name = function_declare_text.split('(')[0]
         function_signature = function_declare_text
         sub_sql = f"INSERT INTO HMFunctions (FunctionName, FunctionParameters, ReturnType, ReturnValue, FullFunctionName, RequiredPermissions, SystemCapability, ErrorCodes, Example, FunctionDescription)"\
-                  f" VALUES ('{function_name}', '{interface_info}', '{return_type}', '{return_values_json}', '{function_signature}', '-', '{sub_system_capability_text}', NULL, NULL, {function_desc_text+sub_meta_api_text+sub_system_capability_text});\n"
-
+                  f" VALUES ('{function_name}', '{interface_info}', '{return_type}', '{return_values_json}', '{function_signature}', '-', '{sub_system_capability_text}', NULL, NULL, '{function_desc_text+sub_meta_api_text+sub_system_capability_text}');\n"
+        res += sub_sql
         next_div = interfaces_soup.find_next_sibling('div')
         while next_div and re.match(r'^[a-zA-Z]', next_div.get('id', '')):
             next_div = next_div.find_next_sibling('div')
 
+        interfaces_text = f"""{{
+            "function_name":"{function_name}",
+            "function_params":"{interface_info}",
+            "return_type":"{return_type}",
+            "return_value":"{return_values_json}",
+            "full_function":"{function_signature}",
+            "system_capability":"{system_capabilities_text}",
+            "examples":"{example_text}"
+        }}"""
 
 
     attributes_soup = soup.find('div', {'id': '\\"属性\\"'})
     if attributes_soup:
         # 在接下来的几个div中，解析所有id是英文开头的div，直到遇到非英文开头div截止
         next_div = attributes_soup.find_next_sibling('div')
-        while next_div and re.match(r'^[a-zA-Z\[]', next_div.get('id', '')):
+        while next_div and re.match(r'\\"[a-zA-Z0-9]+\\"', next_div.get('id')):
             sub_title_text = ''
             sub_meta_api_text = ''
             sub_system_capabilities_text = ''
@@ -447,12 +462,13 @@ def extract_component_info(soup):
             function_declare_text = ''
             function_desc_text = ''
 
-            function_declare = next_div.find('p', text=re.compile(r'[a-zA-Z]*\([a-zA-Z:|\s]*\)'))
+            function_declare = next_div.find('p', text=re.compile(r'[a-zA-Z]*\([a-zA-Z:|\s?]*\)'))
             if function_declare:
                 function_declare_text = function_declare.text
-                function_desc = function_declare.next('p')
-                if function_desc:
-                    function_desc_text = function_desc.text
+                # fix:
+                # function_desc = function_declare.next('p')
+                # if function_desc:
+                #     function_desc_text = function_desc.text
 
             sub_title = next_div.find('h4')
             if sub_title:
@@ -462,15 +478,17 @@ def extract_component_info(soup):
             if sub_meta_api:
                 sub_meta_api_text = sub_meta_api.text
 
-            sub_system_capabilities = next_div.find('p', text=re.compile(r'系统能力：'))
+            sub_system_capabilities = next_div.find('strong', string=re.compile(r'系统能力：'))
             if sub_system_capabilities:
-                sub_system_capabilities_text = sub_system_capabilities.text
+                sub_system_capabilities = sub_system_capabilities.parent if sub_system_capabilities.find_parent() else sub_system_capabilities
+                if sub_system_capabilities:
+                    sub_system_capabilities_text = sub_system_capabilities.text
 
             sub_table = next_div.find('table')
             if sub_table:
                 sub_table_text = table2json(sub_table)
 
-            attributes_text = f"""{{
+            attributes_text += f"""{{
                 'title': {sub_title_text},
                 'meta_api': {sub_meta_api_text},
                 'system_capabilities': {sub_system_capabilities_text},
@@ -482,19 +500,77 @@ def extract_component_info(soup):
             next_div = next_div.find_next_sibling('div')
 
     system_capabilities = soup.find('div', {'id': '\\"系统能力\\"'})
-    system_capabilities_text = system_capabilities.text if system_capabilities else ''
-    params = soup.find('div', {'id': '\\"参数\\"'})
-    note = soup.find('div', {'class': '\\"note\\"'})
-    event = soup.find('div', {'id': '\\"事件\\"'})
-    example = soup.find('div', {'id': '\\"示例\\"'})
+    if system_capabilities:
+        system_capabilities_text = system_capabilities.text
 
-    sql = f"""
-    INSERT INTO Components (
-        ComponentName, SubComponents, Attributes, Interfaces, SystemCapabilities, Parameters, Events, RelatedInfo, Description
-    ) VALUES (
-        '{title_text}', '{sub_component_text}', '{attributes_text}', '{interfaces_text}', '{system_capabilities_text}', '{params_text}', {event_text},'{example_text}', '{note_text}'
-    );\n
-    """
+    params = soup.find('div', {'id': '\\"参数\\"'})
+    if params:
+        params_text = params.text.strip()
+    note = soup.find('div', {'class': '\\"note\\"'})
+    if note:
+        note_text = note.text.strip()
+    event = soup.find('div', {'id': '\\"事件\\"'})
+    if event:
+        events = []
+        next_div = event.find_next_sibling('div')
+
+        while next_div and re.match(r'\\"[a-zA-Z-]+\\"', next_div.get('id')):
+            event_name_text = ''
+            event_desc_text = ''
+            sub_system_capability_text = ''
+            sub_api_text = ''
+            sub_params_text = ''
+
+            event_name = next_div.find('p', string=re.compile(r'[a-zA-Z]*\([a-zA-Z:|\s?]*\)'))
+            if event_name:
+                event_name_text = event_name.text
+                event_desc = event_name.find_next_sibling('p')
+                if event_desc:
+                    event_desc_text = event_desc.text
+
+            sub_system_capability = next_div.find('strong', string=re.compile(r'系统能力：'))
+            if sub_system_capability:
+                sub_system_capability = sub_system_capability.parent if sub_system_capability.find_parent() else sub_system_capability
+                if sub_system_capability:
+                    sub_system_capability_text = sub_system_capability.text
+
+            sub_params = next_div.find('div', {'class': '\\"tablenoborder\\"'})
+            if sub_params:
+                sub_params_text = table2json(sub_params)
+            events.append(f"""{{'event_name': {event_name_text}, 'event_desc': {event_desc_text}, 'system_capability': {sub_system_capability_text}, 'params': {sub_params_text}}}""")
+            next_div = next_div.find_next_sibling('div')
+        event_text += '['
+        for item in events:
+            event_text += item + ','
+        event_text.strip(',')
+        event_text += ']'
+    example = soup.find('div', {'id': '\\"示例\\"'})
+    if example:
+        examples = []
+        # 在接下来的几个div中，解析所有id是英文开头的div，直到遇到非英文开头div截止
+        next_div = example.find_next_sibling('div')
+
+        while next_div and re.match(r'^\\"示例', next_div.get('id')):
+            sub_title_text = ""
+            code_text = ""
+
+            sub_title = next_div.find('h4')
+            if sub_title:
+                sub_title_text = sub_title.text
+
+            code = next_div.find('pre')
+            if code:
+                match = re.match(r'//\s*(\w+\.ets)\s*(.*)', code_text, re.DOTALL)
+                if match:
+                    code_text = match.group(2)
+            examples.append(f"""{{
+                'title': {sub_title_text},
+                'code': {code_text}
+                }}
+            """)
+            next_div = next_div.find_next_sibling('div')
+        example_text = str(examples)
+    sql = f"""INSERT INTO Components (ComponentName, SubComponents, Attributes, Interfaces, SystemCapabilities, Parameters, Events, Examples, Description) VALUES ('{title_text}', '{sub_component_text}', '{attributes_text}', '{interfaces_text}', '{system_capabilities_text}', '{params_text}', '{event_text}','{example_text}', '{note_text}');\n"""
     res += sql
     return res
 
@@ -515,9 +591,10 @@ def process_folder(folder_path, output_folder):
 # find_enum_section2(soup)
 # find_functions_section(soup)
 if __name__ == '__main__':
-    # path = './harmonyos-references-V5'
-    # output_folder = './harmony-references-V5-sql'
+    path = './harmonyos-references-V5'
+    output_folder = './harmony-references-V5-sql'
     # process_folder(path, output_folder)
+
     output_folder = './'
     file_path = './harmonyos-references-V5/ts-basic-components-textpicker-V5.html'
     process_file(file_path, output_folder)
