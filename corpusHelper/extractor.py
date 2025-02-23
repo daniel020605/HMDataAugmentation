@@ -11,10 +11,6 @@ def is_file_processed(file_path, output_folder):
     return os.path.exists(output_file_path)
 
 def process_file(file_path, output_folder):
-    # if is_file_processed(file_path, output_folder):
-    #     print(f"Skipping already processed file: {file_path}")
-        # return
-
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
     sql_statements = ""
@@ -42,6 +38,9 @@ def process_file(file_path, output_folder):
 
     if soup.find('div', {'id': '\\"子组件\\"'}) or soup.find("div", {'id':'\\"接口\\"'}):
         sql_statements += (extract_component_info(soup))
+
+    if soup.find('strong', string="起始版本：") and soup.find('h4', string="导入模块"):
+        sql_statements += (extract_module_info(soup))
 
 
     output_file_path = os.path.join(output_folder, os.path.basename(file_path).replace('.html', '.sql'))
@@ -435,7 +434,8 @@ def extract_component_info(soup):
                   f" VALUES ('{function_name}', '{interface_info}', '{return_type}', '{return_values_json}', '{function_signature}', '-', '{sub_system_capability_text}', NULL, NULL, '{function_desc_text+sub_meta_api_text+sub_system_capability_text}');\n"
         res += sub_sql
         next_div = interfaces_soup.find_next_sibling('div')
-        while next_div and re.match(r'^[a-zA-Z]', next_div.get('id', '')):
+        # todo:检验是否可以匹配
+        while next_div and next_div.get('id') is not None and re.match(r'^[a-zA-Z]', next_div.get('id')):
             next_div = next_div.find_next_sibling('div')
 
         interfaces_text = f"""{{
@@ -453,7 +453,7 @@ def extract_component_info(soup):
     if attributes_soup:
         # 在接下来的几个div中，解析所有id是英文开头的div，直到遇到非英文开头div截止
         next_div = attributes_soup.find_next_sibling('div')
-        while next_div and re.match(r'\\"[a-zA-Z0-9]+\\"', next_div.get('id')):
+        while next_div and next_div.get('id') is not None and re.match(r'\\"[a-zA-Z0-9]+\\"', next_div.get('id')):
             sub_title_text = ''
             sub_meta_api_text = ''
             sub_system_capabilities_text = ''
@@ -499,6 +499,7 @@ def extract_component_info(soup):
 
             next_div = next_div.find_next_sibling('div')
 
+
     system_capabilities = soup.find('div', {'id': '\\"系统能力\\"'})
     if system_capabilities:
         system_capabilities_text = system_capabilities.text
@@ -514,7 +515,7 @@ def extract_component_info(soup):
         events = []
         next_div = event.find_next_sibling('div')
 
-        while next_div and re.match(r'\\"[a-zA-Z-]+\\"', next_div.get('id')):
+        while next_div and next_div.get('id') is not None and re.match(r'\\"[a-zA-Z-]+\\"', next_div.get('id')):
             event_name_text = ''
             event_desc_text = ''
             sub_system_capability_text = ''
@@ -550,7 +551,7 @@ def extract_component_info(soup):
         # 在接下来的几个div中，解析所有id是英文开头的div，直到遇到非英文开头div截止
         next_div = example.find_next_sibling('div')
 
-        while next_div and re.match(r'^\\"示例', next_div.get('id')):
+        while next_div and next_div.get('id') is not None and re.match(r'^\\"示例', next_div.get('id')):
             sub_title_text = ""
             code_text = ""
 
@@ -574,12 +575,103 @@ def extract_component_info(soup):
     res += sql
     return res
 
+
+def extract_module_info(soup):
+    res = ""
+
+    title_text = ""
+    module_desc_text = ""
+    version_text = ""
+    import_module_text = ""
+
+    title_soup = soup.find('h1')
+    if title_soup:
+        title_text = title_soup.text
+
+    version_soup = soup.find('strong', string=re.compile(r'起始版本：'))
+    if version_soup:
+        version_soup = version_soup.parent if version_soup.find_parent() else version_soup
+        if version_soup:
+            version_text = version_soup.text
+            module_desc_soup = version_soup.find_previous_sibling()
+            if module_desc_soup:
+                module_desc_text = module_desc_soup.text
+
+    import_module = soup.find('h4', string=re.compile(r'导入模块：'))
+    if import_module:
+        if import_module.find_next_sibling('pre'):
+            import_module_text = import_module.find_next_sibling('pre').text
+
+        next_div = import_module.find_parent().find_next_sibling() if import_module.find_parent() else import_module.find_next_sibling()
+        while next_div:
+            function_full_text = ""
+            function_name_text = ""
+            function_desc_text = ""
+
+            function_full = next_div.find("h4")
+            if function_full:
+                function_full_text = function_full.text
+
+            function_name = next_div.find("p", string=re.compile(r'[a-zA-Z]*\([a-zA-Z:|\s?]*\)'))
+            if function_name:
+                function_name_text = function_name.text
+                function_desc = function_name.find("p")
+                if function_desc:
+                    function_desc_text = function_desc.text
+
+            module_constraint_text = ""
+            module_meta_api_text = ""
+            module_system_capability_text = ""
+            module_version_text = ""
+            module_tables_text = ""
+
+            sub_system_capability = next_div.find('strong', string=re.compile(r'系统能力：'))
+            if sub_system_capability:
+                sub_system_capability = sub_system_capability.parent if sub_system_capability.find_parent() else sub_system_capability
+                if sub_system_capability:
+                    sub_system_capability_text = sub_system_capability.text
+
+            module_constraint = next_div.find('strong', string=re.compile(r'模型约束'))
+            if module_constraint:
+                module_constraint = module_constraint.parent if module_constraint.find_parent() else module_constraint
+                if module_constraint:
+                    module_constraint_text = module_constraint.text
+            module_meta_api = next_div.find('strong', string=re.compile(r'元服务API'))
+            if module_meta_api:
+                module_meta_api = module_meta_api.parent if module_meta_api.find_parent() else module_meta_api
+                if module_meta_api:
+                    module_meta_api_text = module_meta_api.text
+            module_system_capability = next_div.find('strong', string=re.compile(r'系统能力'))
+            if module_system_capability:
+                module_system_capability = module_system_capability.parent if module_system_capability.find_parent() else module_system_capability
+                if module_system_capability:
+                    module_system_capability_text = module_system_capability.text
+            module_version = next_div.find('strong', string=re.compile(r'起始版本'))
+            if module_version:
+                module_version = module_version.parent if module_version.find_parent() else module_version
+                if module_version:
+                    module_version_text = module_version.text
+            table_soup = next_div.find('table')
+            while table_soup:
+                # todo: format table text
+                module_tables_text += table2json(table_soup)
+                table_soup = table_soup.find_next('table')
+
+            sql = f"""INSERT INTO HMModules (ModuleName, ModuleDescription, Version, ImportModule, FunctionName, FunctionDescription, SystemCapability, MetaAPI, SystemCapability, Version, Tables) VALUES ('{title_text}', '{module_desc_text}', '{version_text}', '{import_module_text}', '{function_name_text}', '{function_desc_text}', '{sub_system_capability_text}', '{module_meta_api_text}', '{module_system_capability_text}', '{module_version_text}', '{module_tables_text}');\n"""
+            next_div = next_div.find_next_sibling('div', {'class': '\\"section\\"'})
+
+    return res
+
 def process_folder(folder_path, output_folder):
     for root, dirs, files in os.walk(folder_path):
         for file in tqdm(files):
             if file.endswith('.html'):
                 file_path = os.path.join(root, file)
-                process_file(file_path, output_folder)
+                if is_file_processed(file_path, output_folder):
+                    print(f"Skipping already processed file: {file_path}")
+                else:
+                    # print(f"Processing file: {file_path}")
+                    process_file(file_path, output_folder)
 
 # with open('/Users/daniel/Desktop/Projects/HMDataAugmentation/webCrawler/harmonyos-references-V5/dataguard-V5.html', 'r', encoding='utf-8') as file:
 #     html_content = file.read()
