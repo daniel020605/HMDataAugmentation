@@ -1,0 +1,2 @@
+创建特性实例失败如何处理
+ 请使用查询接口HMS_XEG_GetString或HMS_XEG_EnumerateDeviceExtensionProperties确认XEngine是否支持该扩展。 如果查询支持该扩展，请联系我们。 

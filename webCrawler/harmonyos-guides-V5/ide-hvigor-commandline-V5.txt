@@ -1,0 +1,159 @@
+hvigorw
+hvigor通过hvigorw工具，实现命令行交互。
+配置环境变量
+ 添加hvigorw路径到环境变量。  Windows环境变量设置方法：在系统或者用户的PATH变量中，添加hvigorw的路径：${COMMANDLINE_TOOL_DIR}/command-line-tools/bin，其中COMMANDLINE_TOOL_DIR是命令行工具的安装路径。 macOS环境变量设置方法：          打开终端工具，执行以下命令。          export PATH=${COMMANDLINE_TOOL_DIR}/command-line-tools/bin:$PATH    切换到工程根目录，执行如下命令，查询hvigor版本信息，确认安装成功。hvigorw -v  
+命令行使用方式
+hvigorw命令行格式为：
+hvigorw [taskNames...] <options>
+其中taskNames是任务，可同时执行多个任务，options是可选参数，具体的任务和可选参数请参考常用命令。
+hvigorw命令需要在工程根目录下执行。
+常用命令
+常见的任务和参数如下，更多任务请参考任务详细说明。
+[h2]查询
+参数
+说明
+-h, --help
+打印hvigor的命令帮助信息。
+-v, --version
+打印hvigor版本信息。
+[h2]编译构建
+任务
+说明
+clean
+清理构建产物build目录。
+collectCoverage
+基于打点数据生成覆盖率统计报表。
+assembleHap
+构建Hap应用。
+assembleApp
+构建App应用。
+assembleHsp
+构建Hsp包。
+assembleHar
+构建Har包。
+编译构建命令行常用扩展参数：
+参数
+说明
+-p buildMode={debug | release}
+采用debug/release模式进行编译构建。
+缺省时：构建Hap/Hsp/Har时为debug模式，构建App时为release模式。
+关于构建模式的详细说明，请参考指定构建模式。针对HAR构建，请参考构建HAR。
+-p debuggable=true/false
+该配置会覆盖构建模式中对应的buildOption中的debuggable配置。
+关于debuggable的合并优先级，请参考合并编译选项规则。
+-p product={ProductName}
+指定product进行编译, 编译product下配置的module target。
+缺省时：默认为default。
+-p module={ModuleName}@{TargetName}
+指定模块及target进行编译，可指定多个相同类型的模块进行编译以逗号分割；TargetName不指定时默认为default。
+限制：此参数需要与--mode module参数搭配使用。
+缺省时：执行AssembleHap任务会编译工程下所有模块，默认指定target为default。
+-p ohos-test-coverage={true | false}
+执行测试框架代码覆盖率插桩编译。
+-p coverage={true | false}
+-p parameterFile=param.json/json5
+设置oh-package.json5文件的参数配置文件，其中\"param\"可自行修改为对应配置文件名称。详细使用请参考parameterFile。
+测试相关的命令行：
+命令行
+说明
+hvigorw onDeviceTest -p module={moduleName} -p coverage={true | false} -p scope={suiteName}#{methodName}
+从hvigor 4.3.0版本开始支持。
+通过命令行方式执行Instrument Test。
+ module：执行测试的模块，缺省默认是执行所有模块的用例。HAP/HAR/HSP模块都支持。 coverage：是否需要覆盖率报告，缺省默认为true。 scope：格式为{suiteName}#{methodName}或{suiteName}，分别表示测试用例级别或测试套件级别的测试，缺省默认是执行当前模块的所有用例。 
+多个module和scope之间用逗号分割。
+ 覆盖率测试结果文件：<module-path>/.test/default/outputs/ohosTest/reports 测试结果文件：path_to_project/module_name/.test/default/intermediates/ohosTest/coverage_data/test_result.txt 
+hvigorw test -p module={moduleName} -p coverage={true | false} -p scope={suiteName}#{methodName}
+通过命令行方式执行Local Test。
+ module：执行测试的模块，缺省默认是执行所有模块的用例。HAP/HAR/HSP模块都支持。 coverage：是否需要覆盖率报告，缺省默认为true。 scope：格式为{suiteName}#{methodName}或{suiteName}，分别表示测试用例级别或测试套件级别的测试，缺省默认是执行当前模块的所有用例。 
+多个module和scope之间用逗号分割。
+ 覆盖率测试结果文件：<module-path>/.test/default/outputs/test/reports 测试结果文件：path_to_project/module_name/.test/default/intermediates/test/coverage_data/test_result.txt 
+[h2]日志
+参数
+说明
+-e, --error
+设置hvigor的日志级别为error。
+-w, --warn
+设置hvigor的日志级别为warn。
+-i, --info
+设置hvigor的日志级别为info。
+-d, --debug
+设置hvigor的日志级别为debug。
+--stacktrace，--no-stacktrace
+hvigor默认使能关闭打印所有异常的堆栈信息，如需开启在命令行后添加该选项。
+[h2]可视化
+参数
+说明
+--analyze=normal
+在DevEco Studio中开启Build Analyzer构建分析，设置为普通模式，通过简单打点数据进行分析。
+--config properties.hvigor.analyzeHtml=true
+在工程的.hvigor/report目录下生成构建可视化html文件，该文件可直接在浏览器中打开。
+--analyze=false
+不启用Build Analyzer构建分析。
+--analyze=advanced
+启用Build Analyzer构建分析，并设置为进阶模式，通过更加详细的打点数据进行分析。如果需要更详细的任务耗时数据，请选择该模式。
+--analyze
+同--analyze=normal命令。
+从hvigor 4.3.0开始废弃，请使用--analyze=normal替换。
+--no-analyze
+同--analyze=false命令。
+从hvigor 4.3.0开始废弃，请使用--analyze=false替换。
+--verbose-analyze
+同--analyze=advanced命令。
+从hvigor 4.3.0开始废弃，请使用--analyze=advanced替换。
+[h2]daemon
+参数
+说明
+--daemon
+使能daemon。
+--no-daemon
+hvigor默认使能daemon，如需关闭，可在命令行后添加该选项。
+命令行模式下推荐使用此参数。
+--stop-daemon
+关闭当前工程的daemon进程。
+--stop-daemon-all
+关闭所有工程的daemon进程。
+--status-daemon
+查询当前环境中所有的hvigor daemon进程信息。
+[h2]性能
+参数
+说明
+--parallel, --no-parallel
+hvigor默认使能并行编译能力，如需关闭在命令行后添加该选项。
+--incremental, --no-incremental
+hvigor默认使能增量编译能力，如需关闭在命令行后添加该选项。
+[h2]公共命令
+任务
+说明
+tasks
+打印工程各模块包含的任务信息。
+taskTree
+打印工程各模块的任务依赖关系信息。
+version
+打印hvigor的相关版本信息。
+prune
+清除30天内未使用的hvigor缓存文件并从pnpm存储中删除未引用的包。
+[h2]其他命令
+参数
+说明
+-s,--sync
+处理并持久化hvigor部分工程信息到工程./hvigor/outputs/sync/output.json中。
+-m,--mode
+在对应的目录执行相应的task，例hvigorw clean -m project在工程目录下执行build目录清理（即清理工程级别的build文件夹）。
+--enable-build-script-type-check
+使能工程中hvigorfile.ts的类型检查，该字段已废弃，请使用--type-check替换。
+--type-check, --no-type-check
+hvigor默认使能关闭工程中hvigorfile.ts的类型检查，如需开启，可在命令行后添加该选项。
+--no-pnpm-frozen-lockfile，--pnpm-frozen-lockfile
+hvigor默认使能不忽略pnpm-lock.yaml文件，如需开启，可在命令行后添加该选项。
+忽略pnpm-lock.yaml文件，按照hvigor-config.json5的配置安装hvigor插件的依赖（如果不忽略pnpm-lock.yaml文件，在使用hvigor 2.0.0及以上版本的CI场景下安装hvigor插件依赖时将报错）。
+该命令在4.1 Release及以上版本中已废弃。在CI场景中将自动配置，无需开发者手动配置。
+--config, -c
+指定hvigor-config.json5配置文件中的参数。
+当前仅支持设置properties里的参数，具体支持的参数请查看hvigor-config.json5中properties支持的参数。
+--config properties.key=value 同 -c properties.key=value
+--watch
+使能观察模式，主要用于预览和热加载场景。
+--generate-build-profile, --no-generate-build-profile
+已废弃。使能生成BuildProfile.ets文件。
+--node-home <string>
+指定nodejs路径。

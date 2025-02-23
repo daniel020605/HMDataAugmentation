@@ -1,0 +1,17 @@
+应用文件访问(C/C++)
+场景介绍
+FileIO模块提供了文件基础操作能力。
+基本概念
+结果集：满足使用场景正确的 uri。
+约束限制
+进行文件操作之前，必须保证传入正确有效的uri或path。
+接口说明
+接口的详细说明，请参考API参考
+开发步骤
+在CMake脚本中链接动态库
+CMakeLists.txt中添加以下lib。
+target_link_libraries(sample PUBLIC libohfileio.so)
+添加头文件
+#include <filemanagement/fileio/oh_fileio.h>
+调用OH_FileIO_GetFileLocation接口获取文件存储位置。示例代码如下所示：
+    void GetFileLocationExample() {\n        char *uri = \"file://com.example.demo/data/storage/el2/base/files/test.txt\";\n        FileIO_FileLocation location;\n        FileManagement_ErrCode ret = OH_FileIO_GetFileLocation(uri, strlen(uri), &location);\n        if (ret == 0) {\n            if (location == FileIO_FileLocation::LOCAL) {\n                printf(\"This file is on local.\");\n            } else if (location == FileIO_FileLocation::CLOUD) {\n                printf(\"This file is on cloud.\");\n            } else if (location == FileIO_FileLocation::LOCAL_AND_CLOUD) {\n                printf(\"This file is both on local and cloud.\");\n            }\n        } else {\n            printf(\"GetFileLocation failed, error code is %d\", ret);\n        }\n    }    

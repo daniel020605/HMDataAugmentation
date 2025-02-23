@@ -1,0 +1,35 @@
+ohpm-repo batch_download
+批量下载ohpm-repo或OpenHarmony三方库中心仓的包文件。
+前提条件
+已成功执行 export_pkginfo 命令，生成pkgInfo_xxx.json文件。
+命令格式
+ohpm-repo batch_download <pkg_list>
+功能描述
+根据提供的包名列表用于批量下载ohpm-repo或OpenHarmony三方库中心仓的包文件，并导出zip文件。
+说明：执行 export_pkginfo 命令 生成的pkgInfo_xxx.json文件中记录着ohpm-repo或OpenHarmony三方库中心仓中所有已上架的包，若仅需要批量下载部分包文件，可以手动修改pkgInfo_xxx.json文件，命令只会批量下载pkgInfo_xxx.json文件中指定的包。
+参数
+[h2]<pkg_list>
+类型： String必填参数
+必须在 batch_download 命令后面配置 <pkg_list> 参数，指定执行 export_pkginfo 命令 导出的json文件。
+选项
+[h2]--public-registry
+默认值：无类型：URL
+在batch_download命令后面配置--public-registry  <string>，指定OpenHarmony三方库中心仓registry地址下载包文件。
+[h2]--http-proxy
+默认值：无类型：String
+在batch_download命令后面配置--http-proxy  <string>，发起请求时将为上面配置的--public-registry地址设置代理。
+[h2]--not-use-proxy
+默认值：无类型：String
+在batch_download命令后面配置--not-use-proxy  <string>，发起请求时不会为指定的地址设置代理，如果有个多个地址请使用英文逗号分割并使用url编码转换特殊字符。
+示例
+执行以下命令从ohpm-repo中批量下载包文件：
+ohpm-repo batch_download <pkgInfo_xxxx.json地址>
+结果示例：
+1、生成的zip文件中存在 pkgInfo.json 文件，其中记录了每个包的文件名、包名、组织、上传者、Tag标签，用于在批量上传时准确指定ohpm-repo的数据库中某个用户为某个包的真实上传用户，同时将包的Tag标签一起上传。
+2、命令执行中，如果某个包的用户在ohpm-repo中不存在，将默认指定该包的上传用户为管理员用户或者组织的管理者用户。
+执行以下命令从OpenHarmony三方库中心仓中批量下载包文件：
+ohpm-repo batch_download <pkgInfo_xxxx.json地址> --public-registry <OpenHarmony三方库中心仓registry地址> --http-proxy <配置代理地址> --not-use-proxy <配置不使用代理>
+结果示例：
+PS C:\\Users\\xxxxx\\Desktop> ohpm-repo batch_download C:\\Users\\xxxxx\\Desktop\\pkgInfo_1712069506662.json --public-registry https://ohpm.openharmony.cn/ohpm/\n...\n[2024-04-02T23:16:59.217] [INFO] default - A total of 912 package(s) successfully obtain download url.\n[2024-04-02T23:16:59.217] [INFO] default - A total of 912 package(s) are successfully downloaded.\n[2024-04-02T23:16:59.217] [INFO] default - A total of 912 package(s) are converted successfully.\n[2024-04-02T23:16:59.217] [INFO] default - Packing the .zip file. . .\n[2024-04-02T23:16:59.475] [INFO] default - save the .zip file to : \"C:\\Users\\xxxxx\\Desktop\\batch_download_1712071006796.zip\".
+如果ohpm-repo实例的数据存储类型为filedb，请执行ohpm-repo restart命令重启ohpm-repo服务，以便刷新ohpm-repo网站页面中的数据。该操作会影响正在使用ohpm-repo服务的用户，请提前告知。
+生成的zip文件中存在 pkgInfo.json 文件，其中记录了每个包的文件名、包名、组织、上传者、Tag标签，用于在批量上传时准确指定ohpm-repo的数据库中某个用户为某个包的真实上传用户，同时将包的Tag标签一起上传。当执行batch_download命令时，某个中心仓包的组织为A，若为其指定ohpm-repo的数据库中某用户为其实真实上传用户，ohpm-repo实例中不存在A组织，则该包的真实上传用户将设定为空，并且提醒用户手动创建A组织。之后执行批量上传时同样会提醒该包的A组织在ohpm-repo实例中不存在，需要先手动创建A组织。如果需要自动添加组织，使用batch_publish命令的可选参数--force，将会选取一个管理员用户作为A组织负责人，自动创建A组织后进行该包的上传。

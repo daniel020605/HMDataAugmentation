@@ -1,0 +1,11 @@
+使用get发送网络请求
+场景介绍
+发送一个带有默认HTTP参数的HTTP GET请求，并返回来自服务器的HTTP响应。使用Promise异步回调。常用于从服务器获取数据。
+接口说明
+具体API说明详见接口文档。
+接口名
+描述
+get(url: URLOrString, destination?: ResponseBodyDestination): Promise<Response>
+发送一个带有默认HTTP参数的HTTP GET请求，并返回来自服务器的HTTP响应。使用Promise异步回调。
+使用示例
+ 导入模块。import { rcp } from '@kit.RemoteCommunicationKit';\nimport { BusinessError } from '@kit.BasicServicesKit';  创建会话，会话发起get请求。\"http://www.example.com\"请根据实际情况替换为想要请求的URL地址。const session = rcp.createSession();\nsession.get(\"http://www.example.com/get\").then((response) => {\n  console.info(`Response succeeded: ${response}`);\n}).catch((err: BusinessError) => {\n  console.error(`Response err: Code is ${err.code}, message is ${JSON.stringify(err)}`);\n});  

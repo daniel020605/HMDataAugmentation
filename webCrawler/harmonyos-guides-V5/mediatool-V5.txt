@@ -1,0 +1,10 @@
+mediatool工具
+mediatool是一个轻量级的命令行工具集合，开发者可通过此工具操作媒体库资源。媒体库中的图片视频资源会在系统图库中显示。
+前置条件
+正常连接设备系统设置中开启开发者模式使用hdc shell进入命令行执行模式
+命令行说明
+[h2]mediatool query
+mediatool query <display-name>
+ 该命令能够查询出所有名字为<display-name>的媒体库资源的源文件在设备中的真实路径。
+ 使用示例：
+# 所查询媒体资源存在\n> mediatool query MyImage.jpg\nfind 1 result:\n/storage/cloud/100/files/Photo/2/IMG_1721381297_001.jpg\n\n# 所查询媒体资源不存在\n> mediatool query non_exist.jpg\nThe displayName you want to query do not exist!\nfind 0 result\n\n# 查询的名字格式不正确\n> mediatool query IMG_001\nThe displayName format is not correct!

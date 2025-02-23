@@ -1,0 +1,13 @@
+@typescript-eslint/keyword-spacing
+强制在关键字之前和关键字之后保持一致的空格风格。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/keyword-spacing\": \"error\"\n  }\n}
+选项
+详情请参考@typescript-eslint/keyword-spacing选项。
+正例
+function isSatisfy1(): boolean {\n  return true;\n}\n\nfunction isSatisfy2(): boolean {\n  return false;\n}\n// 默认关键字前至少需要一个空格，关键字后至少需要一个空格\nif (isSatisfy1()) {\n  //...\n} else if (isSatisfy2()) {\n  //...\n} else {\n  //...\n}
+反例
+function isSatisfy1(): boolean {\n  return true;\n}\n\nfunction isSatisfy2(): boolean {\n  return false;\n}\n// 默认关键字前至少需要一个空格，关键字后至少需要一个空格\nif (isSatisfy1()) {\n  //...\n}else if(isSatisfy2()) {\n  //...\n}else{\n  //...\n}
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

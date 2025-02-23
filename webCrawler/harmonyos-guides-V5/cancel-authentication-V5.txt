@@ -1,0 +1,9 @@
+认证过程中取消认证
+统一用户认证框架提供了cancel接口，当应用在认证过程中，需要取消认证时可调用该接口。
+接口说明
+具体参数、返回值、错误码等描述，请参考对应的API文档。
+此处仅展示了取消认证操作的接口，在取消认证前，需要先发起认证，发起认证的接口列表、详细说明可参考发起认证章节和API文档。
+开发步骤
+ 申请权限：ohos.permission.ACCESS_BIOMETRIC。 指定用户认证相关参数AuthParam（包括挑战值、认证类型UserAuthType列表和认证等级AuthTrustLevel），获取认证对象UserAuthInstance，并调用UserAuthInstance.start发起认证。 此步骤详细说明可参考发起认证。 通过使用已经成功发起认证的UserAuthInstance对象调用UserAuthInstance.cancel接口取消本次认证。 
+示例代码为发起认证可信等级≥ATL3的人脸+锁屏密码认证后，取消认证请求：
+import { BusinessError } from  '@kit.BasicServicesKit';\nimport { cryptoFramework } from '@kit.CryptoArchitectureKit';\nimport { userAuth } from '@kit.UserAuthenticationKit';\n\ntry {\n  const rand = cryptoFramework.createRandom();\n  const len: number = 16;\n  const randData: Uint8Array = rand?.generateRandomSync(len)?.data;\n  // 设置认证参数\n  const authParam: userAuth.AuthParam = {\n    challenge: randData,\n    authType: [userAuth.UserAuthType.PIN, userAuth.UserAuthType.FACE],\n    authTrustLevel: userAuth.AuthTrustLevel.ATL3,\n  };\n  // 配置认证界面\n  const widgetParam: userAuth.WidgetParam = {\n    title: '请进行身份认证',\n  };\n  // 获取认证对象\n  const userAuthInstance = userAuth.getUserAuthInstance(authParam, widgetParam);\n  console.log('get userAuth instance success');\n  // 开始认证\n  userAuthInstance.start();\n  console.log('auth start success');\n  // 取消认证\n  userAuthInstance.cancel();\n  console.log('auth cancel success');\n} catch (error) {\n  const err: BusinessError = error as BusinessError;\n  console.error(`auth catch error. Code is ${err?.code}, message is ${err?.message}`);\n}

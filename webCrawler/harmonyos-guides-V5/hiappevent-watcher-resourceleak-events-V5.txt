@@ -1,0 +1,9 @@
+资源泄漏事件介绍
+HiAppEvent提供接口用于订阅系统资源泄漏事件。
+订阅资源泄漏事件（ArkTS）订阅资源泄漏事件（C/C++）
+资源泄漏事件信息中params属性的详细描述如下：
+params属性：
+resource_type属性：
+memory属性：
+fd属性：
+thread属性：

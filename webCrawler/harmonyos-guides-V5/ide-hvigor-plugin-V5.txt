@@ -1,0 +1,19 @@
+开发hvigor插件
+hvigor允许开发者实现自己的插件，开发者可以定义自己的构建逻辑，并与他人共享。
+hvigor主要提供了两种方式来实现插件：基于hvigorfile脚本开发插件、基于typescript项目开发。
+下面的章节中，将以HarmonyOS应用为示例，逐一介绍。
+基于hvigorfile脚本开发
+基于hvigorfile.ts脚本开发的方式，其优点是可实现快速开发，直接编辑工程或模块下hvigorfile.ts即可编写插件代码，不足之处是在多个项目中，无法方便的进行插件代码的复用和共享分发。
+导入模块依赖。// 导入接口\nimport { HvigorPlugin, HvigorNode } from '@ohos/hvigor'; 编写插件代码。在hvigorfile.ts中定义插件方法，实现HvigorPlugin接口。// 实现自定义插件\nfunction customPlugin(): HvigorPlugin {\n    return {\n        pluginId: 'customPlugin',\n        apply(node: HvigorNode) {\n            // 插件主体\n            console.log('hello customPlugin!');\n        }\n    }\n}  在导出声明中使用插件。export default {\n    system: appTasks,\n    plugins:[\n        customPlugin()  // 应用自定义Plugin\n    ]\n} 执行hvigor命令。执行hvigor命令时，在hvigor生命周期配置阶段执行插件中的apply方法。  
+基于typescript项目开发
+基于typescript项目开发较好地弥补了上一小节中使用hvigorfile脚本方式编写插件代码不易复用和共享分发的问题。因此通常情况下推荐此方式开发。
+[h2]初始化typescript项目
+创建一个空目录。在命令行工具中使用cd命令进入空目录下。 安装typescript模块。// 全局安装TypeScript\nnpm install typescript -g 初始化npm项目。执行如下命令，根据命令行指示配置项目。// 初始化一个npm项目\nnpm init  生成typescript配置文件。执行如下命令生成tsconfig.json文件。// 初始化TypeScript配置文件\ntsc --init  typescript项目初始化完成。 
+[h2]开发插件
+配置npm镜像仓库地址。在用户目录下创建或打开.npmrc文件，配置如下信息： registry=https://repo.huaweicloud.com/repository/npm/\n@ohos:registry=https://repo.harmonyos.com/npm/ 添加依赖声明。打开package.json添加devDependencies配置。 \"devDependencies\": {\n    \"@ohos/hvigor\": \"5.2.2\"\n} 安装依赖。执行如下命令安装依赖。npm install  编写插件代码。创建custom-plugin.ts文件，编写插件代码。 import { HvigorNode, HvigorPlugin } from '@ohos/hvigor';\n\nexport function customPlugin(): HvigorPlugin {\n    return {\n        pluginId: 'customPlugin',\n        apply(node: HvigorNode) {\n            console.log('hello customPlugin!');\n        }\n    }\n} 导出插件。创建index.ts文件，并在该文件中声明插件方法的导出。 export { customPlugin } from './src/plugin/custom-plugin'; 
+[h2]发布插件
+typescript项目本质上是一种npm项目，插件发布流程遵循npm发布规范。详情请查询npm官方资料。
+发布npm包流程：
+配置registry。在用户目录下创建.npmrc文件，配置您需要发布的镜像仓库。 registry=[npm镜像仓库地址] 生成AccessToken。执行如下命令，注册并登录npm仓库，在用户目录下.npmrc文件中自动生成token信息。 npm login 发布npm包。执行如下命令，将npm项目打包并发布至镜像仓库。 npm publish 
+[h2]使用插件
+添加依赖。在工程下hvigor/hvigor-config.json5中添加自定义插件依赖，依赖项支持离线插件配置。 \"dependencies\": {\n    \"custom-plugin\": \"1.0.0\"   // 添加自定义插件依赖\n  }  安装依赖。方式1：执行编辑区右上角Install Now或执行菜单File -> Sync and Refresh Project进行工程Sync后，DevEco Studio将会根据hvigor-config.json5中的依赖配置自动安装。方式2：使用hvigorw命令行工具执行任一命令，命令行工具会自动执行安装构建依赖。hvigorw --sync  导入插件。根据插件编写时基于的node节点，确定导入的节点所在的hvigorfile.ts文件，在hvigorfile.ts中导入插件。 import { customPlugin } from 'custom-plugin'; 使用插件。将自定义插件添加到export default的plugins中。export default {\n    system: appTasks,\n    plugins:[\n        customPlugin()  // 应用自定义插件\n    ]\n}  

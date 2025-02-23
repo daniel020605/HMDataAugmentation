@@ -1,0 +1,13 @@
+@hw-stylistic/comma-spacing
+强制数组元素和函数中多个参数之间的逗号后面加空格，逗号前不加空格。该规则仅检查.ets文件类型。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@hw-stylistic/comma-spacing\": \"error\"\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+export {bar, arr};\n\nfunction bar(param1: string, param2: string) {\n  return [param1, param2];\n}\nconst arr = ['s1', 's2', 's3', 's4'];
+反例
+export {arr};\n// A space is required after ','.\n// There should be no space before ','.\nconst arr = ['s1' ,'s2' ,'s3'];
+规则集
+\"plugin:@hw-stylistic/recommended\"\n\"plugin:@hw-stylistic/all\"
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

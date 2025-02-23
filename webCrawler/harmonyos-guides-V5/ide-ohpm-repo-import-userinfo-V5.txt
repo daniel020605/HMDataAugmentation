@@ -1,0 +1,20 @@
+ohpm-repo import_userinfo
+导入用户DB数据。
+前提条件
+已成功执行 export_userinfo 命令。
+命令格式
+ohpm-repo import_userinfo <zip_file> [options]
+功能描述
+根据提供的zip文件导入用户DB数据到ohpm-repo。
+参数
+[h2]<zip_file>
+类型： String必填参数
+必须在 import_userinfo 命令后面配置 <zip_file> 参数，指定执行 export_userinfo 命令 导出的zip文件。
+选项
+[h2]clean-db
+默认值：false类型：Boolean
+可以在 import_userinfo 命令后面配置 --clean-db  参数，指定在导入数据前先清空DB数据。
+示例
+执行以下命令：
+ohpm-repo import_userinfo <zip_file> --clean-db
+结果示例：

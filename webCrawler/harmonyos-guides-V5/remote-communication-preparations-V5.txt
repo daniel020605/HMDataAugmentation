@@ -1,0 +1,14 @@
+开发准备
+申请权限
+[h2]场景概述
+应用在使用Remote Communication Kit能力前，需要检查是否已经获取对应权限。如未获得授权，需要声明对应权限。
+Remote Communication kit所需权限有(除取消网络请求，关闭会话，其余请求都需要权限)：
+ ohos.permission.INTERNET：用于应用的权限，决定是否允许应用访问互联网。 ohos.permission.GET_NETWORK_INFO：用于获取设备网络信息的 API 。 
+必须手动配置上述权限后才能使用，详细配置参见申请权限步骤。
+[h2]申请权限步骤
+需要在entry/src/main路径下的module.json5中配置所需申请的权限。示例代码如下所示：
+{\n  \"module\": {\n    \"requestPermissions\": [\n      {\n        \"name\": \"ohos.permission.INTERNET\"\n      },\n      {\n        \"name\": \"ohos.permission.GET_NETWORK_INFO\" // 如果使用PathPreference的'cellular'模式，则需要额外申请此权限\n      }\n    ]\n  }\n}
+C API开发准备
+除上述权限配置外，C API使用时还需要在CMakeLists.txt中设置动态库路径及头文件路径，并进行链接。
+如编译target为entry，则添加如下命令：
+target_include_directories(entry PUBLIC ${HMOS_SDK_NATIVE}/sysroot/usr/include)\ntarget_link_directories(entry PUBLIC ${HMOS_SDK_NATIVE}/sysroot/usr/lib/aarch64-linux-ohos)\ntarget_link_libraries(entry PUBLIC librcp_c.so) #链接librcp_c.so及其他依赖的so

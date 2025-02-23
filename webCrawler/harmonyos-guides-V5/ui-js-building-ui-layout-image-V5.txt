@@ -1,0 +1,6 @@
+添加图片区域
+添加图片区域通常用image组件来实现，使用的方法和text组件类似。
+图片资源建议放在js\\default\\common目录下，common目录需自行创建，详细的目录结构见目录结构。代码示例如下：
+<!-- xxx.hml -->\n<image class=\"img\" src=\"{{middleImage}}\"></image>
+/* xxx.css */\n.img {  \n  margin-top: 30px;\n  margin-bottom: 30px;\n  height: 385px;\n}
+// xxx.js\nexport default {\n  data: {\n    middleImage: '/common/ice.png',\n  },\n}

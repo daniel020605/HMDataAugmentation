@@ -1,0 +1,21 @@
+识别目标形状
+本章节介绍如何对目标物体进行形状识别，可识别的形状包括矩形和圆形。
+创建AR会话
+创建AR会话并配置为目标形状识别模式。
+AREngine_ARSession *arSession = nullptr;\n// 创建AR会话。\nHMS_AREngine_ARSession_Create(nullptr, nullptr, &arSession);\nAREngine_ARConfig *arConfig = nullptr;\n// 创建AR会话配置器。\nHMS_AREngine_ARConfig_Create(arSession, &arConfig);\n// 设置语义识别模式为目标形状识别。\nHMS_AREngine_ARConfig_SetSemanticMode(arSession, arConfig, ARENGINE_SEMANTIC_MODE_TARGET);\n// 配置器设置给AR会话。\nHMS_AREngine_ARSession_Configure(arSession, arConfig);
+创建可跟踪对象列表
+创建一个可跟踪对象列表targetList，用于存放AR Engine运行过程中检测到的所有可跟踪对象。
+AREngine_ARTrackableList *targetList = nullptr;\nHMS_AREngine_ARTrackableList_Create(arSession, &targetList);
+获取当前环境中的可跟踪对象
+调用HMS_AREngine_ARSession_GetAllTrackables函数，检测当前环境中的所有可跟踪对象，并将结果存放在targetList中。
+HMS_AREngine_ARSession_GetAllTrackables(arSession, ARENGINE_TRACKABLE_TARGET, targetList);
+获取可跟踪对象数量
+调用HMS_AREngine_ARTrackableList_GetSize函数获取当前可跟踪对象数量，结果存放在targetSize中。
+int32_t targetSize = 0;\nHMS_AREngine_ARTrackableList_GetSize(arSession, targetList, &targetSize);
+当targetSize等于0时，代表当前环境中无可跟踪对象。
+当targetSize等于1时，代表当前环境中仅存在1个可跟踪对象。
+当targetSize大于1时，代表当前环境中存在多个可跟踪对象。
+遍历并识别物体形状
+ 当环境中存在一个或多个可跟踪对象时，依次遍历targetList中所有可跟踪对象进行目标形状识别。for (int i = 0; i < targetSize; ++i) {\n    // 遍历可跟踪对象，进行形状识别。\n} 对于第i个对象，创建并获取对象实例。AREngine_ARTrackable *target = nullptr;\nHMS_AREngine_ARTrackableList_AcquireItem(arSession, targetList, i, &target); 获取该实例跟踪状态，当且仅当其跟踪状态为ARENGINE_TRACKING_STATE_TRACKING时，才可进行形状识别。AREngine_ARTrackingState outTrackingState;\nHMS_AREngine_ARTrackable_GetTrackingState(arSession, target, &outTrackingState);\n\nif (AREngine_ARTrackingState::ARENGINE_TRACKING_STATE_TRACKING != outTrackingState) {\n    continue;\n} 获取该实例目标形状，识别结果存放在label中。AREngine_ARTargetShapeLabel label = ARENGINE_TARGET_SHAPE_UNKNOWN;\nHMS_AREngine_ARTarget_GetShapeType(arSession, reinterpret_cast<AREngine_ARTarget *>(target), &label); 其中，AREngine_ARTargetShapeLabel为枚举类型，描述了目标物体形状。 
+销毁可跟踪对象列表
+HMS_AREngine_ARTrackableList_Destroy(targetList);

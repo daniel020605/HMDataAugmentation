@@ -1,0 +1,28 @@
+使用“华为账号登录”按钮登录
+应用可以使用Account Kit提供的华为账号登录按钮获取华为账号用户身份标识UnionID、OpenID，通过UnionID、OpenID完成用户登录；或者与应用账号完成绑定，绑定后用于登录或者验证。
+华为账号登录按钮包含文本、标志和文本、标志三种样式，以满足应用对界面风格一致性和灵活性的要求。
+用户体验设计
+账号登录按钮的用户体验和UX设计需符合【华为账号登录】按钮规范，不符合规范的UX设计可能会对应用上架和用户体验带来影响。
+业务流程
+流程说明：
+1、用户打开应用进行登录，应用设置LoginType类型为LoginType.ID后拉起应用自己的登录页并展示“华为账号登录”按钮，用户点击按钮，请求华为账号授权ID。
+2、如华为账号未登录，将拉起华为账号登录页，用户登录后，将返回UnionID、Authorization Code、OpenID、ID Token数据给应用，应用根据获取到的用户标识，服务端进行安全认证后实现应用登录。
+3、如华为账号已登录，将直接返回UnionID、Authorization Code、OpenID、ID Token数据给应用，应用根据获取到的用户标识，服务端进行安全认证后实现应用登录。
+接口说明
+华为账号登录按钮关键接口如下表所示，具体API说明详见API参考。
+接口名
+描述
+LoginWithHuaweiIDButton
+华为账号Button登录组件。
+当前该组件支持Icon类型按钮、纯文本按钮、Icon和文本混合按钮，如果仍然不能满足开发者的诉求，可以使用BUTTON_CUSTOM类型定义按钮的文字颜色和背景色。
+onClickLoginWithHuaweiIDButton(callback: AsyncCallback<HuaweiIDCredential>): LoginWithHuaweiIDButtonController
+注册华为账号登录按钮的登录事件结果回调。使用callback异步回调。
+setAgreementStatus(agreementStatus: AgreementStatus): LoginWithHuaweiIDButtonController
+设置协议状态方法。如果需要用户同意协议才能完成华为账号登录，请先设置协议状态为NOT_ACCEPTED，当用户同意协议后设置协议状态为ACCEPTED，才可以完成华为账号登录。
+上述接口需在页面或自定义组件生命周期内调用。
+开发前提
+在进行代码开发前，请先确认您已完成配置Client ID工作。该场景无需申请scope权限。
+客户端开发
+ 导入LoginWithHuaweiIDButton模块及相关公共模块。import { LoginWithHuaweiIDButton, loginComponentManager } from '@kit.AccountKit';\nimport { BusinessError } from '@kit.BasicServicesKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit'; 调用LoginWithHuaweiIDButton组件，展示华为账号登录按钮，用户点击华为账号登录按钮后，应用获取到UnionID、Authorization Code、OpenID、ID Token，将数据传给应用服务器，可参考客户端与服务端交互开发的开发步骤a和b，完成服务端开发。应用可以通过公开的网址获取到华为账号服务器发布的公钥，对签名和ID Token中的必要信息进行验证，以证明其没有被篡改过。解析ID Token可参考ID Token解析与验证。@Entry\n@Component\nstruct PreviewLoginButtonPage {\n  // 构造LoginWithHuaweiIDButton组件的控制器\n  controller: loginComponentManager.LoginWithHuaweiIDButtonController =\n    new loginComponentManager.LoginWithHuaweiIDButtonController()\n      .onClickLoginWithHuaweiIDButton((error: BusinessError, response: loginComponentManager.HuaweiIDCredential) => {\n        if (error) {\n          hilog.error(0x0000, 'testTag',\n            `Failed to onClickLoginWithHuaweiIDButton. Code: ${error.code}, message: ${error.message}`);\n          return;\n        }\n\n        if (response) {\n          hilog.info(0x0000, 'testTag', 'Succeeded in getting response.');\n          const authCode = response.authorizationCode;\n          const openID = response.openID;\n          const unionID = response.unionID;\n          const idToken = response.idToken;\n          // 开发者处理authCode、openID、unionID、idToken\n        }\n      });\n\n  build() {\n    Column() {\n      Column() {\n        Column() {\n          LoginWithHuaweiIDButton({\n            params: {\n              // LoginWithHuaweiIDButton支持的样式\n              style: loginComponentManager.Style.BUTTON_RED,\n              // 账号登录按钮在登录过程中展示加载态\n              extraStyle: {\n                buttonStyle: new loginComponentManager.ButtonStyle().loadingStyle({\n                  show: true\n                })\n              },\n              // LoginWithHuaweiIDButton的边框圆角半径\n              borderRadius: 24,\n              // LoginWithHuaweiIDButton支持的登录类型\n              loginType: loginComponentManager.LoginType.ID,\n              // LoginWithHuaweiIDButton支持按钮的样式跟随系统深浅色模式切换\n              supportDarkMode: true,\n              // verifyPhoneNumber：如果华为账号用户在过去90天内未进行短信验证，是否拉起Account Kit提供的短信验证码页面\n              verifyPhoneNumber: true\n            },\n            controller: this.controller\n          })\n        }\n        .height(40)\n      }.width('100%')\n    }\n    .justifyContent(FlexAlign.Center)\n    .constraintSize({ minHeight: '100%' })\n    .margin({\n      left: 16,\n      right: 16\n    })\n  }\n} 
+服务端开发
+ 应用服务器使用Client ID、Client Secret、Authorization Code调用获取用户级凭证的接口向华为账号服务器请求获取Access Token、Refresh Token。 使用Access Token调用解析凭证接口获取用户的UnionID。Access Token过期处理         由于Access Token的有效期仅为60分钟，当Access Token失效或者即将失效时（可通过REST API错误码判断），可以使用Refresh Token（有效期180天）通过刷新凭证向华为账号服务器请求获取新的Access Token。             当Access Token失效时，若应用不使用Refresh Token向华为账号服务器请求获取新的Access Token，账号的授权信息将会失效，导致使用Access Token的功能都会失败。 当Access Token非正常失效（如修改密码、退出账号、删除设备）时，应用可重新登录授权获取Authorization Code，向华为账号服务器请求获取新的Access Token。     Refresh Token过期处理 由于Refresh Token的有效期为180天，当Refresh Token失效后（可通过REST API错误码判断），应用服务器需要通知客户端，重新调用授权接口，请求用户重新授权。 应用在自己的用户体系通过查询获取的UnionID判断该用户是否已关联。如已关联，则完成用户登录；如未关联，则创建新用户，绑定UnionID，完成用户登录。 

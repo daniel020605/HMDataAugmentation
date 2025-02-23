@@ -1,0 +1,14 @@
+@typescript-eslint/no-useless-constructor
+禁止不必要的构造函数。
+不必要的构造函数包括：空的构造函数，或者构造函数中直接执行父类构造函数的逻辑。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/no-useless-constructor\": \"error\"\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+class A {\n  public name: string = 'hello';\n}\n\nexport class B {\n  public name: string = 'name';\n\n  public constructor() {\n    console.info('hello');\n  }\n}\n\nexport class C extends A {\n  public constructor() {\n    super();\n    console.info('hello');\n  }\n}
+反例
+class A {\n  public name: string = 'name';\n\n  constructor() {\n\n  }\n}\n\nexport class B extends A {\n  public name: string = 'name';\n\n  constructor() {\n    super();\n  }\n}
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

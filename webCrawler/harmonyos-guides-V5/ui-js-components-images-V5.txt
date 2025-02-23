@@ -1,0 +1,20 @@
+image开发指导
+image是图片组件，用来渲染展示图片。具体用法请参考image。
+创建image组件
+在pages/index目录下的hml文件中创建一个image组件。
+<!-- index.hml -->\n<div class=\"container\">\n  <image style=\"height: 30%;\" src=\"common/images/bg-tv.jpg\"> </image>\n</div>
+/* xxx.css */\n.container {\n  width: 100%;\n  height: 100%; \n  flex-direction: column;\n  justify-content: center;\n  align-items: center;\n  background-color: #F1F3F5;\n}
+设置image样式
+通过设置width、height和object-fit属性定义图片的宽、高和缩放样式。
+<!-- index.hml -->\n<div class=\"container\">\n  <image src=\"common/images/bg-tv.jpg\"> </image>\n</div>
+/* xxx.css */\n.container {\n  width: 100%;\n  height: 100%;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  background-color:#F1F3F5;\n}\nimage{\n  width: 80%;  \n  height: 500px;\n  border: 5px solid saddlebrown;\n  border-radius: 20px;\n  object-fit: contain;\n  match-text-direction:true;\n}
+加载图片
+图片成功加载时触发complete事件，返回加载的图源尺寸。加载失败则触发error事件，打印图片加载失败。
+<!-- index.hml -->\n<div class=\"container\" >\n  <div>\n    <image src=\"common/images/bg-tv.jpg\" oncomplete=\"imageComplete(1)\" onerror=\"imageError(1)\"> </image>\n  </div>\n  <div>\n    <image src=\"common/images/bg-tv1.jpg\" oncomplete=\"imageComplete(2)\" onerror=\"imageError(2)\"> </image>\n  </div>\n</div>
+/* xxx.css */\n.container{\n  width: 100%;\n  height: 100%;\n  flex-direction: column;\n  justify-content: center;\n  align-self: center;\n  background-color: #F1F3F5;\n}\n.container div{\n  margin-left: 10%;\n  width: 80%;\n  height: 300px;\n  margin-bottom: 40px;\n}
+// index.js\nimport promptAction from '@ohos.promptAction';\nexport default {\n  imageComplete(i,e){\n    promptAction.showToast({\n      message: \"image \"+i+\"'s width\"+ e.width+\"----image \"+i+\"'s height\"+e.height,\n      duration: 3000,\n    })\n  },\n  imageError(i,e){\n    setTimeout(()=>{\n      promptAction.showToast({\n        message: \"Failed to load image \"+i+\".\",\n        duration: 3000,\n      })\n    },3000)\n  }\n}
+场景示例
+在本场景中，开发者长按图片后将慢慢隐藏图片，当完全隐藏后再重新显示原始图片。定时器setInterval每隔一段时间改变图片透明度,实现慢慢隐藏的效果，当透明度为0时清除定时器，设置透明度为1。
+<!-- index.hml -->\n<div class=\"page-container\">\n  <div class=\"content\">\n    <div class=\"image-container\">\n      <image class=\"testimage\" src=\"{{testuri}}\" style=\"opacity:{{imageopacity}};\" onlongpress=\"changeopacity\"> </image>\n    </div>\n    <div class=\"text-container\">\n      <text style=\"font-size: 37px;font-weight:bold;color:orange;text-align: center;width: 100%;\">Touch and hold the image</text>\n    </div>\n  </div>\n</div>
+/* xxx.css */\n.page-container {\n  width: 100%;\n  height: 100%;\n  flex-direction:column;\n  align-self: center;\n  justify-content: center;\n  background-color:#F1F3F5;\n  background-color: #F1F3F5;\n}\n.content{\n  flex-direction:column;\n}\n.image-container {\n  width: 100%;\n  height: 300px;\n  align-items: center;\n  justify-content: center;\n}\n.text-container {\n  margin-top:50px;\n  width: 100%;\n  height: 60px;\n  flex-direction: row;\n  justify-content: space-between;\n}\n.testimage {\n  width: 100%;  height: 400px;   \n  object-fit: scale-down;  \n  border-radius: 20px;\n}
+// index.js\nimport promptAction from '@ohos.promptAction';\nexport default {\n  data: {\n    testuri: 'common/images/bg-tv.jpg',\n    imageopacity:1,\n    timer: null\n  },\n  changeopacity: function () {\n    promptAction.showToast({\n      message: 'Touch and hold the image.'\n    })\n    var opval = this.imageopacity * 20\n    clearInterval(this.timer);\n    this.timer = setInterval(()=>{\n      opval--;\n      this.imageopacity = opval / 20\n      if (opval===0) {\n        clearInterval(this.timer)\n        this.imageopacity = 1\n      }\n    },100);\n  }\n}

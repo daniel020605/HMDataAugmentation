@@ -1,0 +1,5 @@
+应用后台CPU占用峰值
+检测逻辑
+执行hdc shell。执行hidumper --cpuusage <进程pid>命令，获取总的cpu使用率。
+计算逻辑
+执行多轮测试，取最大值为cpu占用峰值，cpu占用率须小于5%。

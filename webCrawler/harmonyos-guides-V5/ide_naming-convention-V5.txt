@@ -1,0 +1,13 @@
+@typescript-eslint/naming-convention
+强制标识符使用一致的命名风格。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/naming-convention\": \"error\"\n  }\n}
+选项
+详情请参考@typescript-eslint/naming-convention选项。
+正例
+// 默认类名为大驼峰的命名风格，函数名为小驼峰的命名风格\nexport class Bar {\n  public meth() {\n    console.info('method');\n  }\n}\n\nexport function foo() {\n  console.info('function');\n}
+反例
+// 默认类名为大驼峰的命名风格，函数名为小驼峰的命名风格\nexport class bar {\n  public Meth() {\n    console.info('method');\n  }\n}\n\nexport function Foo() {\n  console.info('function');\n}
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

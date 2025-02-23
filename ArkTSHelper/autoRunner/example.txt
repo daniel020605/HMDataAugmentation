@@ -1,0 +1,11 @@
+{
+  "numericExample": "@Entry\n@Component\nstruct NumericExample {\n  private myColor = ColorMetrics.numeric(0xff00ff);\n\n  build() {\n    Column() {\n      Text('HEX Color Example')\n        .fontSize(20)\n        .fontColor(this.myColor.color)\n    }\n    .width('100%')\n    .height('100%')\n    .justifyContent(FlexAlign.Center)\n  }\n}",
+
+  "rgbaExample": "@Entry\n@Component\nstruct RgbaExample {\n  private myColor = ColorMetrics.rgba(255, 100, 0, 0.5);\n\n  build() {\n    Column() {\n      Box()\n        .width(150)\n        .height(150)\n        .backgroundColor(this.myColor.color)\n    }\n    .width('100%')\n    .height('100%')\n    .justifyContent(FlexAlign.Center)\n  }\n}",
+
+  "resourceColorExample": "@Entry\n@Component\nstruct ResourceColorExample {\n  private myColor = ColorMetrics.resourceColor($r('app.color.red'));\n\n  build() {\n    Column() {\n      Button('Resource Color')\n        .backgroundColor(this.myColor.color)\n    }\n    .width('100%')\n    .height('100%')\n    .justifyContent(FlexAlign.Center)\n  }\n}",
+
+  "blendColorExample": "@Entry\n@Component\nstruct BlendColorExample {\n  private baseColor = ColorMetrics.numeric(0xff0000);\n  private overlayColor = ColorMetrics.numeric(0x0000ff);\n  private blendedColor = this.baseColor.blendColor(this.overlayColor);\n\n  build() {\n    Column() {\n      Divider()\n        .strokeWidth(8)\n        .color(this.blendedColor.color)\n        .width('80%')\n    }\n    .width('100%')\n    .height('100%')\n    .justifyContent(FlexAlign.Center)\n  }\n}",
+
+  "colorPropertyExample": "@Entry\n@Component\nstruct ColorPropertyExample {\n  private myColor = ColorMetrics.rgba(255, 0, 255, 0.7);\n\n  build() {\n    Column() {\n      Text(this.myColor.color)\n        .fontSize(18)\n        .fontColor('#333')\n    }\n    .width('100%')\n    .height('100%')\n    .justifyContent(FlexAlign.Center)\n  }\n}"
+}

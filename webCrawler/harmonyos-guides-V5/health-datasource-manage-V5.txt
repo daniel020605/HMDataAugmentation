@@ -1,0 +1,34 @@
+管理数据源
+场景介绍
+数据源提供了应用或者设备的信息，每一个运动健康数据必须关联数据源信息，通过DataSourceId进行关联。
+DataSourceId在插入数据源信息时由平台生成，无法更改。
+接口说明
+接口名
+描述
+insertDataSource(dataSource: DataSourceBase): Promise<string>
+插入数据源，入参为数据源基类DataSourceBase。
+readDataSource(request: DataSourceReadRequest): Promise<DataSource[]>
+查询数据源，通过DataSourceReadRequest设置查询条件，可按DataSourceId/包名/设备UniqueId查询数据源。
+updateDataSource(dataSource: DataSource): Promise<void>
+更新数据源，其中数据源的dataSourceId和uniqueId字段无法更新。
+开发前检查
+ 完成申请运动健康服务与配置Client ID。 接口首次调用前，需先使用init方法进行初始化。 需先通过用户授权接口引导用户授权，用户授权任意数据类型权限后，才有权限调用数据源相关接口。 错误码参考ArkTS API错误码，常见问题参考Health Service Kit常见问题。 
+开发步骤
+[h2]插入数据源
+1.导入运动健康服务功能模块及相关公共模块。
+import { healthStore } from '@kit.HealthServiceKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';
+2.创建数据源。
+let dataSource: healthStore.DataSourceBase = {\n  deviceInfo: {\n    uniqueId: 'test',\n    name: 'test', // 插入数据源时此字段必填\n    category: healthStore.DeviceCategory.WEARABLE_BAND, // 插入数据源时此字段必填\n    productId: '0554', // 插入数据源时此字段必填\n    model: 'lotana',\n    manufacturer: 'HUAWEI',\n    mac: 'testDeviceMac',\n    sn: 'testDeviceSn',\n    hardwareVersion: '1',\n    softwareVersion: '2',\n    firmwareVersion: '3',\n    udid: ''\n  }\n}
+try {\n  const dataSourceId = await healthStore.insertDataSource(dataSource);\n  hilog.info(0x0000, 'testTag', `Succeeded in inserting dataSource, the dataSourceId is ${dataSourceId}.`);\n} catch (err) {\n  hilog.error(0x0000, 'testTag', `Failed to insert dataSource. Code: ${err.code}, message: ${err.message}`);\n}
+[h2]读取数据源
+1.导入运动健康服务功能模块及相关公共模块。
+import { healthStore } from '@kit.HealthServiceKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';
+2.创建数据源读取请求。
+let readSourceRequest: healthStore.DataSourceReadRequest = {\n  deviceUniqueId: 'testudidupdate'\n}
+try {\n  let dataSources = await healthStore.readDataSource(readSourceRequest);\n  dataSources.forEach((dataSource) => {\n    hilog.info(0x0000, 'testTag', `Succeeded in reading dataSource, the dataSourceId is ${dataSource.dataSourceId}.`);\n  });\n} catch (err) {\n  hilog.error(0x0000, 'testTag', `Failed to read dataSource. Code: ${err.code}, message: ${err.message}`);\n}
+[h2]更新数据源
+1.导入运动健康服务功能模块及相关公共模块。
+import { healthStore } from '@kit.HealthServiceKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';
+2.创建数据源。
+let newDataSource: healthStore.DataSource = {\n  deviceInfo: {\n    uniqueId: 'test',\n    name: 'test',\n    category: healthStore.DeviceCategory.WEARABLE_BAND,\n    productId: '0554',\n    model: 'lotana',\n    manufacturer: 'HUAWEI',\n    mac: 'testDeviceMac',\n    sn: 'testDeviceSn',\n    hardwareVersion: '1',\n    softwareVersion: '2',\n    firmwareVersion: '3',\n    // 修改udid\n    udid: 'updateudid'\n  },\n  // 此处dataSourceId值为开发步骤插入数据源时，返回的dataSourceId\n  dataSourceId: 'xxx'\n}
+try {\n  await healthStore.updateDataSource(newDataSource);\n  hilog.info(0x0000, 'testTag', 'Succeeded in updating dataSource.');\n} catch (err) {\n  hilog.error(0x0000, 'testTag', `Failed to update dataSource. Code: ${err.code}, message: ${err.message}`);\n}

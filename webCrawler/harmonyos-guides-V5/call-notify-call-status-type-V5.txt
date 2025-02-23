@@ -1,0 +1,12 @@
+向系统通知通话状态改变，并指定通话类型
+场景介绍
+场景一：视频来电，用户接听时，应用向系统通知通话状态的变化（即VOIP_CALL_STATE_ACTIVE状态），并指定通话类型（语音或视频）。
+场景二：通话已经被接听，应用可通过调用该接口，修改通话类型，即，语音升级为视频，或视频降级为语音。
+接口说明
+通知VoIP通话状态变化，并指定通话类型。使用Promise异步回调，具体API说明详见接口文档。
+接口名
+描述
+reportCallStateChange(callId: string, callState: VoipCallState, callType: VoipCallType): Promise<void>
+向系统通知通话状态变化，并指定接听类型。
+开发示例
+import { voipCall } from '@kit.CallKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';\n\nvoipCall.reportCallStateChange(\"callId123\", voipCall.VoipCallState.VOIP_CALL_STATE_ACTIVE, voipCall.VoipCallType.VOIP_CALL_VOICE).then(() => {\n  hilog.info(0x0000, 'testTag', `Succeeded in reporting call state change.`);\n});

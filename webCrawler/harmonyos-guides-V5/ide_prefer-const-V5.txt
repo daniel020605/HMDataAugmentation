@@ -1,0 +1,13 @@
+prefer-const
+推荐声明后未修改值的变量用const关键字来声明。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"prefer-const\": \"error\"\n  }\n}
+选项
+该规则无需配置额外选项。详情请参考eslint/prefer-const选项。
+正例
+const a = 'hello';\nconsole.log(a);
+反例
+// 变量a声明以后未重新赋值，建议用const关键字来声明\nlet a = 'hello';\nconsole.log(a);
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

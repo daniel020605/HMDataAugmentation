@@ -1,0 +1,17 @@
+代码Quick Fix快速修复
+DevEco Studio支持对Quick Fix能力，辅助开发者快速修复ArkTS或C++代码问题。
+查看告警信息：使用双击Shift快捷键打开文件查询框，输入problems打开问题工具面板；双击对应告警信息，可以查看告警的具体位置及原因。
+快速修复：将光标放在错误告警的位置，可在弹出的悬浮窗中查看问题描述和对应修复方式；单击More actions可查看更多修复方法。或是在页面出现灯泡图标时，可点击图标并根据相应建议，实现代码快速修复。
+使用演示
+下面通过示例展示C++代码中快速修复功能的使用方法。
+[h2]填充switch语句
+编辑器支持快速修复方式，对C++代码自动补齐switch条件表达式缺失的case条件，提升编码效率。
+光标悬浮在switch表达式的条件变量处，点击灯泡图标，在下拉菜单中选择Create missing switch cases，完成缺失的case条件补充。
+[h2]使用auto替换类型
+编辑器中可以用 auto 替换 iterator，new expression，cast expression的声明类型。光标悬浮在类型名称处，点击灯泡图标，在下拉菜单中选择Replace the type with 'auto'完成替换。
+[h2]用？：三元操作符替换if-else
+编辑器中支持将if-else语句替换为？：三元操作符。光标放在if表达式的条件处，左侧出现黄色灯泡图标，点击灯泡图标，在下拉菜单中选择Replace 'if else' with '?:'完成替换。
+[h2]从使用处生成构造函数
+如使用了未定义的构造函数，可通过quickfix方式快速生成相应的构造函数定义。点击构造函数名称，左侧出现红色灯泡后，点击灯泡图标选择Create new constructor 'xxx'生成构造函数。
+[h2]将变量拆分为声明和赋值
+光标点击需要拆分的变量，左侧出现黄色灯泡后，点击灯泡图标选择Split into declaration and assignment，将变量的声明赋值语句拆分成声明语句和赋值语句。

@@ -1,0 +1,37 @@
+快速验证
+场景介绍
+当应用对获取的手机号时效性要求不高时，可使用Account Kit提供的手机号授权与快速验证能力，向用户发起手机号授权申请，经用户同意授权后，获取到手机号并为用户提供相应服务。以下对Account kit提供的手机号授权与快速验证能力进行介绍，快速验证手机号功能还可使用场景化控件快速验证手机号Button进行实现。
+对用户选择的华为账号绑定的手机号或者新增的手机号进行验证，不保证是实时的验证，仅首次需要用户授权。
+业务流程
+流程说明：
+ 应用通过传对应scope和permission调用授权API，如果已授权则直接返回临时登录凭证Authorization Code、UnionID、OpenID，如果没有授权则拉起授权页，在用户授权后，返回Authorization Code、UnionID、OpenID。 将Authorization Code传给应用服务器，使用Client ID、Client Secret、Authorization Code从华为服务器中获取Access Token，再使用Access Token请求获取用户信息。 从用户信息中获取到手机号、UnionID、OpenID。 
+接口说明
+获取快速验证手机号关键接口如下表所示，具体API说明详见API参考。
+接口名
+描述
+createAuthorizationWithHuaweiIDRequest(): AuthorizationWithHuaweiIDRequest
+获取授权接口，通过AuthorizationWithHuaweiIDRequest传入返回手机号的scope：phone及返回Authorization Code的permission：serviceauthcode，即可获取到Authorization Code、UnionID、OpenID。
+constructor(context?: common.Context)
+创建授权请求Controller。
+executeRequest(request: AuthenticationRequest): Promise<AuthenticationResponse>
+通过Promise方式执行授权操作。
+上述接口需在页面或自定义组件生命周期内调用。
+开发前提
+1、在进行代码开发前，请先确认您已完成开发准备工作。
+2、应用获取手机号前，需要完成phone（获取您的手机号）的scope权限申请，详情参见配置scope权限，scope权限申请审批未完成或未通过，将报错1001502014 应用未申请scopes或permissions权限。
+细分场景
+对应scope
+权限名称
+权限描述
+权限是否需要申请
+快速验证手机号
+phone
+phone
+获取您的手机号
+是
+3、设备需要登录华为账号，若未登录则拉起登录页面。
+开发步骤
+[h2]客户端开发
+ 导入authentication模块及相关公共模块。import { authentication } from '@kit.AccountKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';\nimport { util } from '@kit.ArkTS';\nimport { BusinessError } from '@kit.BasicServicesKit'; 创建授权请求并设置参数。// 创建授权请求，并设置参数\nconst authRequest = new authentication.HuaweiIDProvider().createAuthorizationWithHuaweiIDRequest();\n// 获取手机号需要传如下scope，传参数之前需要先申请对应scope权限,才能返回对应数据\nauthRequest.scopes = ['phone'];\n// 获取code需传如下permission\nauthRequest.permissions = ['serviceauthcode'];\n// 用户是否需要登录授权，该值为true且用户未登录或未授权时，会拉起用户登录或授权页面\nauthRequest.forceAuthorization = true;\n// 用于防跨站点请求伪造\nauthRequest.state = util.generateRandomUUID(); 调用AuthenticationController对象的executeRequest方法执行授权请求，并处理授权结果，从授权结果中解析出Authorization Code、UnionID、OpenID，之后将Authorization Code传给应用服务器处理。// 执行请求\ntry {\n  const controller = new authentication.AuthenticationController(getContext(this));\n  controller.executeRequest(authRequest).then((data) => {\n    const authorizationWithHuaweiIDResponse = data as authentication.AuthorizationWithHuaweiIDResponse;\n    const state = authorizationWithHuaweiIDResponse.state;\n    if (state && authRequest.state !== state) {\n      hilog.error(0x0000, 'testTag', `Failed to authorize. The state is different, response state: ${state}`);\n      return;\n    }\n    hilog.info(0x0000, 'testTag', 'Succeeded in authentication.');\n    const authorizationWithHuaweiIDCredential = authorizationWithHuaweiIDResponse.data!;\n    const code  = authorizationWithHuaweiIDCredential.authorizationCode;\n    const unionID = authorizationWithHuaweiIDCredential.unionID;\n    const openID = authorizationWithHuaweiIDCredential.openID;\n    // 开发者处理code、unionID、openID \n  }).catch((err: BusinessError) => {\n    this.dealAllError(err);\n  });\n} catch (error) {\n  this.dealAllError(error);\n}  // 错误处理\ndealAllError(error: BusinessError): void {\n  hilog.error(0x0000, 'testTag', 'Failed to auth, errorCode=%{public}d, errorMsg=%{public}s', error.code,\n    error.message);\n} 
+[h2]服务端开发
+ 应用服务器使用Client ID、Client Secret、Authorization Code调用获取用户级凭证的接口向华为账号服务器请求获取Access Token、Refresh Token。 使用Access Token调用获取用户信息接口获取用户信息，从用户信息中获取用户手机号、UnionID、OpenID。Access Token过期处理         由于Access Token的有效期仅为60分钟，当Access Token失效或者即将失效时（可通过REST API错误码判断），可以使用Refresh Token（有效期180天）通过刷新凭证向华为账号服务器请求获取新的Access Token。             当Access Token失效时，若您不使用Refresh Token向账号服务器请求获取新的Access Token，账号的授权信息将会失效，导致使用Access Token的功能都会失败。 当Access Token非正常失效（如修改密码、退出账号、删除设备）时，业务可重新登录授权获取Authorization Code，向账号服务器请求获取新的Access Token。     Refresh Token过期处理 由于Refresh Token的有效期为180天，当Refresh Token失效后（可通过REST API错误码判断），应用服务器端需要通知客户端，重新调用授权接口，请求用户重新授权。 

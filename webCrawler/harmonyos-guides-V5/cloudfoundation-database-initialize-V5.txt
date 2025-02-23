@@ -1,0 +1,2 @@
+初始化数据库访问
+设置云数据库配置项。在“entry/src/main/module.json5”文件中添加网络权限。\"requestPermissions\": [\n  {\n    \"name\": \"ohos.permission.INTERNET\"\n  }\n]  在业务代码中，使用AGC开发平台上创建的存储区“QuickStartDemo”类初始化DatabaseZone。import { cloudDatabase } from '@kit.CloudFoundationKit';\n\nlet databaseZone = cloudDatabase.zone('QuickStartDemo'); 如果需要使用数据库查询方法，使用BookInfo类初始化DatabaseQuery。import { BookInfo } from 'xx/BookInfo'; // xx是BookInfo文件的路径\n\nlet condition = new cloudDatabase.DatabaseQuery(BookInfo);  后续“databaseZone”、“condition”都需要在每个查询中独立使用，可以参考此章节创建，下文代码中不再重复创建的操作。  

@@ -1,0 +1,12 @@
+转换整个PDF文档为图片
+场景介绍
+将整个PDF文档的页面转换为图片，每页为一张图片，并且所有图片存放在指定的同一个文件夹下。
+当前支持的图片格式请参考ImageFormat。
+接口说明
+接口名
+描述
+convertToImage(path: string, format: ImageFormat, onProgress?: Callback<number>): boolean
+转换PDF文档为图片。
+示例代码
+ 调用loadDocument方法，加载PDF文档。 设置要输出图片的文件夹，调用convertToImage方法转化PDF文档所有页面为图片。 
+import { fileIo as fs } from '@kit.CoreFileKit';\nimport { common } from '@kit.AbilityKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';\nimport { pdfService } from '@kit.PDFKit';\n\n@Entry\n@Component\nstruct PdfPage {\n  private pdfDocument: pdfService.PdfDocument = new pdfService.PdfDocument();\n  private context = getContext() as common.UIAbilityContext;\n  private loadResult: pdfService.ParseResult = pdfService.ParseResult.PARSE_ERROR_FORMAT;\n\n  aboutToAppear(): void {\n    // 确保沙箱目录有input.pdf文档\n    let filePath = this.context.filesDir + '/input.pdf';\n    this.loadResult = this.pdfDocument.loadDocument(filePath);\n  }\n\n  build() {\n    Column() {\n      // 获取为图片并保存到应用沙箱\n      Button('convertToImage').onClick(async () => {\n        if (this.loadResult === pdfService.ParseResult.PARSE_SUCCESS) {\n          let outputPath = getContext().filesDir + '/output/';\n          fs.mkdir(outputPath);\n          // 将所有的页面转化为png图片，并存储在output文件夹里\n          let res = this.pdfDocument.convertToImage(outputPath, pdfService.ImageFormat.PNG);\n          hilog.info(0x0000, 'PdfPage', 'convertToImage %{public}s!', res ? 'success' : 'fail');\n        }\n      })\n    }\n  }\n}

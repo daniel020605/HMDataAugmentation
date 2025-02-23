@@ -1,0 +1,13 @@
+@typescript-eslint/no-misused-promises
+禁止在不正确的位置使用Promise。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/no-misused-promises\": \"error\"\n  }\n}
+选项
+详情请参考@typescript-eslint/no-misused-promises选项。
+正例
+export async function func(): void {\n  const promise = Promise.resolve('value');\n\n  // Always `await` the Promise in a conditional\n  if (await promise) {\n    // Do something\n  }\n\n  const val = await promise ? '123' : '456';\n  console.log(`${val}`);\n\n  while (await promise) {\n    // Do something\n  }\n}
+反例
+export async function func(): void {\n  const promise = Promise.resolve('value');\n  // 默认条件语句中需要使用await Promise\n  if (promise) {\n    // Do something\n  }\n\n  // 默认条件语句中需要使用await Promise\n  const val = promise ? '123' : '456';\n  console.log(`${val}`);\n\n  // 默认条件语句中需要使用await Promise\n  while (promise) {\n    // Do something\n  }\n}
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

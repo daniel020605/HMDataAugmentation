@@ -1,0 +1,7 @@
+@performance/hp-arkui-no-high-freq-log（已下线）
+建议在正式发布的版本中，注释掉或删除日志打印代码。该规则已于5.0.3.403版本下线。
+正例
+import hilog from '@ohos.hilog';\n@Entry\n@Component\nstruct MyComponent{\n  build() {\n    Column() {\n      Scroll()\n        .onScroll(() => {\n          //正例\n          //hilog.info(1001, 'Index', 'onScroll')\n          // do something\n        })\n    }\n  }\n}
+反例
+import hilog from '@ohos.hilog';\n@Entry\n@Component\nstruct MyComponent{\n  build() {\n    Column() {\n      Scroll()\n        .onScroll(() => {\n          // 高频操作中不建议写日志\n          hilog.info(1001, 'Index', 'onScroll')\n          // do something\n        })\n    }\n  }\n}
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

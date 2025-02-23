@@ -1,0 +1,4 @@
+证书锁定
+本协议栈框架支持证书锁定功能，证书锁定是通过校验服务器证书的公钥SHA-256哈希值是否与设置的值匹配来实现的。若服务器的证书的哈希值和设置的哈希值不一致则会报错。证书锁定技术，也称为证书固定或证书钉扎，是一种安全措施，用于确保客户端只接受指定特征的证书。 通过证书锁定，客户端可以避免与使用不受信任或伪造证书的服务器建立连接，从而提高HTTPS通信的安全性。
+开发步骤
+导包。import { rcp } from '@kit.RemoteCommunicationKit'; 设置锁定的服务端证书的公钥SHA-256哈希值并且发起请求。const HTTP_SERVER: string = \"https://www.example.com\";\nconst BAIDU_RIGHT: string = 'Q6TCQAWqP4t+eq41xnKaUgJdrPWqyG5L+Ni2YzMhqdY=';\nconst BAIDU_WRONG: string = 'AAAAQAWqP4t+eq41xnKaUgJdrPWqyG5L+Ni2YzMhqdY=';\n\nconst testBaiduRight = async (done: Function): Promise<void> => {\n  const session = rcp.createSession();\n  const request = new rcp.Request(HTTP_SERVER);\n  const pin: rcp.CertificatePinning = {\n    kind: 'public-key',\n    publicKeyHash: BAIDU_RIGHT,\n    hashAlgorithm: 'SHA-256'\n  };\n  request.configuration = {\n    security: {\n      certificatePinning: pin,\n    }\n  };\n  const resp = await session.fetch(request);\n  session.close();\n  done();\n} 

@@ -1,0 +1,83 @@
+AR物体摆放
+概要
+本章节通过AR Engine识别设备周围的平面，并允许用户在平面上放置虚拟物体，实现虚拟和现实的融合。AR物体摆放可用于虚拟家具、数字展厅等应用，给用户提供虚实结合的新体验。通过本示例，您可以学习并掌握如何使用AR Engine开发一款AR应用。
+本章节涉及的AR Engine能力如下：
+ 运动跟踪能力 环境跟踪能力（平面检测） 命中检测能力 
+业务流程
+ 用户打开应用。 应用需要向用户申请相机权限，用户同意后继续后续步骤。 用户点击ArWorld。 AR Engine初始化。 调用HMS_AREngine_ARSession_Create函数创建并返回AREngine_ARSession会话；同时调用HMS_AREngine_ARFrame_Create函数创建并返回AREngine_ARFrame对象。 UI设置定时器，定时触发帧绘制。 调用HMS_AREngine_ARSession_Update函数更新当前帧的ARFrame对象，并返回该对象。 获取平面。首先，调用HMS_AREngine_ARSession_GetAllTrackables函数获取平面类型（ARENGINE_TRACKABLE_PLANE）的可跟踪对象列表。其次，调用HMS_AREngine_ARTrackableList_AcquireItem函数从可跟踪对象列表中获指定索引的平面。 绘制平面。详细可参考获取并绘制平面。 将绘制的平面显示在预览画面上。 用户点击屏幕。 获取屏幕点击坐标。 进行碰撞检测。调用HMS_AREngine_ARFrame_HitTest函数获取并返回碰撞检测结果。 根据碰撞检测结果，调用HMS_AREngine_ARHitResult_AcquireNewAnchor函数创建锚点，并返回锚点对象。 在锚点位置绘制虚拟物体。 将虚拟物体显示在预览画面上。 
+接口说明
+以下接口为AR物体摆放相关接口。详细接口和说明，请参考接口文档。
+接口名
+描述
+HMS_AREngine_ARSession_Create
+创建一个新的AREngine_ARSession会话。
+HMS_AREngine_ARSession_Update
+更新AREngine的计算结果。
+HMS_AREngine_ARFrame_Create
+创建一个新的AREngine_ARFrame对象，将指针存储到中*outFrame。
+HMS_AREngine_ARSession_SetDisplayGeometry
+设置显示的高和宽（以像素为单位）。该高和宽是显示view的高和宽，如果不一致，会导致显示相机预览出错。
+HMS_AREngine_ARSession_SetCameraGLTexture
+设置可用于存储相机预览流数据的openGL纹理。
+HMS_AREngine_ARSession_GetAllTrackables
+获取所有指定类型的可跟踪对像集合。
+HMS_AREngine_ARTrackableList_AcquireItem
+从可跟踪列表中获取指定index的对象。
+HMS_AREngine_ARPlane_GetCenterPose
+获取从平面的局部坐标系到世界坐标系转换的位姿信息。
+HMS_AREngine_ARHitResultList_Create
+创建一个命中检测结果对象列表。
+HMS_AREngine_ARFrame_HitTest
+根据屏幕上兴趣点位置获取命中检测结果。
+HMS_AREngine_ARHitResultList_GetSize
+获取命中检测结果对象列表中包含的对象数。
+HMS_AREngine_ARHitResultList_GetItem
+在命中检测结果列表中获取指定索引的命中检测结果对象。
+HMS_AREngine_ARHitResult_Create
+创建一个空的命中检测结果对象。
+HMS_AREngine_ARHitResult_AcquireNewAnchor
+在碰撞命中位置创建一个新的锚点。
+HMS_AREngine_ARHitResult_AcquireTrackable
+获取被命中的可追踪对象。
+HMS_AREngine_ARFrame_AcquireCamera
+获取当前帧的相机参数对象。
+HMS_AREngine_ARPose_Create
+分配并初始化一个新的位姿对象。
+HMS_AREngine_ARCamera_GetPose
+获取当前相机对象在AR世界空间中的位姿。
+开发步骤
+本章节给出了关键开发步骤，完整代码可以参考示例代码。
+[h2]创建Native C++工程
+使用DevEco Studio创建一个Native C++工程。具体请参考使用Node-API实现跨语言交互开发流程。
+[h2]申请权限
+AR Engine需要使用相机、加速度传感器以及陀螺仪传感器权限，开发者可参考声明权限中的方式进行声明。其中相机权限需要用户手动进行授权，可参考向用户申请授权。
+权限名
+说明
+授权方式
+ohos.permission.CAMERA
+允许使用相机
+user_grant
+ohos.permission.ACCELEROMETER
+允许使用加速度传感器
+system_grant
+ohos.permission.GYROSCOPE
+允许使用陀螺仪传感器
+system_grant
+[h2]声明Native接口
+ArkTs接口声明。
+// 此代码可参考示例代码：ArSample/entry/src/main/cpp/types/libentry/index.d.ts。\nimport { resourceManager } from '@kit.LocalizationKit';\nexport const start:(id:string)=>void;\nexport const show:(id:string)=>void;\nexport const hide:(id:string)=>void;\nexport const update:(id:string)=>number;\nexport const stop:(id:string)=>void;\nexport const init:(resmgr : resourceManager.ResourceManager)=>void;
+// 此代码可参考示例代码：ArSample/entry/src/main/cpp/src/module.cpp。\nnapi_property_descriptor desc[] = {\n    { \"init\", nullptr, Global::Init, nullptr, nullptr, nullptr, napi_default, nullptr },\n    { \"start\", nullptr, NapiManager::NapiOnPageAppear, nullptr, nullptr, nullptr, napi_default, nullptr },\n    { \"show\", nullptr, NapiManager::NapiOnPageShow, nullptr, nullptr, nullptr, napi_default, nullptr },\n    { \"hide\", nullptr, NapiManager::NapiOnPageHide, nullptr, nullptr, nullptr, napi_default, nullptr },\n    { \"update\", nullptr, NapiManager::NapiOnPageUpdate, nullptr, nullptr, nullptr, napi_default, nullptr },\n    { \"stop\", nullptr, NapiManager::NapiOnPageDisappear, nullptr, nullptr, nullptr, napi_default, nullptr }\n};
+具体Native接口实现可参考示例代码。
+[h2]创建UI界面
+创建一个UI界面，用于显示相机预览画面，并定时触发每一帧绘制。
+// 此代码可参考示例代码：ArSample/entry/src/main/ets/pages/ArWorld.ets。\nimport { Logger } from '../utils/Logger';\nimport arEngineDemo from 'libentry.so';\nimport { resourceManager } from '@kit.LocalizationKit';\nimport { display } from '@kit.ArkUI';\n\n@Entry\n@Component\nstruct ArWorld {\n  private xcomponentId = 'ArWorld';\n  private resMgr: resourceManager.ResourceManager = getContext(this).resourceManager;\n  private interval: number = -1;\n  private isUpdate: boolean = true;\n\n  aboutToAppear() {\n    Logger.debug('aboutToAppear ' + this.xcomponentId);\n    arEngineDemo.init(this.resMgr);\n    arEngineDemo.start(this.xcomponentId);\n    display.on(\"foldStatusChange\", (foldStatus: display.FoldStatus) => {\n      Logger.info('foldStatusChange display on ' + foldStatus);\n      if (foldStatus === display.FoldStatus.FOLD_STATUS_EXPANDED\n        || foldStatus === display.FoldStatus.FOLD_STATUS_FOLDED) {\n        arEngineDemo.stop(this.xcomponentId);\n        arEngineDemo.init(this.resMgr);\n        // 调用Native的start接口，创建ARSession。\n        arEngineDemo.start(this.xcomponentId);\n        arEngineDemo.show(this.xcomponentId);\n      }\n    })\n  }\n\n  aboutToDisappear() {\n    Logger.debug('aboutToDisappear ' + this.xcomponentId);\n    arEngineDemo.stop(this.xcomponentId);\n  }\n\n  onPageShow() {\n    this.isUpdate = true;\n    Logger.debug('onPageShow ' + this.xcomponentId);\n    arEngineDemo.show(this.xcomponentId);\n  }\n\n  onPageHide() {\n    Logger.debug('onPageHide ' + this.xcomponentId);\n    this.isUpdate = false;\n    arEngineDemo.hide(this.xcomponentId);\n  }\n\n  build() {\n    Column() {\n      XComponent({ id: this.xcomponentId, type: XComponentType.SURFACE, libraryname: 'entry' })\n        .onLoad(() => {\n          Logger.debug('XComponent onLoad ' + this.xcomponentId);\n          this.interval = setInterval(() => {\n            if (this.isUpdate) {\n              // 调用Native的update，更新AR Engine每一帧的计算结果\n              arEngineDemo.update(this.xcomponentId);\n            }\n          }, 33); // 控制帧率为30fps（每33毫秒刷新一帧）。\n        })\n        .width('100%')\n        .height('100%')\n        .onDestroy(() => {\n          Logger.debug('XComponent onDestroy ' + this.xcomponentId);\n          clearInterval(this.interval);\n        })\n        .backgroundColor(Color.White)\n    }\n    .justifyContent(FlexAlign.SpaceAround)\n    .alignItems(HorizontalAlign.Center)\n    .backgroundColor(Color.White)\n    .borderRadius(24)\n    .width('100%')\n    .height('100%')\n  }\n}
+[h2]引入AR Engine
+ 引入头文件。#include \"ar/ar_engine_core.h\"  编写CMakeLists.txt。find_library(\n    # Sets the name of the path variable.\n    arengine-lib\n    # Specifies the name of the NDK library that\n    # you want CMake to locate.\n    libarengine_ndk.z.so\n)\n\ntarget_link_libraries(entry PUBLIC\n    ${arengine-lib}\n) 
+[h2]创建AR场景
+ 调用HMS_AREngine_ARSession_Create函数创建AREngine_ARSession会话。您可以参考管理AR会话创建ARSession。 配置AR会话及预览尺寸。// 此代码可参考示例代码：ArSample/entry/src/main/cpp/src/world/world_ar_application.cpp\n// 【可选】创建一个拥有合理默认配置的配置对象。\nAREngine_ARConfig *arConfig = nullptr;\nHMS_AREngine_ARConfig_Create(arSession, &arConfig);\n// 【可选】配置AREngine_ARSession会话。\nHMS_AREngine_ARSession_Configure(arSession, arConfig);\n// 【可选】释放指定的配置对象的内存空间。\nHMS_AREngine_ARConfig_Destroy(arConfig);\n\n// 创建一个新的AREngine_ARFrame对象。\nAREngine_ARFrame *arFrame = nullptr;\nHMS_AREngine_ARFrame_Create(arSession, &arFrame);\n// 预览区域的实际宽高，如使用xcomponent组件显示，则该宽和高是xcomponent的宽和高，如果不一致，会导致显示相机预览出错。\nint32_t width = 1440;\nint32_t height = 1080;\n// 显示旋转常量，值为AREngine_ARPoseType中定义的枚举值。\nAREngine_ARPoseType displayRotation = ARENGINE_POSE_TYPE_IDENTITY;\n// 设置显示的宽和高（以像素为单位）。\nHMS_AREngine_ARSession_SetDisplayGeometry(arSession, displayRotation, width, height); 通过openGL接口获取纹理ID// 此代码可参考示例代码：ArSample/entry/src/main/cpp/src/world/world_background_renderer.h。\n// 通过openGL接口获取纹理ID.\nGLuint textureId = 0;\nglGenTextures(1, &textureId); 设置openGL纹理，存储相机预览流数据。// 此代码可参考示例代码：ArSample/entry/src/main/cpp/src/world/world_render_manager.cpp。\n// 设置可用于存储相机预览流数据的openGL纹理。\nHMS_AREngine_ARSession_SetCameraGLTexture(arSession, textureId ); 
+[h2]获取平面
+ 调用HMS_AREngine_ARSession_Update函数更新当前AREngine_ARFrame对象。// 此代码可参考示例代码：ArSample/entry/src/main/cpp/src/world/world_render_manager.cpp。\n// 获取帧数据AREngine_ARFrame。\nHMS_AREngine_ARSession_Update(arSession, arFrame); 获取相机的视图矩阵和相机的投影矩阵，用于后续渲染。// 此代码可参考示例代码：ArSample/entry/src/main/cpp/src/world/world_render_manager.cpp。\n// 根据AREngine_ARFrame对象可以获取相机对象AREngine_ARCamera。\nAREngine_ARCamera *arCamera = nullptr;\nHMS_AREngine_ARFrame_AcquireCamera(arSession, arFrame, &arCamera);\n// 获取最新帧中相机的视图矩阵。\nHMS_AREngine_ARCamera_GetViewMatrix(arSession, arCamera, glm::value_ptr(*viewMat), 16);\n// 获取用于在相机图像上层渲染虚拟内容的投影矩阵，可用于相机坐标系到裁剪坐标系转换。Near (0.1) Far (100)。\nHMS_AREngine_ARCamera_GetProjectionMatrix(arSession, arCamera, {0.1f, 100.f}, glm::value_ptr(*projectionMat), 16);     这里直接获取相机的视图矩阵和相机的投影矩阵，是为了便于渲染。获取相机运动中的位姿变化，还可以调用HMS_AREngine_ARCamera_GetPose函数配合HMS_AREngine_ARPose_GetPoseRaw函数进行获取。详细可参考获取设备位姿。   调用HMS_AREngine_ARSession_GetAllTrackables函数获取平面列表。详细可参考检测环境中的平面章节。// 此代码可参考示例代码：ArSample/entry/src/main/cpp/src/world/world_render_manager.cpp。\n// 获取当前检测到的平面列表。\nAREngine_ARTrackableList *planeList = nullptr;\n// 创建一个可跟踪对象列表。\nHMS_AREngine_ARTrackableList_Create(arSession, &planeList);\n// 获取所有指定类型为ARENGINE_TRACKABLE_PLANE的可跟踪对像集合。\nAREngine_ARTrackableType planeTrackedType = ARENGINE_TRACKABLE_PLANE;\nHMS_AREngine_ARSession_GetAllTrackables(arSession, planeTrackedType, planeList);\nint32_t planeListSize = 0;\n// 获取此列表中的可跟踪对象的数量。\nHMS_AREngine_ARTrackableList_GetSize(arSession, planeList, &planeListSize);\nfor (int i = 0; i < planeListSize; ++i) {\n    AREngine_ARTrackable *arTrackable = nullptr;\n    // 从可跟踪列表中获取指定index的对象。\n    HMS_AREngine_ARTrackableList_AcquireItem(arSession, planeList, i, &arTrackable);\n    AREngine_ARPlane *arPlane = reinterpret_cast<AREngine_ARPlane*>(arTrackable);\n    // 获取当前可跟踪对象的跟踪状态。如果状态为：ARENGINE_TRACKING_STATE_TRACKING（可跟踪状态）才进行绘制。\n    AREngine_ARTrackingState outTrackingState;\n    HMS_AREngine_ARTrackable_GetTrackingState(arSession, arTrackable, &outTrackingState);\n    AREngine_ARPlane *subsumePlane = nullptr;\n    // 获取平面的父平面（一个平面被另一个平面合并时，会产生父平面），如果无父平面返回为NULL。\n     HMS_AREngine_ARPlane_AcquireSubsumedBy(arSession, arPlane, &subsumePlane);\n    if (subsumePlane != nullptr) {\n        HMS_AREngine_ARTrackable_Release(reinterpret_cast<AREngine_ARTrackable*>(subsumePlane));\n        // 如果当前平面有父平面，则当前平面不进行展示。否则会出现双平面。\n        continue;\n    }\n    // 跟踪状态为：ARENGINE_TRACKING_STATE_TRACKING时才进行绘制。\n    if (AREngine_ARTrackingState::ARENGINE_TRACKING_STATE_TRACKING != outTrackingState) {\n        continue;\n    }\n    // 进行平面绘制。\n}\nHMS_AREngine_ARTrackableList_Destroy(planeList);\nplaneList = nullptr; 调用HMS_AREngine_ARPlane_GetPolygon函数获取平面的二维顶点坐标数组，用于绘制平面边界。// 此代码可参考示例代码：ArSample/entry/src/main/cpp/src/world/world_plane_renderer.cpp。\n// 获取检测到平面的二维顶点数组大小。\nint32_t polygonLength = 0;\nHMS_AREngine_ARPlane_GetPolygonSize(arSession, arPlane, &polygonLength);\n\n// 获取检测到平面的二维顶点数组，格式为[x1，z1，x2，z2，...]。\nconst int32_t verticesSize = polygonLength / 2;\nstd::vector<glm::vec2> raw_vertices(verticesSize);\nHMS_AREngine_ARPlane_GetPolygon(arSession, arPlane, glm::value_ptr(raw_vertices.front()), polygonLength);\n\n// 局部坐标系顶点坐标。\nfor (int32_t i = 0; i < verticesSize; ++i) {\n    vertices.emplace_back(raw_vertices[i].x, raw_vertices[i].y, 0.75f);\n}     调用HMS_AREngine_ARPlane_GetPolygon函数获取平面的二维顶点坐标数组格式为[x1，z1，x2，z2，...]。这些值均在平面局部坐标系的x-z平面中定义，须先调用HMS_AREngine_ARPlane_GetCenterPose函数获取从平面的局部坐标系到世界坐标系转换的位姿数据，然后调用HMS_AREngine_ARPose_GetMatrix函数将位姿数据转换成4X4的矩阵，该矩阵与局部坐标系的坐标点做乘法，可以得到局部坐标系到世界坐标系的转换。   将平面的二维顶点坐标转换到世界坐标系，并绘制平面。// 此代码可参考示例代码：ArSample/entry/src/main/cpp/src/world/world_plane_renderer.cpp。\n// 获取从平面的局部坐标系到世界坐标系转换的位姿信息。\nAREngine_ARPose *scopedArPose = nullptr;\nHMS_AREngine_ARPose_Create(arSession, nullptr, 0, &scopedArPose);\nHMS_AREngine_ARPlane_GetCenterPose(arSession, arPlane, scopedArPose);\n\n// 将位姿数据转换成4X4的矩阵，outMatrixColMajor4x4为存放数组，其中的数据按照列优先存储.\n// 该矩阵与局部坐标系的坐标点做乘法，可以得到局部坐标系到世界坐标系的转换。\nHMS_AREngine_ARPose_GetMatrix(arSession, scopedArPose, glm::value_ptr(modelMat), 16);\nHMS_AREngine_ARPose_Destroy(scopedArPose);\n\n// 构筑绘制渲染平面所需的数据。\n// 生成三角形。\nfor (int i = 1; i < verticesSize - 1; ++i) {\n    triangles.push_back(0);\n    triangles.push_back(i);\n    triangles.push_back(i + 1);\n}\n// 生成平面包围线。\nfor (int i = 0; i < verticesSize; ++i) {\n    lines.push_back(i);\n} 具体绘制请参考示例代码。 
+[h2]点击屏幕
+ 用户点击屏幕后，基于点击事件获取屏幕坐标。可参考Native XComponent添加头文件：native_interface_xcomponent.h。 #include <ace/xcomponent/native_interface_xcomponent.h>         通过点击事件获取屏幕点击坐标。        // 此代码可参考示例代码：ArSample/entry/src/main/cpp/src/world/world_ar_application.cpp。\nfloat pixeLX= 0.0f;\nfloat pixeLY= 0.0f;\nint32_t ret = OH_NativeXComponent_GetTouchEvent(component, window, &mTouchEvent);\n\nif (ret == OH_NATIVEXCOMPONENT_RESULT_SUCCESS) {\n    if (mTouchEvent.type == OH_NATIVEXCOMPONENT_DOWN) {\n        pixeLX= mTouchEvent.touchPoints[0].x;\n\tpixeLY= mTouchEvent.touchPoints[0].y;\n    } else {\n\treturn;\n    }\n}  调用HMS_AREngine_ARFrame_HitTest函数进行碰撞检测，结果存放在碰撞检测结果列表中。// 此代码可参考示例代码：ArSample/entry/src/main/cpp/src/world/world_ar_application.cpp。\n// 创建一个命中检测结果对象列表，arSession为创建AR场景步骤中创建的会话对象。\nAREngine_ARHitResultList *hitResultList = nullptr;\nHMS_AREngine_ARHitResultList_Create(arSession, &hitResultList);\n\n// 获取命中检测结果对象列表，arFrame为创建AR场景步骤中创建的帧对象，pixeLX/pixeLY为屏幕点坐标。\nHMS_AREngine_ARFrame_HitTest(arSession, arFrame, pixeLX, pixeLY, hitResultList);     碰撞结果按照交点与设备的距离从近到远进行排序，存放在碰撞结果列表中。   
+[h2]放置虚拟物体
+ 调用HMS_AREngine_ARHitResultList_GetItem函数遍历碰撞检测结果列表，获取命中的可跟踪对象。// 此代码可参考示例代码：ArSample/entry/src/main/cpp/src/world/world_ar_application.cpp。\n// 创建命中检测结果对象。\nAREngine_ARHitResult *arHit = nullptr;\nHMS_AREngine_ARHitResult_Create(arSession, &arHit);\n\n// 获取第一个命中检测结果对象。\nHMS_AREngine_ARHitResultList_GetItem(arSession, hitResultList, 0, arHit);\n\n// 获取被命中的可追踪对象。\nAREngine_ARTrackable *arHitTrackable = nullptr;\nHMS_AREngine_ARHitResult_AcquireTrackable(arSession, arHit, &arHitTrackable); 判断碰撞结果是否存在于平面内部。// 此代码可参考示例代码：ArSample/entry/src/main/cpp/src/world/world_ar_application.cpp。\nAREngine_ARTrackableType ar_trackable_type = ARENGINE_TRACKABLE_INVALID;\nHMS_AREngine_ARTrackable_GetType(arSession, arTrackable, &ar_trackable_type);\nif (ARENGINE_TRACKABLE_PLANE == ar_trackable_type) {\n    AREngine_ARPose *arPose = nullptr;\n    HMS_AREngine_ARPose_Create(arSession, nullptr, 0, &arPose);\n    HMS_AREngine_ARHitResult_GetHitPose(arSession, arHit, arPose);\n    // 判断位姿是否位于平面的多边形范围内。0表示不在范围内，非0表示在范围内。\n    HMS_AREngine_ARPlane_IsPoseInPolygon(arSession, arPlane, arPose, &inPolygon);\n    HMS_AREngine_ARPose_Destroy(arPose);\n    if (!inPolygon) {\n\t// 不在平面内，就跳过当前平面。\n\tcontinue;\n    }\n} 在碰撞结果位置创建一个新的锚点，并基于此锚点放置虚拟模型。// 此代码可参考示例代码：ArSample/entry/src/main/cpp/src/world/world_ar_application.cpp。\n// 在碰撞命中位置创建一个新的锚点。\nAREngine_ARAnchor *anchor = nullptr;\nHMS_AREngine_ARHitResult_AcquireNewAnchor(arSession, arHitResult, &anchor);\n\n// 判断锚点的可跟踪状态\nAREngine_ARTrackingState trackingState = ARENGINE_TRACKING_STATE_STOPPED;\nHMS_AREngine_ARAnchor_GetTrackingState(arSession, anchor, &trackingState);\nif (trackingState != ARENGINE_TRACKING_STATE_TRACKING) {\n    HMS_AREngine_ARAnchor_Release(anchor);\n    return;\n}\n 绘制模型。调用HMS_AREngine_ARAnchor_GetPose函数获取锚点位姿，并基于该位姿绘制虚拟模型。 // 此代码可参考示例代码：ArSample/entry/src/main/cpp/src/world/world_render_manager.cpp。\n// 获取锚点的位姿。\nAREngine_ARPose *pose = nullptr;\nHMS_AREngine_ARPose_Create(arSession, nullptr, 0, &pose);\nHMS_AREngine_ARAnchor_GetPose(arSession, anchor, pose);\n// 将位姿数据转换成4X4的矩阵modelMat。\nHMS_AREngine_ARPose_GetMatrix(arSession, pose, glm::value_ptr(modelMat), 16);\nHMS_AREngine_ARPose_Destroy(pose);\n// 绘制虚拟模型。 详细的模型绘制可参见示例代码。 

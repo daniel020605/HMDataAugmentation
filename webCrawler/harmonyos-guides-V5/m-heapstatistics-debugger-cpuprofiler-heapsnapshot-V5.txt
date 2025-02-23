@@ -1,0 +1,34 @@
+使用JSVM-API接口进行JavaScript代码调试调优
+简介
+这些JSVM-API接口涵盖了虚拟机实例检索、内存分析、性能剖析和调试支持，为优化代码性能及提升开发效率提供了有力的支持。
+基本概念
+JSVM：JavaScript虚拟机是执行JavaScript代码的环境。它负责解析和执行JavaScript代码，管理内存，并提供与其他系统资源的交互。接口如OH_JSVM_GetVM用于检索特定环境的虚拟机实例，这是JSVM管理的基本操作之一。调试（debug）：调试是程序开发中的一项重要活动，它涉及到定位、分析和修复代码中的错误。OH_JSVM_OpenInspector和OH_JSVM_CloseInspector接口提供了在特定主机和端口上激活和关闭inspector的功能，inspector是一个用于调试JavaScript代码的工具，允许开发者实时查看和交互程序的运行状态。
+接口说明
+使用示例
+JSVM-API接口开发流程参考使用JSVM-API实现JS与C/C++语言交互开发流程，本文仅对接口对应C++相关代码进行展示。
+[h2]OH_JSVM_GetVM
+将检索给定环境的虚拟机实例。
+cpp部分代码
+// hello.cpp\n#include \"napi/native_api.h\"\n#include \"ark_runtime/jsvm.h\"\n#include <hilog/log.h>\n\n// OH_JSVM_GetVM的样例方法\nstatic JSVM_Value GetVM(JSVM_Env env, JSVM_CallbackInfo info)\n{\n    // 获取当前虚拟机对象,后续可以进行与虚拟机相关的操作或分析\n    JSVM_VM testVm;\n    JSVM_Status status = OH_JSVM_GetVM(env, &testVm);\n    JSVM_Value result = nullptr;\n    if (status != JSVM_OK || testVm == nullptr) {\n        OH_LOG_ERROR(LOG_APP, \"JSVM OH_JSVM_GetVM: failed\");\n        OH_JSVM_GetBoolean(env, true, &result);\n    } else {\n        OH_LOG_INFO(LOG_APP, \"JSVM OH_JSVM_GetVM: success\");\n        OH_JSVM_GetBoolean(env, false, &result);\n    }\n    return result;\n}\n// GetVM注册回调\nstatic JSVM_CallbackStruct param[] = {\n    {.data = nullptr, .callback = GetVM},\n};\nstatic JSVM_CallbackStruct *method = param;\n// GetVM方法别名，供JS调用\nstatic JSVM_PropertyDescriptor descriptor[] = {\n    {\"getVM\", nullptr, method++, nullptr, nullptr, nullptr, JSVM_DEFAULT},\n};
+// 样例测试JS
+const char *srcCallNative = R\"JS(getVM())JS\";
+[h2]OH_JSVM_GetHeapStatistics
+返回一组虚拟机堆的统计数据。
+cpp部分代码
+// hello.cpp\n#include \"napi/native_api.h\"\n#include \"ark_runtime/jsvm.h\"\n#include <hilog/log.h>\n\n// OH_JSVM_GetHeapStatistics的样例方法\nvoid PrintHeapStatistics(JSVM_HeapStatistics result)\n{\n    OH_LOG_INFO(LOG_APP, \"JSVM API heap totalHeapSize: %{public}zu\", result.totalHeapSize);\n    OH_LOG_INFO(LOG_APP, \"JSVM API heap totalHeapSizeExecutable: %{public}zu\", result.totalHeapSizeExecutable);\n    OH_LOG_INFO(LOG_APP, \"JSVM API heap totalPhysicalSize: %{public}zu\", result.totalPhysicalSize);\n    OH_LOG_INFO(LOG_APP, \"JSVM API heap totalAvailableSize: %{public}zu\", result.totalAvailableSize);\n    OH_LOG_INFO(LOG_APP, \"JSVM API heap usedHeapSize: %{public}zu\", result.usedHeapSize);\n    OH_LOG_INFO(LOG_APP, \"JSVM API heap heapSizeLimit: %{public}zu\", result.heapSizeLimit);\n    OH_LOG_INFO(LOG_APP, \"JSVM API heap mallocedMemory: %{public}zu\", result.mallocedMemory);\n    OH_LOG_INFO(LOG_APP, \"JSVM API heap externalMemory: %{public}zu\", result.externalMemory);\n    OH_LOG_INFO(LOG_APP, \"JSVM API heap peakMallocedMemory: %{public}zu\", result.peakMallocedMemory);\n    OH_LOG_INFO(LOG_APP, \"JSVM API heap numberOfNativeContexts: %{public}zu\", result.numberOfNativeContexts);\n    OH_LOG_INFO(LOG_APP, \"JSVM API heap numberOfDetachedContexts: %{public}zu\", result.numberOfDetachedContexts);\n    OH_LOG_INFO(LOG_APP, \"JSVM API heap totalGlobalHandlesSize: %{public}zu\", result.totalGlobalHandlesSize);\n    OH_LOG_INFO(LOG_APP, \"JSVM API heap usedGlobalHandlesSize: %{public}zu\", result.usedGlobalHandlesSize);\n}\n\nstatic JSVM_Value GetHeapStatistics(JSVM_Env env, JSVM_CallbackInfo info)\n{\n    // 获取当前虚拟机对象\n    JSVM_VM testVm;\n    OH_JSVM_GetVM(env, &testVm);\n    // 获取虚拟机的堆统计信息\n    JSVM_HeapStatistics result;\n    OH_JSVM_GetHeapStatistics(testVm, &result);\n    // 打印虚拟机堆统计信息\n    PrintHeapStatistics(result);\n    // 返回虚拟机堆统计信息中‘本机上下文数量’\n    JSVM_Value nativeContextsCnt = nullptr;\n    OH_JSVM_CreateInt64(env, result.numberOfNativeContexts, &nativeContextsCnt);\n    return nativeContextsCnt;\n}\n// GetHeapStatistics注册回调\nstatic JSVM_CallbackStruct param[] = {\n    {.data = nullptr, .callback = GetHeapStatistics},\n};\nstatic JSVM_CallbackStruct *method = param;\n// GetHeapStatistics方法别名，供JS调用\nstatic JSVM_PropertyDescriptor descriptor[] = {\n    {\"getHeapStatistics\", nullptr, method++, nullptr, nullptr, nullptr, JSVM_DEFAULT},\n};
+// 样例测试JS
+const char *srcCallNative = R\"JS(getHeapStatistics())JS\";
+以下接口的示例代码可以参考链接：
+JSVM调试调优能力
+[h2]OH_JSVM_StartCpuProfiler
+创建并启动一个CPU profiler。
+[h2]OH_JSVM_StopCpuProfiler
+停止CPU profiler并将结果输出到流。
+[h2]OH_JSVM_TakeHeapSnapshot
+获取当前堆快照并将其输出到流。
+[h2]OH_JSVM_OpenInspector
+在指定的主机和端口上激活inspector，将用来调试JS代码。
+[h2]OH_JSVM_CloseInspector
+尝试关闭剩余的所有inspector连接。
+[h2]OH_JSVM_WaitForDebugger
+等待主机与inspector建立socket连接，连接建立后程序将继续运行。发送Runtime.runIfWaitingForDebugger命令。

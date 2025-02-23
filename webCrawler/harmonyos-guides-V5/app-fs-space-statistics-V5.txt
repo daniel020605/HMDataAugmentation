@@ -1,0 +1,24 @@
+应用及文件系统空间统计
+在系统中，可能出现系统空间不够或者cacheDir等目录受系统配额限制等情况，需要应用开发者关注系统剩余空间，同时控制应用自身占用的空间大小。
+接口说明
+API的详细介绍请参见ohos.file.statvfs、ohos.file.storageStatistics。
+表1 文件系统空间和应用空间统计
+表2 应用空间统计
+应用安装文件保存在以下目录：
+/data/storage/el1/bundle
+应用的缓存文件保存在以下目录：
+/data/storage/el1/base/cache
+/data/storage/el1/base/haps/entry/cache
+/data/storage/el2/base/cache
+/data/storage/el2/base/haps/entry/cache
+应用文件由本地文件、分布式文件以及数据库文件组成。
+本地文件保存在以下目录（注意缓存文件目录为以下目录的子目录）：
+/data/storage/el1/base
+/data/storage/el2/base
+分布式文件保存在以下目录：
+/data/storage/el2/distributedfiles
+数据库文件保存在以下目录：
+/data/storage/el1/database
+/data/storage/el2/database
+开发示例
+ 获取文件系统数据分区剩余空间大小。 import { statfs } from '@kit.CoreFileKit';\nimport { BusinessError } from '@kit.BasicServicesKit';\nimport { common } from '@kit.AbilityKit';\n\nlet context = getContext(this) as common.UIAbilityContext;\nlet path = context.filesDir;\nstatfs.getFreeSize(path, (err: BusinessError, number: number) => {\n  if (err) {\n    console.error(`Invoke getFreeSize failed, code is ${err.code}, message is ${err.message}`);\n  } else {\n    console.info(`Invoke getFreeSize succeeded, size is ${number}`);\n  }\n}); 获取当前应用的存储空间大小。 import { storageStatistics } from '@kit.CoreFileKit';\nimport { BusinessError } from '@kit.BasicServicesKit';\n\nstorageStatistics.getCurrentBundleStats((err: BusinessError, bundleStats: storageStatistics.BundleStats) => {\n  if (err) {\n    console.error(`Invoke getCurrentBundleStats failed, code is ${err.code}, message is ${err.message}`);\n  } else {\n    console.info(`Invoke getCurrentBundleStats succeeded, appsize is ${bundleStats.appSize}`);\n  }\n}); 

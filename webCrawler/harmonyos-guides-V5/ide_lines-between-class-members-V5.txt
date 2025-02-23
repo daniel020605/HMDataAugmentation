@@ -1,0 +1,13 @@
+@typescript-eslint/lines-between-class-members
+禁止或者要求类成员之间有空行分隔。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/lines-between-class-members\": \"error\"\n  }\n}
+选项
+详情请参考@typescript-eslint/lines-between-class-members选项。
+正例
+// 默认要求类成员成员之间有空行分隔\nexport class Foo {\n  public baz() {\n    console.info('baz');\n  }\n\n  public qux() {\n    console.info('qux');\n  }\n}
+反例
+// 默认要求类成员成员之间有空行分隔\nexport class Foo {\n  public baz() {\n    console.info('baz');\n  }\n  public qux() {\n    console.info('qux');\n  }\n}
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

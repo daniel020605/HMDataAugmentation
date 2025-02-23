@@ -1,0 +1,13 @@
+@typescript-eslint/restrict-template-expressions
+要求模板表达式中的变量为“string”类型。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/restrict-template-expressions\": \"error\"\n  }\n}
+选项
+详情请参考@typescript-eslint/restrict-template-expressions选项。
+正例
+const arg: string | undefined = 'foo';\nexport const msg1 = `arg = ${arg}`;\nexport const msg2 = `arg = ${arg || 'default'}`;
+反例
+const arg1 = ['1', '2'];\nexport const msg1 = `arg1 = ${arg1}`;\n\ninterface GeneratedObjectLiteralInterface {\n  name: string;\n}\n\nconst arg2: GeneratedObjectLiteralInterface = { name: 'Foo' };\nexport const msg2 = `arg2 = ${arg2 || null}`;
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

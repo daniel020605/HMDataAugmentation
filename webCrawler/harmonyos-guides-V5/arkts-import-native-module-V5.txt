@@ -1,0 +1,36 @@
+静态方式加载native模块
+在ES6(ECMAScript6.0)模块设计中，社区使用import语法加载其他文件导出的内容（ECMA规范定义语法规格）。
+为支持开发者便捷使用该功能导入native模块(so)导出的内容，ArkTS进行相关适配，并给出以下几种支持写法。
+直接导入
+在native模块的index.d.ts文件中导出，在文件内直接导入。
+[h2]具名导入
+// libentry.so对应的index.d.ts\nexport const add: (a: number, b: number) => number;
+// test.ets\nimport { add } from 'libentry.so'\nadd(2, 3);
+[h2]默认导入
+// libentry.so对应的index.d.ts\nexport const add: (a: number, b: number) => number;
+// test.ets\nimport add from 'libentry.so'\nadd.add(2, 3);
+[h2]命名空间导入
+// libentry.so对应的index.d.ts\nexport const add: (a: number, b: number) => number;
+// test.ets\nimport * as add from 'libentry.so'\nadd.add(2, 3);
+间接导入
+[h2]转为具名变量导出再导入
+// test1.ets\nimport hilog from '@ohos.hilog'\nexport { hilog }
+// test2.ets\nimport { hilog } from './test1'\nhilog.info(0x000, 'testTag', '%{public}s', 'test');
+[h2]转为命名空间导出再导入
+// libentry.so对应的index.d.ts\nexport const add: (a: number, b: number) => number;
+// test1.ets\nexport * from 'libentry.so'
+// test2.ets\nimport { add } from './test1'\nadd(2, 3);
+注意： 不支持native模块导出和导入同时使用命名空间。
+反例： 
+// test1.ets\nexport * from 'libentry.so'
+// test2.ets\nimport * as add from 'file1'\n// 无法获取add对象
+动态导入
+[h2]直接导入
+// libentry.so对应的index.d.ts\nexport const add: (a: number, b: number) => number;
+// test.ets\nimport('libentry.so').then((ns:ESObject) => {\n    ns.default.add(2, 3);\n})
+[h2]间接导入
+// test1.ets\nimport add from 'libentry.so'\nexport { add }\n\n// test2.ets\nimport('./test1').then((ns:ESObject) => {\n    ns.add.add(2, 3);\n})
+注意： 不支持动态加载时，导出文件使用命名空间导出。
+反例： 
+// test1.ets\nexport * from 'libentry.so'
+// test2.ets\nimport('./test1').then((ns:ESObject) => {\n    // 无法获取ns对象\n})

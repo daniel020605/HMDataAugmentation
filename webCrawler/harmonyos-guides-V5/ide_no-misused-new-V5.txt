@@ -1,0 +1,13 @@
+@typescript-eslint/no-misused-new
+要求正确地定义“new”和“constructor”。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/no-misused-new\": \"error\"\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+export declare class C {\n  public name: string;\n\n  public constructor();\n}
+反例
+export declare class C {\n  // 应该定义为constructor(): C\n  public new(): C;\n}\n\nexport interface I {\n  // 不应该定义constructor\n  constructor(): void;\n}
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

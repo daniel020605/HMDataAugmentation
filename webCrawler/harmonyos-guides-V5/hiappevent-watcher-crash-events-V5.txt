@@ -1,0 +1,12 @@
+崩溃事件介绍
+HiAppEvent提供接口用于订阅系统崩溃事件。
+订阅崩溃事件（ArkTS）订阅崩溃事件（C/C++）
+崩溃事件信息中params属性的详细描述如下：
+params属性：
+exception属性：
+exception属性（NativeCrash类型）：
+signal属性：
+信号值&信号值二级分类详解
+thread属性：
+frame属性(C/C++帧)：
+frame属性(JS帧)：

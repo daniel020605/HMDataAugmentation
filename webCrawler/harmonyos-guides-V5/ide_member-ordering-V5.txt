@@ -1,0 +1,13 @@
+@typescript-eslint/member-ordering
+要求类、接口和类型字面量中成员的排序方式保持一致的风格。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/member-ordering\": \"error\"\n  }\n}
+选项
+详情请参考@typescript-eslint/member-ordering选项。
+正例
+// 默认排序规则：field-constructor-method\nexport class Foo2 {\n  // -> field\n  protected static e: string = '';\n\n  public d: string = '';\n\n  private readonly c: string = '';\n\n  // -> constructor\n  public constructor() {\n    console.info('constructor');\n  }\n\n  // -> method\n  public static a(): void {\n    console.info('static method');\n  }\n\n  public b(): void {\n    console.info(this.c);\n  }\n}
+反例
+// 默认排序规则：field-constructor-method\nexport class Foo2 {\n  // -> method\n  public static a(): void {\n    console.info('static method');\n  }\n\n  public b(): void {\n    console.info(this.c);\n  }\n\n  // -> field\n  protected static e: string = '';\n\n  private readonly c: string = '';\n\n  public d: string = '';\n\n  // -> constructor\n  public constructor() {\n    console.info('constructor');\n  }\n}
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

@@ -1,0 +1,13 @@
+@typescript-eslint/no-invalid-this
+禁止在this的值为undefined的上下文中使用this。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/no-invalid-this\": \"error\"\n  }\n}
+选项
+详情请参考@typescript-eslint/no-invalid-this选项。
+正例
+function baz(arg0: () => object) {\n  return arg0;\n}\n\nexport class Bar {\n  public a: number;\n\n  public constructor() {\n    this.a = 0;\n    baz(() => this);\n  }\n}
+反例
+function baz(arg0: () => object) {\n  return arg0;\n}\n\nexport function foo1() {\n  this.a = 0;\n  baz(() => this);\n}\n\nexport const foo2 = () => {\n  this.a = 0;\n  baz(() => this);\n};
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

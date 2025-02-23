@@ -1,0 +1,11 @@
+绑定游戏官方账号（绑定场景）
+绑定游戏官方账号
+玩家首次登录HarmonyOS NEXT游戏，通过绑定华为玩家标识与游戏官方账号，可实现华为账号或游戏官方账号在HarmonyOS NEXT设备上快速登录游戏，两种登录方式下游戏进度保持同步。因此，为了提升用户体验，您可以在游戏中提供绑定游戏官方账号的功能。
+[h2]前提条件
+ 已实现初始化。 调用unionLogin接口获取的needBinding值为true。 
+[h2]开发步骤
+调用bindPlayer接口绑定华为玩家标识teamPlayerId与游戏官方账号thirdOpenId。
+let context = getContext(this) as common.UIAbilityContext;\nlet thirdOpenId = '123xxxx'; // thirdOpenId表示游戏官方账号ID\nlet teamPlayerId = '456xxx'; // teamPlayerId表示玩家华为账号对应的teamPlayerId\ntry {\n  gamePlayer.bindPlayer(context, thirdOpenId, teamPlayerId).then(() => {\n    hilog.info(0x0000, 'testTag', `Succeeded in binding.`);\n  }).catch((error: BusinessError) => {\n    hilog.error(0x0000, 'testTag', `Failed to bind. Code: ${error.code}, message: ${error.message}`);\n  });\n} catch (error) {\n  let err = error as BusinessError;\n  hilog.error(0x0000, 'testTag', `Failed to bind. Code: ${err.code}, message: ${err.message}`);\n}
+解绑游戏账号
+游戏内需为玩家提供解绑功能。接入步骤如下：
+ 在游戏内为玩家提供一个解绑按钮。按钮常见的位置如下：           【选择区服界面】  【玩家用户中心界面】  【游戏内的设置界面】     玩家点击解绑按钮时，建议游戏弹出“解绑确认”窗口，窗口文案建议为“您正在解除当前华为账号和游戏官方账号的关联关系，解绑后可以继续使用游戏官方账号登录游戏，但无法使用当前华为账号一键登录。”。样例图如下： 玩家点击窗口的“立即解绑”后，游戏需请求解绑账号接口或调用unbindPlayer接口解除华为账号teamPlayerId与游戏官方账号thirdOpenId的绑定关系。解绑成功后，玩家下次登录游戏时，可以在联合登录面板上重新选择游戏的登录方式。 

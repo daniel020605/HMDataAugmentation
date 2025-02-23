@@ -1,0 +1,2 @@
+如何获取华为账号中的头像昵称等信息？
+调用Account Kit的createAuthorizationWithHuaweiIDRequest接口创建授权请求，并调用executeRequest接口执行请求，成功后可获取头像昵称等信息。

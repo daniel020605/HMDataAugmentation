@@ -1,0 +1,5 @@
+module.json5适配
+开发者需要在应用配置文件module.json5中进行注册，其中注册类型type需要设置为backup，元数据信息metadata需要新增一个name为ohos.extension.backup的条目。
+extensionAbilities需要配置在entry内的module.json5才能正常访问。
+以下步骤以空工程为例，介绍如何配置module.json5文件：
+开发者需要在entry内的module.json5里面进行注册,参考示例代码实现元数据资源文件配置。 \"extensionAbilities\": [\n  {\n    \"description\": \"DemoBackupExtension\",\n    \"icon\": \"$media:app_icon\",\n    \"name\": \"BackupExtensionAbility\",\n    \"srcEntry\": \"./ets/backupExtension/BackupExtension.ets\",  // 对应BackupExtension.ets在代码仓中的位置\n    \"type\": \"backup\",                                         // 类型需要选择backup\n    \"exported\": false,\n    \"metadata\": [                                             // 对应注册的元数据资源\n      {\n        \"name\": \"ohos.extension.backup\",\n        \"resource\": \"$profile:backup_config\"\n      }\n    ]\n  }\n] 

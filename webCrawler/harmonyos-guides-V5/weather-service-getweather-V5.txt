@@ -1,0 +1,8 @@
+获取天气数据
+通过开发者提供的经纬度数据，获取天气数据，比如：实况数据、预警数据。
+（可选）获取当前位置经纬度
+当开发者需要查询当前位置的天气数据时，需要先获取当前位置的经纬度信息，方法如下：
+ 导入模块。import { geoLocationManager } from '@kit.LocationKit';\nimport { BusinessError } from '@kit.BasicServicesKit';  调用getCurrentLocation，获取经纬度。geoLocationManager.getCurrentLocation().then((result) => {\n  console.info('current location latitude: ' + result.latitude);\n  console.info('current location longitude: ' + result.longitude);\n}).catch((err: BusinessError ) => {\n  console.error(`getCurrentLocation failed. Code: ${err.code}, message: ${err.message}`);\n});  
+查询天气数据
+Weather Service Kit依赖开发者提供的经纬度数据（精确到小数点后2位），返回格点天气数据。
+ 导入模块。import { weatherService } from '@kit.WeatherServiceKit';  创建请求对象。  location：使用当前位置的数据，或者填入查询目的地的经纬度。 limitedDatasets：为可选字段，传入一个数组，表示请求有限的数据集，取值范围参考weatherService.Dataset。  let request: weatherService.WeatherRequest = {\n  location: {\n    latitude: 22.62,\n    longitude: 114.07\n  },\n  limitedDatasets: [weatherService.Dataset.CURRENT, weatherService.Dataset.ALERTS]\n}     如果limitedDatasets参数不传值，或者传入的数组为空，则默认返回Weather Service Kit支持的所有数据。根据实际需要的天气数据设置limitedDatasets，可以大幅降低接口请求时延。    请求数据。let weather = await weatherService.getWeather(request);\nif (weather.current) {\n  console.info('getWeather current temperature: ' + weather.current.temperature);\n}\nif (weather.alerts?.length) {\n  console.info('getWeather alert: ' + weather.alerts[0].title);\n}  

@@ -1,0 +1,10 @@
+生成ArkTSDoc文档
+DevEco Studio支持通过Generate ArkTSDoc功能，将代码文件中变量、方法、接口、类等需要对外暴露的信息快速生成相应的参考文档。
+当前支持对工程或目录下.ets/.ts/.js/.md格式文件生成ArkTSDoc文档。文件中export的变量、方法、接口、类等将生成相应的ArkTSDoc文档，未export的对象不支持生成。若选择对工程/目录整体导出ArkTSDoc文档，生成后的ArkTSDoc文档目录和原目录结构一致。
+ArkTSDoc生成步骤
+在菜单栏选择Tools > Generate ArkTSDoc...进入ArkTSDoc生成界面。设置生成ArkTSDoc的范围，可选择整个工程、某个模块或目录、单个文件进行导出。在Output directory中指定导出ArkTSDoc的存储路径。 若勾选Open generated documentation in browser选项，在生成ArkTSDoc后，将自动打开相应页面查看生成的文档。配置完毕后点击Generate，开始扫描并生成ArkTSDoc文档。生成的ArkTSDoc左侧文档目录和原工程目录结构一致，右侧可点击跳转到当前文件包含的某个变量、方法、接口或类的文档位置。  若没有勾选Open generated documentation in browser选项，在生成ArkTSDoc后，DevEco Studio右下角弹出对应提示框，可以点击Go to Folder跳转到生成的ArkTSDoc文件夹，用浏览器打开文件夹中index.html文件即可查看ArkTSDoc文档。 
+生成效果示例
+/**\n * Prints \"log\" logs.\n *\n * @param { string } message - Text to print.\n * @myTag\n * @since 11\n */
+代码示例：
+/**\n * Defines the demo class\n *\n * @since 11\n */\nexport class Demo {\n    /**\n     * Prints \"log\" logs.\n     *\n     * @param { string } message - Text to print.\n     * @myTag\n     * @since 11\n     */\n    static log(message: string): void {\n        \n    }\n}
+ArkTSDoc文档生成结果：

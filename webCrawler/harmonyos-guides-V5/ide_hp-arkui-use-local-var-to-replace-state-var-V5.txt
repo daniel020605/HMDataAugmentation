@@ -1,0 +1,14 @@
+@performance/hp-arkui-use-local-var-to-replace-state-var
+建议使用临时变量替换状态变量。
+通用丢帧场景下，建议优先修改。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@performance/hp-arkui-use-local-var-to-replace-state-var\": \"warn\",\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+@Entry\n@Component\nstruct MyComponent {\n  @State message: string = '';\n  appendMsg(newMsg: String) {\n      let message = this.message;\n      message += newMsg;\n      message += \";\";\n      message += \"<br/>\";\n      this.message = message;\n  }\n  build() {\n    // 业务代码...\n  }\n}
+反例
+@Entry\n@Component\nstruct MyComponent {\n  @State message: string = '';\n  appendMsg(newMsg: String) {\n      this.message += newMsg;\n      this.message += \";\";\n      this.message += \"<br/>\";\n  }\n  build() {\n    // 业务代码...\n  }\n}
+规则集
+plugin:@performance/recommended
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

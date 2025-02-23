@@ -1,0 +1,21 @@
+多线程并发概述
+并发模型是用来实现不同应用场景中并发任务的编程模型，常见的并发模型分为基于内存共享的并发模型和基于消息通信的并发模型。
+Actor并发模型作为基于消息通信并发模型的典型代表，不需要开发者去面对锁带来的一系列复杂偶发的问题，同时并发度也相对较高，因此得到了广泛的支持和使用。
+当前ArkTS提供了TaskPool和Worker两种并发能力，TaskPool和Worker都基于Actor并发模型实现。
+Actor并发模型和内存共享并发模型的具体对比请见多线程并发模型。
+多线程并发模型
+内存共享并发模型指多线程同时执行任务，这些线程依赖同一内存并且都有权限访问，线程访问内存前需要抢占并锁定内存的使用权，没有抢占到内存的线程需要等待其他线程释放使用权再执行。
+Actor并发模型每一个线程都是一个独立Actor，每个Actor有自己独立的内存，Actor之间通过消息传递机制触发对方Actor的行为，不同Actor之间不能直接访问对方的内存空间。
+Actor并发模型对比内存共享并发模型的优势在于不同线程间内存隔离，不会产生不同线程竞争同一内存资源的问题。开发者不需要考虑对内存上锁导致的一系列功能、性能问题，提升了开发效率。
+由于Actor并发模型线程之间不共享内存，需要通过线程间通信机制传输并发任务和任务结果。
+本文以经典的生产者消费者问题为例，对比呈现这两种模型在解决具体问题时的差异。
+[h2]内存共享模型
+以下示例伪代码和示意图展示了如何使用内存共享模型解决生产者消费者问题。
+为了避免不同生产者或消费者同时访问一块共享内存的容器时产生的脏读，脏写现象，同一时间只能有一个生产者或消费者访问该容器，也就是不同生产者和消费者争夺使用容器的锁。当一个角色获取锁之后其他角色需要等待该角色释放锁之后才能重新尝试获取锁以访问该容器。
+// 此段示例为伪代码仅作为逻辑示意，便于开发者理解使用内存共享模型和Actor模型的区别\nclass Queue {\n  // ...\n  push(value: number) {}\n \n  empty(): boolean {\n    // ...\n    return true\n  }\n \n  pop(value: number) :number {\n    // ...\n    return value;\n  }\n}\n \nclass Mutex {\n  // ...\n  lock(): boolean {\n    // ...\n    return true;\n  }\n \n  unlock() {\n \n  }\n}\nclass BufferQueue {\n  queue: Queue = new Queue()\n  mutex: Mutex = new Mutex()\n  add(value: number) {\n    // 尝试获取锁\n    if (this.mutex.lock()) {\n      this.queue.push(value)\n      this.mutex.unlock()\n    }\n  }\n \n  take(value: number): number {\n    let res: number = 0;\n    // 尝试获取锁\n    if (this.mutex.lock()) {\n      if (this.queue.empty()) {\n        res = 1;\n      }\n      let num: number = this.queue.pop(value)\n      this.mutex.unlock()\n      res = num;\n    }\n    return res;\n  }\n}\n \n// 构造一段全局共享的内存\nlet g_bufferQueue = new BufferQueue()\n \nclass Producer {\n  constructor() {\n  }\n  run() {\n    let value = Math.random()\n    // 跨线程访问bufferQueue对象\n    g_bufferQueue.add(value)\n  }\n}\n \nclass ConsumerTest {\n  constructor() {\n  }\n  run() {\n    // 跨线程访问bufferQueue对象\n    let num = 123;\n    let res = g_bufferQueue.take(num)\n    if (res != null) {\n      // 添加消费逻辑\n    }\n  }\n}\n \nfunction Main(): void {\n  let consumer: ConsumerTest = new ConsumerTest()\n  let producer1: Producer = new Producer()\n  for (let i = 0;i < 0;i++) {\n    // 模拟启动多线程执行生产任务\n    // let thread = new Thread()\n    // thread.run(producer.run())\n    // consumer.run()\n  }\n}
+[h2]Actor模型
+以下示例简单展示了如何使用基于Actor模型的TaskPool并发能力来解决生产者消费者问题。
+Actor模型不同角色之间并不共享内存，生产者线程和UI线程都有自己的虚拟机实例，两个虚拟机实例之间拥有独占的内存，相互隔离。生产者生产出结果后通过序列化通信将结果发送给UI线程，UI线程消费结果后再发送新的生产任务给生产者线程。
+import { taskpool } from '@kit.ArkTS';\n\n// 跨线程并发任务\n@Concurrent\nasync function produce(): Promise<number> {\n  // 添加生产相关逻辑\n  console.info(\"producing...\");\n  return Math.random();\n}\n\nclass Consumer {\n  public consume(value: Object) {\n    // 添加消费相关逻辑\n    console.info(\"consuming value: \" + value);\n  }\n}\n\n@Entry\n@Component\nstruct Index {\n  @State message: string = 'Hello World'\n\n  build() {\n    Row() {\n      Column() {\n        Text(this.message)\n          .fontSize(50)\n          .fontWeight(FontWeight.Bold)\n        Button() {\n          Text(\"start\")\n        }.onClick(() => {\n          let produceTask: taskpool.Task = new taskpool.Task(produce);\n          let consumer: Consumer = new Consumer();\n          for (let index: number = 0; index < 10; index++) {\n            // 执行生产异步并发任务\n            taskpool.execute(produceTask).then((res: Object) => {\n              consumer.consume(res);\n            }).catch((e: Error) => {\n              console.error(e.message);\n            })\n          }\n        })\n        .width('20%')\n        .height('20%')\n      }\n      .width('100%')\n    }\n    .height('100%')\n  }\n}
+TaskPool和Worker
+ArkTS提供了TaskPool和Worker两种并发能力供开发者选择，各自的运作机制和注意事项请见TaskPool简介和Worker简介，两者之间实现的特点和适用场景也存在差异，请见TaskPool和Worker的对比。

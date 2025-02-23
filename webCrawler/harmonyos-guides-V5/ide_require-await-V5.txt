@@ -1,0 +1,13 @@
+@typescript-eslint/require-await
+异步函数必须包含“await”。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/require-await\": \"error\"\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+async function doSomething(): Promise<void> {\n  return Promise.resolve();\n}\n\nexport async function foo() {\n  await doSomething();\n}\n\nexport function baz() {\n  doSomething().catch(() => {\n    console.info('error');\n  });\n}
+反例
+async function doSomething(): Promise<void> {\n  return Promise.resolve();\n}\n\nexport async function foo() {\n  doSomething();\n}
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

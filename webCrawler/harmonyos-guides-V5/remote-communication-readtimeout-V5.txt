@@ -1,0 +1,5 @@
+读写超时
+本协议栈框架支持读写超时设置。
+网络传输持续进行，但是服务端收到数据或者客户端收到数据的时间间隔比较长，超出了预期，那么请求会异常。通常情况下应用如果感知到网速太慢影响用户体验时，请求会取消，并执行异常分支。
+开发步骤
+导包。import { rcp } from '@kit.RemoteCommunicationKit'; 设置读写超时时间并且发起请求。const HTTP_SERVER: string = \"https://www.example.com\";\n\nconst testInactivityMs = async (done: Function): Promise<void> => {\n  const session = rcp.createSession();\n  const request = new rcp.Request(HTTP_SERVER);\n  const timeout: rcp.Timeout = {\n    inactivityMs: 1,\n  };\n  request.configuration = {\n    transfer: {\n      timeout: timeout,\n    }\n  };\n  try {\n    await session.fetch(request);\n    session.close();\n  } catch (e) {\n    session.close();\n    // 错误码应该是：1007900028，超时了\n  }\n  session.close();\n  done();\n} 

@@ -1,0 +1,26 @@
+使用剪贴板进行复制粘贴
+场景介绍
+剪贴板为开发者提供数据的复制粘贴能力。
+当需要使用复制粘贴等功能时，例如：复制文字内容到备忘录中粘贴，复制图库照片到文件管理粘贴，就可以通过剪贴板来完成。
+约束限制
+ 剪贴板内容大小<128MB。 为保证剪贴板数据的准确性，同一时间只能支持一个复制操作。 API version 12及之后，系统为提升用户隐私安全保护能力，剪贴板读取接口增加权限管控。 
+使用基础数据类型进行复制粘贴
+剪贴板支持使用基础数据类型进行复制粘贴，当前支持的基础数据类型有文本、HTML、URI、Want、PixelMap。JS接口与NDK接口支持数据类型不完全一致，使用时须匹配接口支持类型。
+新开发的应用建议使用本方案实现复制粘贴功能。
+[h2]JS接口与NDK接口数据类型对应关系
+JS数据类型对应剪贴板类型，详见ohos.pasteboard。
+NDK数据类型对应统一数据管理框架，详见UDMF。
+[h2]接口说明
+详细接口见接口文档。
+使用剪贴板getData接口获取到uri类型数据之后，请使用文件管理的fs.copy接口获取文件。
+[h2]示例代码
+import { AbilityConstant, UIAbility, Want } from '@kit.AbilityKit';\nimport { BusinessError, pasteboard } from '@kit.BasicServicesKit';\n\nexport default class EntryAbility extends UIAbility {\n  async onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): Promise<void> {\n    // 获取系统剪贴板对象\n    let text = \"test\";\n    // 创建一条纯文本类型的剪贴板内容对象\n    let pasteData = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, text);\n    // 将数据写入系统剪贴板\n    let systemPasteboard = pasteboard.getSystemPasteboard();\n    await systemPasteboard.setData(pasteData);\n    //从系统剪贴板中读取数据\n    systemPasteboard.getData().then((data) => {\n      let outputData = data;\n      // 从剪贴板数据中获取条目数量\n      let recordCount = outputData.getRecordCount();\n      // 从剪贴板数据中获取对应条目信息\n      for (let i = 0; i < recordCount; i++) {\n        let record = outputData.getRecord(i).toPlainText();\n        console.log('Get data success, record:' + record);\n      }\n    }).catch((error: BusinessError) => {\n      // 处理异常场景\n    })\n  }\n}
+使用统一数据类型进行复制粘贴
+为了方便剪贴板与其他应用间进行数据交互，减少数据类型适配的工作量，剪贴板支持使用统一数据对象进行复制粘贴。详细的统一数据对象请见标准化数据通路文档介绍。
+剪贴板支持使用基础数据类型进行复制粘贴，当前支持的基础数据类型有文本、HTML。JS接口与NDK接口支持数据类型不完全一致，使用时须匹配接口支持类型。
+[h2]接口说明
+详细接口见接口文档。
+[h2]示例代码
+import {unifiedDataChannel, uniformTypeDescriptor} from '@kit.ArkData';\nimport {BusinessError, pasteboard} from '@kit.BasicServicesKit';\n\n// 构造一条PlainText数据,并书写获取延时数据的函数。\nlet plainTextData = new unifiedDataChannel.UnifiedData();\nlet GetDelayPlainText = ((dataType:string) => {\n  let plainText = new unifiedDataChannel.PlainText();\n  plainText.details = {\n    Key: 'delayPlaintext',\n    Value: 'delayPlaintext',\n  };\n  plainText.textContent = 'delayTextContent';\n  plainText.abstract = 'delayTextContent';\n  plainTextData.addRecord(plainText);\n  return plainTextData;\n});\n\n// 向系统剪贴板中存入一条PlainText数据。\nlet SetDelayPlainText = (() => {\n  plainTextData.properties.shareOptions = unifiedDataChannel.ShareOptions.CROSS_APP;\n  // 跨应用使用时设置为CROSS_APP，本应用内使用时设置为IN_APP\n  plainTextData.properties.getDelayData = GetDelayPlainText;\n  pasteboard.getSystemPasteboard().setUnifiedData(plainTextData).then(()=>{\n    // 存入成功，处理正常场景\n  }).catch((error: BusinessError) => {\n    // 处理异常场景\n  });\n})\n\n// 从系统剪贴板中读取这条text数据\nlet GetPlainTextUnifiedData = (() => {\n  pasteboard.getSystemPasteboard().getUnifiedData().then((data) => {\n    let outputData = data;\n    let records = outputData.getRecords();\n    if (records[0].getType() == uniformTypeDescriptor.UniformDataType.PLAIN_TEXT) {\n      let record = records[0] as unifiedDataChannel.PlainText;\n      console.log('GetPlainText success, type:' + records[0].getType + ', details:' +\n      JSON.stringify(record.details) + ', textContent:' + record.textContent + ', abstract:' + record.abstract);\n    } else {\n      console.log('Get Plain Text Data No Success, Type is: ' + records[0].getType());\n    }\n  }).catch((error: BusinessError) => {\n    //处理异常场景\n  })\n})
+示例代码
+ 剪贴板控件 

@@ -1,0 +1,14 @@
+@performance/hp-arkui-use-object-link-to-replace-prop
+建议使用@ObjectLink代替@Prop减少不必要的深拷贝。
+通用丢帧场景下，建议优先修改。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@performance/hp-arkui-use-object-link-to-replace-prop\": \"warn\",\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+@Observed\nclass ClassA {\n  public c: number = 0;\n  constructor(c: number) {\n    this.c = c;\n  }\n}\n@Component\nstruct PropChild {\n  // @ObjectLink 装饰状态变量不会深拷贝\n  // 当修饰为ObjectLink时 ClassA必须同时被Observed修饰\n  @ObjectLink testNum: ClassA;\n  build() {\n    Text(`PropChild testNum ${this.testNum.c}`)\n  }\n}\n@Entry\n@Component\nstruct Parent {\n  @State testNum: ClassA[] = [new ClassA(1)];\n  build() {\n    Column() {\n      Text(`Parent testNum ${this.testNum[0].c}`)\n        .onClick(() => {\n          this.testNum[0].c += 1;\n        })\n      // 当子组件不需要发生本地改变时，优先使用@ObjectLink，因为@Prop是会深拷贝数据，具有拷贝的性能开销，所以这个时候@ObjectLink是比@Link和@Prop更优的选择\n      PropChild({ testNum: this.testNum[0] })\n    }\n  }}
+反例
+@Observed\nclass ClassA {\n  public c: number = 0;\n  constructor(c: number) {\n    this.c = c;\n  }\n}\n@Component\nstruct PropChild {\n  // @Prop 装饰状态变量会深拷贝\n  @Prop testNum: ClassA;\n  build() {\n    Text(`PropChild testNum ${this.testNum.c}`)\n  }\n}\n@Entry\n@Component\nstruct Parent {\n  @State testNum: ClassA[] = [new ClassA(1)];\n  build() {\n    Column() {\n      Text(`Parent testNum ${this.testNum[0].c}`)\n        .onClick(() => {\n          this.testNum[0].c += 1;\n        })\n      // PropChild没有改变@Prop testNum: ClassA的值，所以这时最优的选择是使用@ObjectLink\n      PropChild({ testNum: this.testNum[0] })\n    }\n  }\n}
+规则集
+plugin:@performance/recommended
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

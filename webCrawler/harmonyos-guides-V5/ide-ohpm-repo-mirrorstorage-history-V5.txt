@@ -1,0 +1,26 @@
+ohpm-repo mirror_storage
+同步 sftp 存储的包。
+ohpm-repo 1.1.0 版本开始支持此命令。
+命令格式
+ohpm-repo mirror_storage <source_sftp> <target_sftp> <target> [options]
+功能描述
+该命令要求配置文件中文件存储必须为 ohpm-repo-plugin-sftp。命令会将源sftp目录下满足 <target> 条件的包同步到目标sftp目录下。
+参数
+[h2]<source_sftp>
+类型：String必填参数
+您必须在 mirror_storage 命令后面配置 <source_sftp> 参数 ，指定源sftp配置的名字。
+[h2]<target_sftp>
+类型：String必填参数
+您必须在 mirror_storage 命令后面配置 <target_sftp> 参数 ，指定目标sftp配置的名字。
+[h2]<target>
+类型：String必填参数格式： [<@scope>/]<pkg>[<@version>] 或 @all说明： <@scope> 和 <@version> 是可选的， <pkg> 是包名。
+您必须在 mirror_storage 命令后配置 <target> 参数，指定满足条件的包；或使用 @all 指定所有包。
+选项
+[h2]failed
+默认值：无类型：无
+您可以在 mirror_storage 命令后面配置 --failed 选项，则只同步在下载错误日志中未被处理的且满足<target>条件的包，如果同步成功，则相应的错误日志会被设置成 handled。
+示例
+执行以下命令，同步包 @ohos/axios@2.0.3：
+ohpm-repo mirror_storage test_one_sftp test_two_sftp @ohos/axios@2.0.3
+将名为 test_one_sftp 的 sftp 目录中 @ohos/axios@2.0.3 包同步到名为 test_two_sftp 的sftp目录中。
+结果示例：

@@ -1,0 +1,35 @@
+回归测试
+DevEco Testing为HarmonyOS NEXT应用开发者提供了预置的回归测试服务。用户可针对应用的核心功能自定义自动化测试场景，通过将核心功能用例转化为测试服务包，借助回归测试服务进行自动化测试，并生成测试报告，完成对应用的持续看护。
+回归测试
+回归测试：针对待测试应用的指定场景，支持通过构建自定义测试包，无需搭建环境即可执行测试用例。用例执行过程中提供实时投屏、步骤截图、步骤结果和测试用例执行日志展示，辅助开发者快速定位问题；此外，测试报告支持指标上报，辅助开发者了解应用的执行性能，助力开发者更高效地打造出高质量应用。
+创建任务
+进入DevEco Testing客户端，在左侧菜单栏选择“回归测试”，点击“回归测试”服务卡片，即进入任务创建界面。按需配置任务参数，点击创建任务即开始测试。
+测试执行
+任务创建后即进入测试执行页面，测试过程中，可以看到设备实时投屏、设备截图、测试步骤结果上报以及指标数据上报。
+查看报告
+测试完成后，自动生成测试报告。报告包含任务信息、测试结论、应用信息、指标监控数据、测试步骤及执行日志。
+测试包构建
+回归测试的测试对象为应用的核心功能，用户可将应用核心功能的测试用例构建成多个可执行测试包，每个测试包中仅包含单个测试用例，便于观察到核心功能的每个小功能点的质量。
+测试执行前需先构建测试包，用户利用python的setuptools工具在工程根目录下构建setup-regression.py、MANIFEST.in文件，setup-regression.py文件中声明用例，MANIFEST.in文件中声明脚本执行过程中需要用到的aw包、config文件夹下的配置文件及其他的资源文件。为方便用户构建测试包，DevEco Testing Hypium（PyCharm插件版）已发布，用户可利用插件快速生成可执行测试包。具体操作步骤如下：
+步骤一：PyCharm中本地安装DevEco Testing Hypium插件。安装请参考 2.2 应用UI测试（基于python）
+步骤二：新建Hypium工程，在工程根目录下创建setup-regression.py文件和MANIFEST.in文件。一个完整的回归测试工程结构如下所示：
+HypiumTest\n |     |----aw                                       // 工程中自定义模块文件夹\n |     |     |----Utils.py                         // 示例模块文件\n |     |----config                                  // 测试工程配置文件夹\n |     |     |----user_config.xml             // 测试工程配置文件，主要是测试框架的任务配置\n |     |----resource                              // 测试资源文件夹，测试过程中用到的资源文件默认会优先从当前文件夹进行查找\n |     |    |----images            // 资源文件子目录\n |     |    |    |----icon_mms.png   // 资源文件，以png图片为例\n |     |----testcases                             // 测试用例文件夹，测试过程中的测试用例文件优先会从当前文件夹进行查找\n |     |    |----Example.json                  // Example测试用例配置文件，配置用例设备信息等\n |     |    |----Example.py                     // Example测试用例文件，实际的测试逻辑代码\n |     |----MANIFEST.in                // 声明脚本执行过程中需要用到的aw包 \n |     |----setup-regression.py                // 声明用例
+步骤三：按业务场景，自定义测试用例文件。示例如下：
+from devicetest.core.test_case import TestCase\nfrom hypium import *\nfrom hypium.advance.deveco_testing.step import Step\nfrom hypium.advance.deveco_testing.metric import DevecoTesting_set_metric\n\nclass Example(TestCase):\n    def __init__(self, controllers):  # 初始化操作，一般不变\n        self.TAG = self.__class__.__name__\n        TestCase.__init__(self, self.TAG, controllers)\n        self.driver = UiDriver(self.device1)\n\n        self.count = 0  # 用于演示自定义参数\n\n    def setup(self):\n        self.driver.swipe_to_home()  # 返回桌面\n        self.count += 1\n        DevecoTesting_set_metric('上报自定义参数', self.count, '次')  # 上报自定义参数，入参依次为自定义参数名称、值、单位\n\n    def process(self):\n        Step('打开相机')\n        self.driver.start_app(package_name=\"com.huawei.hmos.camera\", page_name=\"com.huawei.hmos.camera.MainAbility\")\n        self.driver.wait(3)\n        Step('点击拍照按钮')\n        self.driver.touch(BY.key('COMPONENT_ID_SHUTTER_PHOTO_1'))\n        self.driver.wait(0.5)\n        Step('点击相册按钮')\n        self.driver.touch(BY.key('COMPONENT_ID_THUMBNAIL_1'))\n        self.driver.wait(0.5)\n        Step('点击中心出现删除按钮')\n        self.driver.touch((631, 1333))\n        self.driver.wait(0.5)\n        Step('点击delete图标')\n        self.driver.touch(BY.key('ToolBarButtonDelete'))\n        self.driver.wait(0.5)\n        Step('点击删除按钮')\n        self.driver.touch(BY.key('advanced_dialog_button_1'))\n        self.driver.wait(0.5)\n        self.count += 1\n        DevecoTesting_set_metric('上报自定义参数', self.count, '次')\n\n    def teardown(self):\n        Step('回到桌面')\n        self.driver.swipe_to_home()\n        self.driver.wait(0.5)\n        Step('打开多任务界面')\n        self.driver.swipe_to_recent_task()\n        self.driver.wait(0.5)\n        Step('点击回收站图标')\n        self.driver.touch(BY.key('RecentClearAllView_Image_deleteFull'))\n        self.driver.wait(0.5)\n        self.count += 1\n        DevecoTesting_set_metric('上报自定义参数', self.count, '次')
+注意：
+在用例脚本中，请导入并使用hypium.advance.deveco_testing.step 中的 Step函数标记步骤 (from hypium.advance.deveco_testing.step import Step)，否则回归测试过程中无法正确读取到测试步骤，并导致指标监控为空。
+支持上报自定义指标。目前不支持自定义指标更新操作，若多次上报同一个指标，仅展示最后一次的指标上报结果。
+步骤四：用户本地环境需预先安装setuptools模块，参考python的setuptools用法编写setup-regression.py，示例如下：
+from setuptools import setup \n\n setup(\n       name='hypiumTest',\n       version='1.0.0.0',\n       author='xxx',\n       # py_modules指定需要打包的hypium用例py文件\n       py_modules=['testcases.Example'],\n       include_package_data=True\n       )
+需要注意：回归测试生成的可执行测试包中仅支持单用例（即单个json文件和json中指定的用例文件），编写setup-regression.py时需注意写法，否则会打包失败。
+步骤五：通过MANIFEST.in文件指定需要一起打包的文件，示例如下：
+# 与打包用例对应的json文件\ninclude testcases/Example.json\n# 用例依赖的aw\ninclude aw/*.py\n# 用例中用到的各类配置文件\ninclude config/*.xml\ninclude config/*.json\ninclude config/*.txt\n# 用例中用到的resource\ninclude resource/*\ninclude resource/images/*
+注意：
+一定要确保用例所需要的aw和配置文件及其他资源全部都写到MANIFEST.in中，否则用例包无法正常执行。MANIFEST.in文件中不要有注释代码，否则会打包失败。
+步骤六：在根目录下右键选择“DevEco Testing Hypium”-“生成测试包”，出现下图弹窗，选择“回归测试”，用户填写待测试应用的名称及测试场景，信息填写完毕后点击“OK”即可在指定目录下查看测试包。
+生成回归测试测试zip包，可参考回归测试-创建任务在本地执行测试任务。测试脚本编写详细指南 请参考 2.2 应用UI测试（基于python）
+常见问题
+Q1：设备断连后重连设备，投屏页面为什么不刷新？
+A1：设备断连后重连设备，投屏或会停留在断连前的页面，不跟随设备页面切换而更新。该问题不影响本次测试继续执行，将在后续版本中修复。
+Q2：测试过程中没有显示用例包步骤且指标监控中无数据？
+A2：在用例脚本中，请导入并使用hypium.advance.deveco_testing.step 中的Step函数标记步骤 (from hypium.advance.deveco_testing.step import Step)，否则回归测试过程中无法正确读取到测试步骤，并导致指标监控为空。

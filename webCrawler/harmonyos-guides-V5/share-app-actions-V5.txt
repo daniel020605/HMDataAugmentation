@@ -1,0 +1,6 @@
+宿主应用配置操作区
+场景介绍
+系统操作区提供了复制、保存、另存为、打印、复制到中转站等系统级快捷操作。宿主应用可以根据自己的业务体验需要判断是否给用户提供相关操作。
+比如，分享的图片不需要被打印出来，本次分享将打印按钮从操作区移除。
+开发步骤
+ 导入相关模块。import { common } from '@kit.AbilityKit';\nimport { systemShare } from '@kit.ShareKit';\nimport { uniformTypeDescriptor as utd } from '@kit.ArkData'; 构造分享数据，可添加多条分享记录。// 构造ShareData，需配置一条有效数据信息\nlet data: systemShare.SharedData = new systemShare.SharedData({\n  utd: utd.UniformDataType.PLAIN_TEXT,\n  content: 'Hello HarmonyOS'\n});\n// 额外再添加一条记录\ndata.addRecord({\n  utd: utd.UniformDataType.PNG,\n  uri: 'file://.../test.png'\n}); 启动分享面板，并配置不显示打印快捷操作。如需屏蔽其他系统级快捷操作，请参考ShareAbilityType介绍。// 构建ShareController\nlet controller: systemShare.ShareController = new systemShare.ShareController(data);\n// 获取UIAbility上下文对象\nlet context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext;\n// 注册分享面板关闭监听\ncontroller.on('dismiss', () => {\n  console.info('Share panel closed');\n  // 分享结束，可处理其他业务。\n});\n\n// 进行分享面板显示\ncontroller.show(context, {\n  previewMode: systemShare.SharePreviewMode.DETAIL,\n  selectionMode: systemShare.SelectionMode.SINGLE,\n  excludedAbilities: [systemShare.ShareAbilityType.PRINT]\n}) 

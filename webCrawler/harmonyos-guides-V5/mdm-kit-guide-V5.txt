@@ -1,0 +1,26 @@
+MDM Kit开发指南
+功能介绍
+设备管理应用可以提供企业设备管理与事件监听、应用管理、禁用管理、安全管理、设备设置、设备控制、设备信息获取、硬件外设管理、系统管理、网络通信管理等功能。具体功能内容可参考接口说明。
+设备管理应用：具备企业设备管理扩展能力的应用。
+开发步骤
+要完成一个设备管理应用开发，需要完成以下步骤：
+ 申请资质。 创建EnterpriseAdminExtensionAbility。 声明接口所需权限。 MDM功能开发与调试。 分发部署。 
+[h2]申请资质
+在开发应用前，需要在AppGallery Connect中配置项目和应用信息。包括：
+ 注册成为企业开发者。 创建项目和创建应用。 申请MDM应用的证书和Profile。 
+[h2]创建EnterpriseAdminExtensionAbility
+请参阅EnterpriseAdminExtensionAbility开发指南完成EnterpriseAdminExtensionAbility的创建。
+[h2]声明接口所需权限
+在申请权限前，请保证符合权限使用的基本原则。然后在工程Module对应的module.json5配置文件中\"requestPermissions\"标签下声明要使用的接口所需的权限。例如：
+\"requestPermissions\": [\n  {\n    \"name\": \"ohos.permission.MANAGE_ENTERPRISE_DEVICE_ADMIN\"\n  },\n]
+所需要申请的权限请参考具体接口，这里提供了企业设备管理的链接，可基于该文档查看MDM Kit内其他API文档。
+声明的MDM权限必须在申请MDM应用的证书和Profile时完成申请，否则后面应用还是无法获取到该权限。
+[h2]MDM功能开发
+ 导包。MDM Kit目前包含应用管理、通信管理、安全管理、限制策略、系统内管理、设备设置和查询、设备控制等多种类型的API。请根据业务需求。以下为导入adminManager和restrictions的示例。 import { adminManager, restrictions } from '@kit.MDMKit'; 调用接口，实现相应的功能。以下为禁用设备Wi-Fi的示例。 import { Want } from '@kit.AbilityKit';\nlet wantTemp: Want = {\n  bundleName: 'com.example.xxx',\n  abilityName: 'EnterpriseAdminAbility',\n};\ntry {\n  restrictions.setDisallowedPolicy(wantTemp, \"wifi\", true);\n  console.info(\"disable wifi success.\");\n} catch (error) {\n  console.info(\"disable wifi fail.\");\n} 
+[h2]调试说明
+由于MDM接口需要在激活企业设备管理扩展能力后使用，调试时需通过hdc命令来激活/解除激活扩展能力，命令如下：
+# 激活\nhdc shell edm enable-admin -n 包名 -a 企业设备管理扩展能力类名\n# 解除激活\nhdc shell edm disable-admin -n 包名
+正式使用时，在同一设备上只能能激活一个超级设备管理应用。
+调试之前，需要完成资质申请。
+[h2]分发部署
+暂不支持，即将发布，敬请期待。

@@ -1,0 +1,6 @@
+启动本地PageAbility
+PageAbility相关的能力通过featureAbility提供，启动本地Ability通过featureAbility中的startAbility接口实现。
+ 表1 featureAbility接口说明
+如下示例通过startAbility显式启动PageAbility。启动Ability的参数包含want，关于want的说明详见对象间信息传递载体Want，相应的，隐式启动与显式启动也不在此赘述。
+import featureAbility from '@ohos.ability.featureAbility';\nimport Want from '@ohos.app.ability.Want';\nimport hilog from '@ohos.hilog';\n\nconst TAG: string = 'PagePageAbilityFirst';\nconst domain: number = 0xFF00;
+(async (): Promise<void> => {\n  try {\n    hilog.info(domain, TAG, 'Begin to start ability');\n    let want: Want = {\n      bundleName: 'com.samples.famodelabilitydevelop',\n      moduleName: 'entry',\n      abilityName: 'com.samples.famodelabilitydevelop.PageAbilitySingleton'\n    };\n    await featureAbility.startAbility({ want: want });\n    hilog.info(domain, TAG, `Start ability succeed`);\n  }\n  catch (error) {\n    hilog.error(domain, TAG, 'Start ability failed with ' + error);\n  }\n})()

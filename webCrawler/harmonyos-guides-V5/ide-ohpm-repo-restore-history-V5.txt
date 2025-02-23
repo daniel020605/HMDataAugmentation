@@ -1,0 +1,16 @@
+ohpm-repo restore
+将 ohpm-repo pack 打包产物替换到 <deploy_root> 目录下相应文件，重启服务。
+ohpm-repo 1.1.0 版本开始支持此命令。
+命令格式
+ohpm-repo restore <file_path>
+功能描述
+该命令会停止当前ohpm-repo服务，并用打包文件 <file_path> 中的内容替换ohpm-repo部署根目录 <deploy_root> 的相应文件，然后重启ohpm-repo服务。该命令执行前必须已经执行过ohpm-repo实例启动命令 ohpm-repo start。
+<file_path>：由 ohpm-repo pack 命令得到的打包产物路径。支持相对和绝对路径配置，当配置为相对路径时，以当前命令行工作路径为根目录。 <deploy_root>：ohpm-repo部署根目录。首次启动ohpm-repo实例后，会在ohpm-repo工具根目录中生成 .deploy_root 文件，其记录的是<deploy_root>，会自动读取识别，无需在命令中指定 <deploy_root> 路径。 
+参数
+[h2]<file_path>
+类型：String必填参数
+指定待解压的打包文件路径。
+示例
+执行以下命令：
+ohpm-repo restore  C:\\Users\\xxx\\Desktop\\pack_1694405011655.zip
+结果示例：

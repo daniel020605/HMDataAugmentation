@@ -1,0 +1,15 @@
+地点选取
+场景介绍
+本章节将向您介绍如何集成地点选取控件，您无需自己开发地图页面，可快速实现地点选取的能力。
+接口说明
+地点选取控件功能主要由sceneMap命名空间下的chooseLocation方法提供，更多接口及使用方法请参见接口文档。
+接口名
+描述
+LocationChoosingOptions
+地点选取的参数。
+chooseLocation(context: common.UIAbilityContext, options: LocationChoosingOptions): Promise<LocationChoosingResult>
+地点选取。
+LocationChoosingResult
+地点选取的返回结果。
+开发步骤
+ 导入相关模块。import { sceneMap } from '@kit.MapKit';\nimport { BusinessError } from '@kit.BasicServicesKit';\nimport { common } from '@kit.AbilityKit'; 创建地点选取参数，调用chooseLocation方法拉起地点选取页。let locationChoosingOptions: sceneMap.LocationChoosingOptions = {\n  // 地图中心点坐标\n  location: { latitude: 39.92194051376904, longitude: 116.3971836796932 },\n  language: 'en',\n  // 展示搜索控件\n  searchEnabled: true,\n  // 展示附近Poi\n  showNearbyPoi: true\n};\n// 拉起地点选取页\nsceneMap.chooseLocation(getContext(this) as common.UIAbilityContext, locationChoosingOptions).then((data) => {\n  console.info(\"ChooseLocation\", \"Succeeded in choosing location.\");\n}).catch((err: BusinessError) => {\n  console.error(\"ChooseLocation\", `Failed to choose location, code: ${err.code}, message: ${err.message}`);\n}); 

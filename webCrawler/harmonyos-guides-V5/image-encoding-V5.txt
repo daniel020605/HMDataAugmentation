@@ -1,0 +1,16 @@
+使用ImagePacker完成图片编码
+图片编码指将PixelMap编码成不同格式的存档图片，当前支持打包为JPEG、WebP、png和 HEIF(不同硬件设备支持情况不同) 格式，用于后续处理，如保存、传输等。
+开发步骤
+图片编码相关API的详细介绍请参见：图片编码接口说明。
+[h2]图片编码进文件流
+ 创建图像编码ImagePacker对象。 // 导入相关模块包\nimport { image } from '@kit.ImageKit';\n\nconst imagePackerApi = image.createImagePacker(); 设置编码输出流和编码参数。  format为图像的编码格式；quality为图像质量，范围从0-100，100为最佳质量。     根据MIME标准，标准编码格式为image/jpeg。当使用image编码时，PackingOption.format设置为image/jpeg，image编码后的文件扩展名可设为.jpg或.jpeg，可在支持image/jpeg解码的平台上使用。   let packOpts : image.PackingOption = { format:\"image/jpeg\", quality:98 }; 编码为hdr内容(需要资源本身为hdr，支持jpeg格式)。 packOpts.desiredDynamicRange = image.PackingDynamicRange.AUTO;  创建PixelMap对象或创建ImageSource对象。 进行图片编码，并保存编码后的图片。 方法一：通过PixelMap进行编码。 import { BusinessError } from '@kit.BasicServicesKit';\nimagePackerApi.packing(pixelMap, packOpts).then( (data : ArrayBuffer) => {\n  // data 为打包获取到的文件流，写入文件保存即可得到一张图片\n}).catch((error : BusinessError) => { \n  console.error('Failed to pack the image. And the error is: ' + error); \n}) 方法二：通过imageSource进行编码。 import { BusinessError } from '@kit.BasicServicesKit';\nimagePackerApi.packing(imageSource, packOpts).then( (data : ArrayBuffer) => {\n    // data 为打包获取到的文件流，写入文件保存即可得到一张图片\n}).catch((error : BusinessError) => { \n  console.error('Failed to pack the image. And the error is: ' + error); \n}) 
+[h2]图片编码进文件
+在编码时，开发者可以传入对应的文件路径，编码后的内存数据将直接写入文件。
+方法一：通过PixelMap编码进文件。
+import { BusinessError } from '@kit.BasicServicesKit';\nimport { fileIo as fs } from '@kit.CoreFileKit';\nconst context : Context = getContext(this);\nconst path : string = context.cacheDir + \"/pixel_map.jpg\";\nlet file = fs.openSync(path, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE);\nimagePackerApi.packToFile(pixelMap, file.fd, packOpts).then(() => {\n    // 直接打包进文件\n}).catch((error : BusinessError) => { \n  console.error('Failed to pack the image. And the error is: ' + error); \n})
+方法二：通过imageSource编码进文件。
+import { BusinessError } from '@kit.BasicServicesKit';\nimport { fileIo as fs } from '@kit.CoreFileKit';\nconst context : Context = getContext(this);\nconst filePath : string = context.cacheDir + \"/image_source.jpg\";\nlet file = fs.openSync(filePath, fs.OpenMode.CREATE | fs.OpenMode.READ_WRITE);\nimagePackerApi.packToFile(imageSource, file.fd, packOpts).then(() => {\n    // 直接打包进文件\n}).catch((error : BusinessError) => { \n  console.error('Failed to pack the image. And the error is: ' + error); \n})
+[h2]图片编码保存进图库
+可以将图片编码保存到应用沙箱，然后使用媒体文件管理相关接口保存媒体库资源。
+示例代码
+ 图片压缩 

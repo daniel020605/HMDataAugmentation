@@ -80,7 +80,7 @@ def find_leaf_nodes(tree_list):
 
 def is_document_visited(object_id):
     try:
-        with open(VISITED_DOCS_FILE, 'r') as file:
+        with open(VISITED_DOCS_FILE, 'r', encoding='utf-8') as file:
             visited_docs = file.read().splitlines()
             return object_id in visited_docs
     except FileNotFoundError:
@@ -88,7 +88,7 @@ def is_document_visited(object_id):
 
 
 def mark_document_as_visited(object_id):
-    with open(VISITED_DOCS_FILE, 'a') as file:
+    with open(VISITED_DOCS_FILE, 'a', encoding='utf-8') as file:
         file.write(object_id + '\n')
 
 
@@ -97,7 +97,7 @@ def doc_pipe(topic, doc_name):
     if document:
         doc_paragraphs = get_content(document)
         # print(document.json())
-        with open(f'./{topic}/{doc_name}.txt', 'w') as file:
+        with open(f'./{topic}/{doc_name}.txt', 'w', encoding='utf-8') as file:
             for paragraph in doc_paragraphs:
                 file.write(paragraph.get_text() + '\n')
 
@@ -107,19 +107,19 @@ def get_by_topic(topic):
     if catalog_tree_list:
         leaf_nodes = find_leaf_nodes(catalog_tree_list)
         # 将leaf_nodes数据存储到本地
-        with open(f'./dir/{topic}_leaf_nodes.txt', 'w') as file:
+        with open(f'./dir/{topic}_leaf_nodes.txt', 'w', encoding='utf-8') as file:
             for node in leaf_nodes:
                 file.write(node + '\n')
 
     # 读取leaf_nodes.txt的数据，并逐个请求文档内容
-    with open(f'./dir/{topic}_leaf_nodes.txt', 'r') as file:
+    with open(f'./dir/{topic}_leaf_nodes.txt', 'r', encoding='utf-8') as file:
         for line in tqdm(file):
             doc_pipe(topic, line.strip())
 
 if __name__ == '__main__':
     # 需要提前创建对应文件夹
     # "harmonyos-guides-V5" "harmonyos-guides-V5" "best-practices-V5" "harmonyos-releases-V5" "harmonyos-faqs-V5"
-    get_by_topic("harmonyos-faqs-V5")
+    get_by_topic("harmonyos-guides-V5")
 
     # 计算/docs目录下的文件包括多少字符：9402554
 

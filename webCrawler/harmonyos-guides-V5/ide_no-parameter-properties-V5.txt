@@ -1,0 +1,17 @@
+@typescript-eslint/no-parameter-properties
+禁止在类构造函数中使用参数属性。
+该规则仅支持对.js/.ts文件进行检查。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/no-parameter-properties\": \"error\"\n  }\n}
+选项
+默认禁止在构造函数中使用任何参数属性，如果想要使用某些属性，可以配置额外选项。
+allows：接受一个字符串数组，数组中的属性可以使用。字符串支持以下值：
+readonlyprivateprotectedpublicprivate readonlyprotected readonlypublic readonly
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/no-loss-of-precision\": [\"error\", {\"allows\": [\"readonly\"]}]\n  }\n}
+正例
+export class Foo {\n  public name: string;\n\n  public constructor(name: string) {\n    this.name = name;\n  }\n}
+反例
+export class Foo {\n  // 默认配置下，参数不允许使用readonly\n  public constructor(public readonly name: string) {}\n}
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

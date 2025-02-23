@@ -1,0 +1,33 @@
+分析构建性能
+使用Build Analyzer工具可以显示编译构建过程的重要信息，开发者可以可视化分析排查构建过程中的性能问题。
+进入Build Analyzer
+Build Analyzer会在每次构建应用时默认生成一份报告，并在Build Analyzer窗口进行展示。
+可以在构建完成后通过以下方式打开Build Analyzer窗口：
+直接点击菜单栏Build->Build Analyzer进行查看。在Build窗口中的Build Output页签，点击左侧边栏，打开Build Analyzer页签。构建成功且使用构建分析能力时，在Build窗口Build Output页签下的日志下方点击链接，跳转至Build Analyzer页签。
+查看构建历史记录
+Build Analyzer左侧的Build History窗口中自上而下最多显示最近10条构建历史记录。点击构建历史记录可以显示对应概览和可视化图谱界面。
+构建历史数据保存在本工程./hvigor/report目录下，超过10条记录后，最久的历史数据将会被自动清理。
+查看构建任务时间图谱
+完成构建后首次打开Build Analyzer 时，窗口会显示构建分析概览，如下图所示：
+如需查看构建任务时间图谱，请从下拉菜单中点击Tasks，默认进入时间图谱界面。该界面会分块显示构建历史记录、构建任务时长图谱、构建日志以及对应的日志详情信息，如下图所示：
+图谱中的构建任务展示按照各个任务总时长占比，以相对长度进行展示。可以对时间块进行缩小放大，查看具体的任务名称及耗时信息。
+图谱中构建子任务默认是折叠的，可点击Build TimeLine的节点信息，展开查看子任务的构建时长图谱。
+图谱与日志信息是联动的，可点击图谱中的任务信息，即可联动对应的日志以及日志详情；相同的，点击日志时，也可联动对应的上方图谱信息。
+Build Analyzer不会全部显示构建操作中的所有任务，而是重点显示决定构建总时长的任务。
+图谱下方日志模块，展示每次构建的所有日志信息，并按日志级别（Info、Debug、Warn、Error）进行区分，并提供日志搜索功能。
+点击日志，可与上方图谱和右侧Details模块，进行联动显示。
+查看构建任务占比图谱
+如需查看决定着构建时长的任务的占比细分数据，请点击概览页面上的Common views into this build下方链接 ，您也可以从下拉菜单中选择Tasks并确认您要的任务分组类别。任务以模块、业务类别、目标以及同一模块下的目标、同一模块下的业务类别和同一目标下的业务类别进行分组。图表中任务按照时间占比从大到小排列，点击子任务可详细了解其执行情况。
+1. 由于并行线程的存在，分类任务计算时间可能会比实际总时间长；
+2. 饼图中Configuration代表未记录的任务占比。
+导出日志
+如需查看本次构建日志，您可以点击导出按钮进行日志导出。
+导出内容有：
+分析统计本次构建的html文件记录构建日志的build.log文件记录构建daemon日志的daemon.log文件记录构建任务耗时的report.json文件
+设置构建分析模式
+进入File > Settings > Build, Execution, Deployment > Build Tools > Hvigor下，查看Use build analysis mode选项：
+勾选此项：模式选择为Normal，即为普通模式（默认选项），记录简单打点数据进行分析。模式选择为Advanced，即为高级模式，记录详细打点数据进行分析（此模式下，建议搭配使用node 18版本）。 取消勾选，即为不记录该次构建数据，不进行分析。
+生成构建可视化html文件
+通过命令行方式生成构建可视化html文件。如生成HAP模块的构建可视化html文件，命令如下：hvigorw assembleHap --analyze=normal --config properties.hvigor.analyzeHtml=true 
+通过hvigor-config.json5配置文件中properties.hvigor.analyzeHtml字段生成构建可视化html文件：{\n  \"modelVersion\": \"5.0.0\",\n  \"dependencies\": {\n  },\n  \"execution\": {\n  },\n  \"logging\": {\n  },\n  \"debugging\": {\n  },\n  \"nodeOptions\": {\n  },\n  \"properties\": {\n    \"hvigor.analyzeHtml\": true  // 生成构建可视化html文件\n  }\n} 再执行构建，例如执行以下命令：hvigorw assembleHap --analyze=normal  
+执行以上命令后，在工程的.hvigor/report目录下生成对应的html文件，该文件可直接在浏览器中打开。

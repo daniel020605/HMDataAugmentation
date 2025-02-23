@@ -1,0 +1,16 @@
+ohpm clean
+清理工程下所有模块的ohpm安装产物。
+命令格式
+ohpm clean|cls 
+功能描述
+清理工程下所有模块的oh_modules目录、oh-package-lock.json5文件和oh-package-targetName-lock.json5文件(指定选项--target_path安装时生成)，清理完成后会在控制台打印耗时信息。
+Options
+[h2]keep-lockfile
+默认值：false类型： Boolean别名：kl
+可以在 clean 命令后面配置-kl或者--keep-lockfile参数，执行清理时会保留oh-package-lock.json5文件和oh-package-targetName-lock.json5文件(指定选项--target_path安装时生成)。
+注意事项
+clean命令只会清理工程根目录和在build-profile.json5文件中modules节点下配置的模块。当build-profile.json5文件不存在时，当前oh-package.json5文件所在目录即为工程根目录。
+示例
+test \n|————testModule1   \n     |————libs   \n     |————oh-package.json5 \n|————build-profile.json5 \n|————oh-package.json5  
+ohpm clean 
+D:\\test\\testModule1\\libs>ohpm clean \nohpm DEBUG: startClean. \nohpm DEBUG: clean all modules under: D:\\test \nohpm DEBUG: begin to clean module: D:\\test\\testModule1 \nohpm DEBUG: begin to clean module: D:\\test \nohpm DEBUG: clean module: D:\\test\\testModule1 succeed. \nohpm DEBUG: clean module: D:\\test succeed. \nclean completed in 0s 67ms

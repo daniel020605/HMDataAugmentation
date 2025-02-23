@@ -1,0 +1,13 @@
+@typescript-eslint/promise-function-async
+要求任何返回Promise的函数或方法标记为async。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/promise-function-async\": \"error\"\n  }\n}
+选项
+详情请参考@typescript-eslint/promise-function-async选项。
+正例
+export const arrowFunctionReturnsPromise = async () => Promise.resolve('value');\n\nexport async function functionReturnsPromise() {\n  return Promise.resolve('value');\n}\n\n// An explicit return type that is not Promise means this function cannot be made async, so it is ignored by the rule\nexport function functionReturnsUnionWithPromiseExplicitly(\n  p: boolean\n): string | Promise<string> {\n  return p ? 'value' : Promise.resolve('value');\n}\n\nexport async function functionReturnsUnionWithPromiseImplicitly(p: boolean) {\n  return p ? 'value' : Promise.resolve('value');\n}
+反例
+export const arrowFunctionReturnsPromise = () => Promise.resolve('value');\n\nexport function functionReturnsPromise() {\n  return Promise.resolve('value');\n}\n\nexport function functionReturnsUnionWithPromiseImplicitly(p: boolean) {\n  return p ? 'value' : Promise.resolve('value');\n}
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

@@ -1,0 +1,459 @@
+模拟器与真机的差异
+与真机相比，模拟器暂时只支持部分Kit，以下是模拟器对各种Kit的支持情况。
+使用x86模拟器时，C++工程及三方库需要编译出x86_64版本的so，请在build-profile.json5中externalNativeOptions/abiFilters的值中增加\"x86_64\"，具体编译配置请参见externalNativeOptions。
+应用框架
+Kit名称
+ARM版本
+X86版本
+备注
+Ability Kit
+是
+是
+-
+Accessibility Kit
+是
+是
+-
+ArkData
+部分支持
+部分支持
+不支持分布式能力
+ArkTS
+是
+是
+-
+ArkUI
+部分支持
+部分支持
+不支持heif类型的图片
+ArkWeb
+是
+是
+-
+Background Tasks Kit
+是
+是
+-
+Core File Kit
+部分支持
+部分支持
+不支持分布式能力、AudioViewPicker
+Form Kit
+部分支持
+部分支持
+不支持分布式能力
+IME Kit
+是
+是
+-
+IPC Kit
+是
+是
+-
+Localization Kit
+是
+是
+-
+UI Design Kit
+否
+否
+-
+安全
+Kit名称
+ARM版本
+X86版本
+备注
+Asset Store Kit
+是
+是
+-
+Crypto Architecture Kit
+是
+是
+-
+Data Protection Kit
+否
+否
+-
+Device Certificate Kit
+是
+是
+-
+Device Security Kit
+否
+否
+-
+Enterprise Data Guard Kit
+否
+否
+-
+Online Authentication Kit
+否
+否
+-
+Universal Keystore Kit
+是
+是
+-
+User Authentication Kit
+部分支持
+部分支持
+支持口令认证
+网络
+Kit名称
+ARM版本
+X86版本
+备注
+Connectivity Kit
+部分支持
+部分支持
+支持wifi相关能力
+Distributed Service Kit
+否
+否
+-
+Network Kit
+部分支持
+部分支持
+支持桥接本地计算机网络
+Network Boost Kit
+否
+否
+-
+Remote Communication Kit
+是
+是
+-
+Service Collaboration Kit
+否
+否
+-
+Telephony Kit
+否
+否
+-
+基础功能
+Kit名称
+ARM版本
+X86版本
+备注
+Basic Services Kit
+部分支持
+部分支持
+不支持usb、热管理、设备认证获取ODID前，需要先配置签名，可在模拟器上自动签名。
+Function Flow Runtime Kit
+是
+是
+-
+Input Kit
+是
+是
+-
+MDM Kit
+否
+否
+-
+Status Bar Extension Kit
+否
+否
+-
+硬件
+Kit名称
+ARM版本
+X86版本
+备注
+Car Kit
+否
+否
+-
+Driver Development Kit
+否
+否
+-
+Multimodal Awareness Kit
+否
+否
+-
+Pen Kit
+否
+否
+-
+Sensor Service Kit
+部分支持
+部分支持
+支持部分传感器，参见虚拟传感器
+Wear Engine Kit
+否
+否
+-
+调测调优
+Kit名称
+ARM版本
+X86版本
+备注
+Performance Analysis Kit
+否
+否
+-
+Test Kit
+是
+是
+-
+媒体
+Kit名称
+ARM版本
+X86版本
+备注
+Audio Kit
+是
+是
+-
+AVCodec Kit
+部分支持
+部分支持
+支持音频编解码、H264视频软解码
+AVSession Kit
+否
+否
+-
+Camera Kit
+否
+否
+-
+DRM Kit
+否
+否
+-
+Image Kit
+是
+是
+-
+Media Kit
+部分支持
+部分支持
+不支持录像、拍照/扫码和屏幕录制
+Media Library Kit
+部分支持
+部分支持
+不支持分布式能力
+Scan Kit
+否
+否
+-
+Ringtone Kit
+否
+否
+-
+图形
+Kit名称
+ARM版本
+X86版本
+备注
+AR Engine
+否
+否
+-
+ArkGraphics 2D
+部分支持
+部分支持
+暂不支持OpenGL ES 3.0以上接口视频仅支持RGBA格式的像素
+ArkGraphics 3D
+否
+否
+-
+Graphics Accelerate Kit
+否
+否
+-
+XEngine Kit
+否
+否
+-
+应用服务
+Kit名称
+ARM版本
+X86版本
+备注
+Account Kit
+是
+否
+-
+Ads Kit
+否
+否
+-
+Calendar Kit
+是
+是
+-
+Call Kit
+否
+否
+-
+Cloud Foundation Kit
+否
+否
+-
+Contacts Kit
+否
+否
+-
+Game Service Kit
+否
+否
+-
+Health Service Kit
+否
+否
+-
+IAP Kit
+否
+否
+-
+Live View Kit
+否
+否
+-
+Location Kit
+是
+部分支持
+X86版本不支持地理逆编码
+Map Kit
+否
+否
+-
+Notification Kit
+是
+是
+-
+Payment Kit
+否
+否
+-
+PDF Kit
+否
+否
+-
+Preview Kit
+否
+否
+-
+Push Kit
+部分支持
+否
+ARM版本支持getToken、deleteToken、getAAID、deleteAAID、bindAppProfileId、unbindAppProfileIdARM版本支持推送通知消息、推送卡片刷新消息、推送后台消息使用Push Kit之前需要先配置签名，可在模拟器上自动签名
+Scenario Fusion Kit
+否
+否
+-
+Share Kit
+否
+否
+-
+Store Kit
+否
+否
+-
+Wallet Kit
+否
+否
+-
+Weather Service Kit
+否
+否
+-
+AI
+Kit名称
+ARM版本
+X86版本
+备注
+Core Speech Kit
+否
+否
+-
+Core Vision Kit
+否
+否
+-
+HiAI Foundation Kit
+否
+否
+-
+Intents Kit
+否
+否
+-
+MindSpore Lite Kit
+否
+否
+-
+Natural Language Kit
+否
+否
+-
+Neural Network Runtime Kit
+否
+否
+-
+Speech Kit
+否
+否
+-
+Vision Kit
+否
+否
+-
+NDK开发
+Kit名称
+ARM版本
+X86版本
+备注
+NDK
+支持
+部分支持
+X86版本暂不支持libjsvm
+其他
+除Kit外，在其他场景下，模拟器和真机的能力也存在差异，具体如下表：
+场景
+能力
+ARM版本
+X86版本
+备注
+预置应用
+小艺输入法
+是
+是
+-
+文件管理
+部分支持
+部分支持
+ARM/X86版本不支持.pdf/.pptx/.xlsx/.docx文件格式预览X86版本不支持文件删除
+设置
+是
+是
+-
+图库
+是
+是
+-
+浏览器
+是
+否
+-
+三方框架
+React Native
+否
+否
+-
+Taro
+否
+否
+-
+Flutter
+部分支持
+否
+ARM版本暂不支持视频播放
+元服务
+域名管控（配置服务器域名）
+模拟器元服务域名访问不管控，不需要配置服务器域名
+-

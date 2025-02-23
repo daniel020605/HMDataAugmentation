@@ -1,0 +1,12 @@
+添加依赖项
+应用/元服务支持通过包管理工具ohpm来安装、共享、分发代码，管理项目的依赖关系。本文介绍了在您的项目中如何添加依赖项。
+您可在工程或模块下的oh-package.json5文件中的dependencies（生产依赖）/devDependencies（开发依赖）字段中指定依赖项，以上两种依赖字段均支持引用远程三方包、本地文件夹和本地HAR/HSP三种方式。oh-package.json5文件中的dynamicDependencies（动态依赖）仅限于动态依赖HSP的使用场景。以下配置以dependencies为例。
+远程三方包
+\"dependencies\": {\n  \"@ohos/lottie\": \"^2.0.0\"\n}
+本地文件夹
+\"dependencies\": {\n  \"folder\": \"file:../folder\"\n}
+本地HAR/HSP包
+ 引用HAR：\"dependencies\": {\n  \"package\": \"file:../package.har\"\n} 
+ 引用HSP（仅在release模式下，构建HSP会生成tgz包）：\"dependencies\": {\n  \"package\": \"file:../package.tgz\"\n} 
+依赖设置完成后，需要执行ohpm install命令安装依赖包，依赖包会存储在对应模块的oh_modules目录下。
+更多关于oh-package.json5文件说明，请参考oh-package.json5。

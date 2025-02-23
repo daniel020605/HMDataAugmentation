@@ -1,0 +1,13 @@
+@typescript-eslint/no-require-imports
+禁止使用“require()”语法导入依赖。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/no-require-imports\": \"error\"\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+// lib1 lib2 lib3为ArkTS文件\nimport * as lib1 from './lib1';\nimport { lib2 } from './lib2';\nimport * as lib3 from './lib3';
+反例
+// lib3为ArkTS文件\nimport lib3 = require('./lib3');
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

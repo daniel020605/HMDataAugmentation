@@ -1,0 +1,21 @@
+marquee开发指导
+marquee为跑马灯组件，用于展示一段单行滚动的文字。具体用法请参考marquee。
+创建marquee组件
+在pages/index目录下的hml文件中创建一个marquee组件。
+<!-- xxx.hml -->\n<div class=\"container\">\n  <marquee style=\"width: 100%;height: 80px; color: #ffffff; background-color: #0820ef;padding-left: 200px;\">It's a racing lamp.</marquee>\n</div>
+/* xxx.css */\n.container {\n  width: 100%;\n  height: 100%;\n  flex-direction: column;\n  justify-content: center;\n  align-items: center;\n  background-color: #F1F3F5;\n}
+设置属性和样式
+marquee通过color和font-weight属性设置跑马灯中文本的颜色、字体粗细和边框样式。
+<!-- xxx.hml -->\n<div class=\"container\">\n <marquee class=\"custommarquee\">It's a racing lamp.</marquee>\n</div>
+/* xxx.css */\n.container {\n  width: 100%;\n  height: 100%;\n  flex-direction: column;\n  justify-content: center;\n  align-items: center;\n  background-color: #F1F3F5;\n}\n.custommarquee {\n  width: 100%;\n  height: 80px;\n  padding: 10px;\n  margin: 20px;\n  border: 4px solid #6712f1;\n  border-radius: 20px;\n  font-size: 40px;\n  color: #ffffff;  font-weight: bolder;\n  font-family: serif;\n  background-color: #1567f3;\n}
+通过scrollamount、loop和direction属性实现跑马灯滚动时移动的最大长度、滚动次数和文字滚动方向。
+<!-- xxx.hml -->\n<div class=\"tutorial-page\">\n  <div class=\"mymarquee\">\n    <marquee loop=\"{{loopval}}\" scrollamount=\"{{scroll}}\" direction=\"{{isleft}}\" class=\"marqueetext\" id=\"testmarquee\" onclick=\"makestart\">\n      Life is a journey, not the destination.\n    </marquee>\n  </div>\n  <div style=\"width: 600px;height: 150px;flex-direction: row;justify-content: space-around;\">\n    <button onclick=\"setleft\"  value=\"left\"></button>\n    <button onclick=\"setright\" value=\"right\"></button>\n  </div>\n</div>
+/* xxx.css */\n.tutorial-page {\n  width: 750px;\n  height: 100%;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  background-color: #F1F3F5;\n}\n.marqueetext {\n  color: #ffffff;\n  font-family: serif;\n  font-size: 37px;\n}\n.mymarquee {\n  margin-top: 20px;\n  width:100%;\n  height: 100px;\n  margin-left: 50px;\n  margin-right: 50px;\n  border: 1px solid #6712f1;\n  background-color: #1567f3;\n  border-radius: 15px;\n  align-items: center;\n}\nbutton{\n  width: 200px;\n  height: 80px;\n  margin-top: 100px;\n}
+// xxx.js\nexport default {\n  private: {\n    loopval: -1,\n    scroll: 10,    \n    isleft: \"left\",\n  },\n  onInit(){\n  },\n  setleft(e) {\n    this.isleft = \"left\"\n  },\n  setright(e) {\n    this.isleft = \"right\"\n  },\n  makestart(e) {\n    this.$element('testmarquee').start()\n  }\n}
+当loop的值小于等于零时，跑马灯marquee将连续滚动。如果loop未指定，则默认为-1。
+场景示例
+本场景可以控制跑马灯文字的滚动和暂停。
+跑马灯的次数设置为1，在结束的时候触发finish事件使跑马灯的次数加1，字体颜色变为随机颜色，调用start方法使跑马灯再次开始滚动。
+<!-- xxx.hml -->\n<div class=\"tutorial-page\">\n  <div class=\"mymarquee\">\n    <marquee  style=\"color: {{color1}}\" loop=\"{{loopval}}\" scrollamount=\"{{scroll}}\" direction=\"{{isleft}}\" class=\"marqueetext\" \n    id=\"testmarquee\" onfinish=\"setfinish\">\n      Life is a journey, not the destination.\n    </marquee>\n  </div>\n  <div style=\"width: 600px;height: 150px;flex-direction: row;justify-content: space-around;\">\n    <button onclick=\"makestart\"  value=\"start\"></button>\n    <button onclick=\"makestop\" value=\"stop\"></button>\n  </div>\n</div>
+/* xxx.css */\n.tutorial-page {\n  width: 750px;\n  height: 100%;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n}\n.marqueetext {\n  font-size: 37px;\n}\n.mymarquee {\n  margin-top: 20px;\n  width:100%;\n  height: 100px;\n  margin-left: 50px;\n  margin-right: 50px;\n  border: 1px solid #dc0f27;\n  border-radius: 15px;\n  align-items: center;\n}\nbutton{\n  width: 200px;\n  height: 80px;\n  margin-top: 100px;\n}
+// xxx.js\nexport default {\n  private: {\n    loopval: 1,\n    scroll: 8,\n    color1: 'red'\n  },\n  onInit(){\n  },\n  setfinish(e) {\n    this.loopval=  this.loopval + 1,\n    this.r = Math.floor(Math.random()*255),\n    this.g = Math.floor(Math.random()*255),\n    this.b = Math.floor(Math.random()*255),\n    this.color1 = 'rgba('+ this.r +','+ this.g +','+ this.b +',0.8)',\n    this.$element('testmarquee').start(),\n    this.loopval=  this.loopval - 1\n  },\n  makestart(e) {\n    this.$element('testmarquee').start()\n  },\n  makestop(e) {\n    this.$element('testmarquee').stop()\n  }\n}

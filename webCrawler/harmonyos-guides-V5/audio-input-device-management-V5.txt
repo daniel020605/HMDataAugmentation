@@ -1,0 +1,13 @@
+管理全局音频输入设备
+有时设备同时连接多个音频输入设备，需要指定音频输入设备进行音频录制，此时需要使用AudioRoutingManager接口进行输入设备的管理，API说明可以参考AudioRoutingManager API文档。
+创建AudioRoutingManager实例
+在使用AudioRoutingManager管理音频设备前，需要先导入模块并创建实例。
+import { audio } from '@kit.AudioKit';  // 导入audio模块\n\nlet audioManager = audio.getAudioManager();  // 需要先创建AudioManager实例\nlet audioRoutingManager = audioManager.getRoutingManager();  // 再调用AudioManager的方法创建AudioRoutingManager实例
+支持的音频输入设备类型
+目前支持的音频输入设备见下表：
+获取输入设备信息
+使用getDevices()方法可以获取当前所有输入设备的信息。
+import { audio } from '@kit.AudioKit';\n\naudioRoutingManager.getDevices(audio.DeviceFlag.INPUT_DEVICES_FLAG).then((data: audio.AudioDeviceDescriptors) => {\n  console.info('Promise returned to indicate that the device list is obtained.');\n});
+监听设备连接状态变化
+可以设置监听事件来监听设备连接状态的变化，当有设备连接或断开时触发回调：
+import { audio } from '@kit.AudioKit';\n\n// 监听音频设备状态变化\naudioRoutingManager.on('deviceChange', audio.DeviceFlag.INPUT_DEVICES_FLAG, (deviceChanged: audio.DeviceChangeAction) => {\n  console.info('device change type : ' + deviceChanged.type);  // 设备连接状态变化，0为连接，1为断开连接\n  console.info('device descriptor size : ' + deviceChanged.deviceDescriptors.length);\n  console.info('device change descriptor : ' + deviceChanged.deviceDescriptors[0].deviceRole);  // 设备角色\n  console.info('device change descriptor : ' + deviceChanged.deviceDescriptors[0].deviceType);  // 设备类型\n});\n\n// 取消监听音频设备状态变化\naudioRoutingManager.off('deviceChange', (deviceChanged: audio.DeviceChangeAction) => {\n  console.info('Should be no callback.');\n});

@@ -1,0 +1,411 @@
+bm工具
+Bundle Manager（包管理工具，简称bm）是实现应用安装、卸载、更新、查询等功能的工具，bm为开发者提供基本的应用安装包的调试能力。
+环境要求
+在使用本工具前，开发者需要先获取hdc工具，执行hdc shell。
+bm工具命令列表
+帮助命令（help）
+# 显示帮助信息\nbm help
+安装命令（install）
+bm install [-h] [-p filePath] [-u userId] [-r] [-w waitingTime] [-s hspDirPath]
+安装命令参数列表
+示例：
+# 安装一个hap\nbm install -p /data/app/ohos.app.hap\n# 覆盖安装一个hap\nbm install -p /data/app/ohos.app.hap -r\n# 安装一个应用间共享库\nbm install -s xxx.hsp\n# 同时安装使用方应用和其依赖的应用间共享库\nbm install -p aaa.hap -s xxx.hsp yyy.hsp\n# 指定用户安装一个hap,等待时间为10s\nbm install -p /data/app/ohos.app.hap -u 100 -w 10
+卸载命令（uninstall）
+bm uninstall [-h] [-n bundleName] [-m moduleName] [-u userId] [-k] [-s] [-v versionCode]
+卸载命令参数列表
+示例：
+# 卸载一个应用\nbm uninstall -n com.ohos.app\n# 卸载应用的一个模块\nbm uninstall -n com.ohos.app -m com.ohos.app.EntryAbility\n# 卸载一个shared bundle\nbm uninstall -n com.ohos.example -s\n# 卸载一个shared bundle的指定版本\nbm uninstall -n com.ohos.example -s -v 100001\n# 卸载一个应用，并保留用户数据\nbm uninstall -n com.ohos.app -k\n# 指定用户卸载应用的一个模块\nbm uninstall -n com.ohos.app -m com.ohos.app.EntryAbility -u 100 
+查询应用信息命令（dump）
+bm dump [-h] [-a] [-n bundleName] [-s shortcutInfo] [-u userId] [-d deviceId]
+查询命令参数列表
+示例：
+# 显示所有已安装的Bundle名称\nbm dump -a\n# 查询该应用的详细信息\nbm dump -n com.ohos.app -u 100\n# 查询该应用的快捷方式信息\nbm dump -s -n com.ohos.app -u 100\n# 查询跨设备应用信息\nbm dump -n com.ohos.app -d xxxxx
+清理命令（clean）
+bm clean [-h] [-c] [-n bundleName] [-d] [-u userId] [-i appIndex]
+清理命令参数列表
+示例：
+# 清理该应用下的缓存数据\nbm clean -c -n com.ohos.app -u 100\n# 清理该应用下的用户数据\nbm clean -d -n com.ohos.app -u 100\n// 执行结果\nclean bundle data files successfully.
+获取udid命令（get）
+bm get [-h] [-u]
+获取udid命令参数列表
+示例：
+# 获取设备的udid\nbm get -u\n// 执行结果\nudid of current device is :\n23CADE0C
+快速修复命令（quickfix）
+bm quickfix [-h] [-a -f filePath [-t targetPath] [-d]] [-q -b bundleName] [-r -b bundleName] 
+注：hqf文件制作方式可参考HQF打包指令。
+快速修复命令参数列表
+示例：
+# 根据包名查询补丁包信息\nbm quickfix -q -b com.ohos.app\n// 执行结果\n// Information as follows:            \n// ApplicationQuickFixInfo:           \n//  bundle name: com.ohos.app \n//  bundle version code: xxx     \n//  bundle version name: xxx       \n//  patch version code: x            \n//  patch version name:              \n//  cpu abi:                          \n//  native library path:             \n//  type:                            \n# 快速修复补丁安装\nbm quickfix -a -f /data/app/\n// 执行结果\napply quickfix succeed.\n# 快速修复补丁卸载\nbm quickfix -r -b com.ohos.app\n// 执行结果\ndelete quick fix successfully
+共享库查询命令（dump-shared）
+bm dump-shared [-h] [-a] [-n bundleName] [-m moduleName]
+共享库查询命令参数列表
+示例：
+# 显示所有已安装共享库包名\nbm dump-shared -a\n# 显示该共享库的详细信息\nbm dump-shared -n com.ohos.lib\n# 显示指定应用指定模块依赖的共享库信息\nbm dump-dependencies -n com.ohos.app -m entry
+共享库依赖关系查询命令（dump-dependencies）
+显示指定应用和指定模块依赖的共享库信息。
+bm dump-dependencies [-h] [-n bundleName] [-m moduleName]
+共享库依赖关系查询命令参数列表
+示例：
+# 显示指定应用指定模块依赖的共享库信息\nbm dump-dependencies -n com.ohos.app -m entry
+应用执行编译AOT命令（compile）
+应用执行编译AOT命令。
+bm compile [-h] [-m mode] [-r bundleName]
+compile命令参数列表
+示例：
+# 根据包名编译应用\nbm compile -m partial com.example.myapplication
+拷贝ap文件命令（copy-ap）
+拷贝ap文件到指定应用的/data/local/pgo路径。
+bm copy-ap [-h] [-a] [-n bundleName]
+copy-ap命令参数列表
+示例：
+# 根据包名移动对应包相关的ap文件\nbm copy-ap -n com.example.myapplication
+查询overlay应用信息命令（dump-overlay）
+打印overlay应用的overlayModuleInfo。
+bm dump-overlay [-h] [-b bundleName] [-m moduleName] [-u userId] [-t targetModuleName]
+dump-overlay命令参数列表
+示例：
+# 根据包名来获取overlay应用com.ohos.app中的所有OverlayModuleInfo信息\nbm dump-overlay -b com.ohos.app\n\n# 根据包名和module来获取overlay应用com.ohos.app中overlay module为entry的所有OverlayModuleInfo信息\nbm dump-overlay -b com.ohos.app -m entry\n\n# 根据包名和module来获取overlay应用com.ohos.app中目标module为feature的所有OverlayModuleInfo信息\nbm dump-overlay -b com.ohos.app -m feature
+查询应用的overlay相关信息命令（dump-target-overlay）
+查询目标应用的所有关联overlay应用的overlayModuleInfo信息。
+bm dump-target-overlay [-h] [-b bundleName] [-m moduleName] [-u userId]
+dump-target-overlay命令参数列表
+示例：
+# 根据包名来获取目标应用com.ohos.app中的所有关联的OverlayBundleInfo信息\nbm dump-target-overlay-b com.ohos.app\n\n# 根据包名和module来获取目标应用com.ohos.app中目标module为entry的所有关联的OverlayModuleInfo信息\nbm dump-target-overlay -b com.ohos.app -m entry
+bm工具错误码
+[h2]9568320 签名文件不存在
+错误信息
+Failed to install bundle, no signature file.
+错误描述
+用户安装未签名的HAP包。
+可能原因
+HAP包没有签名。
+处理步骤
+ 使用自动签名。在连接设备后，重新为应用进行签名。 使用手动签名，请参考手动签名。 
+[h2]9568347 解析本地so文件失败
+错误信息
+Error: install parse native so failed.
+错误描述
+在启动调试或运行C++应用/服务时，安装HAP包出现错误，提示“error: install parse native so failed”错误信息。
+可能原因
+设备支持的Abi类型与C++工程中配置的Abi类型不匹配。
+ 如果工程有依赖HSP或者HAR模块，请确保所有包含C++代码的模块配置的Abi类型包含设备支持的Abi类型。 如果工程依赖的三方库包含so文件，请确保oh_modules/三方库/libs目录包含有设备支持的Abi目录，如libs/arm64-v8a、/libs/x86_64。 对于HarmonyOS应用，在DevEco Studio NEXT Developer Beta1（5.0.3.200）及以上版本不支持编译armeabi-v7a架构的so文件。 
+处理步骤
+ 将设备与DevEco Studio进行连接。 打开命令行工具，并进入SDK安装目录下的toolchains目录下。若不清楚HarmonyOS SDK安装目录，可单击File > Settings > SDK界面查看安装路径。 执行如下命令，查询设备支持的Abi列表，返回结果为default/armeabi-v7a/armeabi/arm64-v8a/x86/x86_64中的一个或多个Abi类型。hdc shell\nparam get const.product.cpu.abilist 根据查询返回结果，检查模块级build-profile.json5文件中的“abiFilters”参数中的配置，规则如下：        若返回结果为default，请执行如下命令，查询是否存在lib64文件夹。cd /system/\nls   存在lib64文件夹：则“abiFilters”参数中需要包含arm64-v8a类型。 不存在lib64文件夹：则“abiFilters”参数中需要至少包含armeabi/armeabi-v7a中的一个类型。  若返回结果为armeabi-v7a/armeabi/arm64-v8a/x86/x86_64中的一个或多个，需要在“abiFilters”参数中至少包含返回结果中的一个Abi类型。  
+[h2]9568344 解析配置文件失败
+错误信息
+Error: install parse profile prop check error.
+错误描述
+在启动调试或运行应用/服务时，安装HAP出现错误，提示“error: install parse profile prop check error”错误信息。
+可能原因
+应用使用了应用特权，但应用的签名文件发生变化后未将新的签名指纹重新配置到设备的特权管控白名单文件install_list_capability.json中。
+处理步骤
+ 获取新的签名指纹。 a. 在项目级build-profile.json5文件中，signingConfigs字段内的profile的值即为签名文件的存储路径。 b. 打开该签名文件（后缀为.p7b），打开后在文件内搜索“development-certificate”，将“-----BEGIN CERTIFICATE-----”和“-----END CERTIFICATE-----”以及中间的信息拷贝到新的文本中，注意换行并去掉换行符，保存为一个新的.cer文件，如命名为xxx.cer。 新的.cer文件格式如下图（仅作为格式示意，内容以实际为准）：  c. 使用keytool工具（在DevEco Studio安装目录下的jbr/bin文件夹内），执行如下命令通过.cer文件获取证书指纹的SHA256值。 keytool -printcert -file xxx.cer d. 将证书指纹中SHA256的内容去掉冒号，即为最终要获得的签名指纹。 如SHA256值为下图（仅作为格式示意，内容以实际为准）：  去掉冒号后的签名指纹为：5753DDBC1A8EF88A62058A9FC4B6AFAFC1C5D8D1A1B86FB3532739B625F8F3DB 获取设备的特权管控白名单文件install_list_capability.json。 a. 连接设备。 b. 执行如下命令查看设备的特权管控白名单文件install_list_capability.json。 find /system -name install_list_capability.json 设备上install_list_capability.json的位置通常为以下目录地址，通过bundleName找到对应的配置文件： /system/etc/app/install_list_capability.json c. 执行如下命令拉取install_list_capability.json。 hdc shell mount -o rw,remount /\nhdc file recv /system/etc/app/install_list_capability.json 将步骤1获取到的签名指纹配置到install_list_capability.json文件的app_signature中，注意要配置到对应的bundleName下。  将修改后的install_list_capability.json文件重新推到设备上，并重启设备。 hdc shell mount -o rw,remount / \nhdc file send install_list_capability.json /system/etc/app/install_list_capability.json \nhdc shell chmod 644 /system/etc/app/install_list_capability.json \nhdc shell reboot 设备重启后，重新安装新的应用即可。 
+[h2]9568305 依赖的模块不存在
+错误信息
+Error: dependent module does not exist.
+错误描述
+在启动调试或运行应用/服务时，安装HAP出现错误，提示“error: dependent module does not exist”错误信息。
+可能原因
+运行/调试的应用依赖的动态共享包（SharedLibrary）模块未安装导致安装报错。
+处理步骤
+ 先安装依赖的动态共享包（SharedLibrary）模块，再在应用运行配置页勾选Keep Application Data，点击OK保存配置，再运行/调试。  在运行配置页，选择Deploy Multi Hap标签页，勾选Deploy Multi Hap Packages，选择依赖的模块，点击OK保存配置，再进行运行/调试。  单击Run > Edit Configurations，在General中，勾选Auto Dependencies。点击OK保存配置，再运行/调试。  
+[h2]9568259 安装解析配置文件缺少字段
+错误信息
+Error: install parse profile missing prop.
+错误描述
+在启动调试或运行应用/服务时，安装HAP出现错误，提示“error: install parse profile missing prop”错误信息。
+可能原因
+配置文件app.json5和module.json5中必填字段缺失。
+处理步骤
+ 方法1：请参考app.json5配置文件和module.json5配置文件查看并补充必填字段。 方法2：通过hilog日志判断缺失字段。 开启落盘命令： hilog -w start 落盘位置：/data/log/hilog。 打开日志查看“profile prop %{public}s is mission”。如“profile prop icon is mission”表示“icon”字段缺失。 
+[h2]9568258 安装应用的releaseType与已安装应用的releaseType不相同
+错误信息
+Error: install releaseType target not same.
+错误描述
+在启动调试或运行应用/服务时，安装HAP出现错误，提示“error: install releaseType target not same”错误信息。
+可能原因
+ 场景一：设备上已安装的旧HAP和现在要安装的新HAP所使用的SDK中的releaseType值不一样。 场景二：安装的应用为多HAP时，每个HAP所使用的SDK中的releaseType值不一致。 
+处理步骤
+ 场景一：请先卸载设备上已安装的HAP，再安装新的HAP。 场景二：使用相同版本的SDK对HAP重新打包，保证多HAP的releaseType值一致。 
+[h2]9568322 由于应用来源不可信，签名验证失败
+错误信息
+Error: signature verification failed due to not trusted app source.
+错误描述
+在启动调试或运行应用/服务时，安装HAP出现错误，提示“error: signature verification failed due to not trusted app source”错误信息。
+可能原因
+ 场景一：签名中未包含该调试设备的UDID。 场景二：签名时使用了发布证书和发布profile文件。发布证书签名的应用不能启动调试或运行。 
+处理步骤
+ 场景一：        使用自动签名。在连接设备后，重新为应用进行签名。 如果使用的是手动签名，对于HarmonyOS应用，请参考手动签名，在UnsgnedDebugProfileTemplate.json文件中添加该调试设备的UDID。//UDID获取命令\nhdc shell bm get -u  场景二：使用调试证书和调试profile文件重新签名应用。 
+[h2]9568289 权限请求失败导致安装失败
+错误信息
+Error: install failed due to grant request permissions failed.
+错误描述
+在启动调试或运行应用/服务时，安装HAP出现错误，提示“error: install failed due to grant request permissions failed”错误信息。
+可能原因
+默认应用等级为normal，只能使用normal等级的权限，如果使用了system_basic或system_core等级的权限，将导致报错。
+处理步骤
+ 在UnsgnedDebugProfileTemplate.json文件中修改APL等级，调整成system_basic或system_core等级，重新签名打包即可。 
+[h2]9568297 由于设备sdk版本较低导致安装失败
+错误信息
+Error: install failed due to older sdk version in the device.
+错误描述
+在启动调试或运行应用/服务时，安装HAP出现错误，提示“error: install failed due to older sdk version in the device”错误信息。
+可能原因
+该问题是由于编译打包所使用的SDK版本与设备镜像版本不匹配。
+处理步骤
+ 场景一：设备上的镜像版本低于编译打包的SDK版本，请更新设备镜像版本。查询设备镜像版本命令： hdc shell param get const.ohos.apiversion 如果镜像提供的api版本为10，且应用编译所使用的SDK版本也为10，仍出现该报错，可能是由于镜像版本较低，未兼容新版本SDK校验规则，请将镜像版本更新为最新版本。 场景二：对于需要运行在HarmonyOS设备上的应用，请确认runtimeOS已改为HarmonyOS。 
+[h2]9568332 签名不一致导致安装失败
+错误信息
+Error: install sign info inconsistent.
+错误描述
+在启动调试或运行应用/服务时，安装HAP出现错误，提示“error: install sign info inconsistent”错误信息。
+可能原因
+ 设备上已安装的应用与新安装的应用中签名不一致或者多个包（HAP和HSP）之间的签名存在差异。如果在“Edit Configurations”中勾选了“Keep Application Data”（即不卸载应用，直接覆盖安装），并且重新进行了签名，将导致该报错。 如果某个应用被卸载但是保留了数据，那么后面安装相同包名的应用时，需要校验其身份信息的一致性。如果两者的签名信息皆不一致，则会导致该报错。 
+处理步骤
+ 请卸载设备上已安装的应用，或取消勾选“Keep Application Data”后，重新安装新的应用。 如果是因不同团队提供的HSP导致签名不一致问题，可以采用集成态HSP的方式统一提供HSP；在多HAP包的情况下，必须确保所有HAP包的签名一致。 如果某个应用被卸载但是保留了数据，后面安装相同包名但签名信息不一致的应用时，安装失败。如果出现这种情况，则需要把之前已卸载掉的应用重新安装之后，执行不保留数据地卸载，这样相同包名但签名信息不一致的应用才能安装成功。 
+[h2]9568329 签名信息验证失败
+错误信息
+Error: verify signature failed.
+错误描述
+签名信息中的包名与应用的包名（bundleName）不一致。
+可能原因
+ 场景一：用户导入了三方提供的HSP模块，且该HSP既非集成态HSP，又非同包名的HSP，造成包名不一致。 场景二：用户使用了错误的签名文件（后缀为.p7b）进行签名，造成包名不一致。 
+处理步骤
+ 场景一：HSP只能给同包名的应用使用，只有集成态HSP可以给不同包名的应用使用。需要用户与三方开发者确认，三方开发者应提供集成态HSP、或同包名的HSP给用户使用。 场景二：检查签名流程和签名证书，参考应用/服务签名。 
+[h2]9568266 安装权限拒绝
+错误信息
+Error: install permission denied.
+错误描述
+使用hdc install安装HAP时出现错误，提示“code:9568266 error: install permission denied”错误信息。
+可能原因
+hdc install不能安装release签名的企业应用。
+处理步骤
+ 请使用hdc install指令安装调试debug签名的企业应用。 
+[h2]9568337 安装解析失败
+错误信息
+Error: install parse unexpected.
+错误描述
+应用推送到设备安装时，报错包管理打开hap文件失败。
+可能原因
+ 场景一：设备system分区存储空间已满，导致hdc file send文件后，因存储空间不足导致设备中文件损坏。 场景二：推送hap包到设备过程hap包损坏。 
+处理步骤
+ 场景一：查看设备system分区存储空间，若已满，清理存储满足安装所需空间。 hdc shell df -h /system 场景二：查看本地hap与推送到设备上hap的md5值，若不一致则表示推送过程hap损毁，请尝试重传。 
+[h2]9568316 数据代理中APL权限字段描述权限低
+错误信息
+Error: apl of required permission in proxy data is too low.
+错误描述
+proxyData标签requiredReadPermission和requiredWritePermission属性验证失败。
+可能原因
+用户工程module.json中，proxyData标签requiredReadPermission和requiredWritePermission属性验证失败，这两个属性要求system_basic或system_core权限等级。
+处理步骤
+ 检查应用定义的proxyData内容是否符合要求，参考proxyData标签。 
+[h2]9568315 数据代理URI错误
+错误信息
+Error: uri in proxy data is wrong.
+错误描述
+proxyData标签uri属性验证失败。
+可能原因
+用户工程module.json中，proxyData标签uri属性验证失败，不满足uri格式要求。
+处理步骤
+ 检查应用定义的proxyData内容是否符合要求，参考proxyData标签。 
+[h2]9568336 应用调试类型与已安装应用不一致
+错误信息
+Error: install debug type not same.
+错误描述
+应用调试类型（app.json的debug字段）与已安装应用不一致。
+可能原因
+开发者使用DevEco Studio的debug按钮安装了应用，后面打包之后又通过hdc install方式安装。
+处理步骤
+ 卸载已安装的应用，重新安装新应用。 
+[h2]9568296 包类型错误
+错误信息
+Error: install failed due to error bundle type.
+错误描述
+bundleType错误导致应用安装失败。
+可能原因
+新安装应用的bundleType与已安装的有相同bundleName应用不一致。
+处理步骤
+ 方法一：卸载已安装的应用，重新安装新应用。 方法二：修改应用的bundleType，与已安装应用保持一致。 
+[h2]9568292 UserID为0的用户只能安装singleton应用
+错误信息
+Error: install failed due to zero user can only install singleton app.
+错误描述
+UserID 0用户只允许安装singleton权限应用，singleton权限应用只允许被UserID 0用户安装。
+可能原因
+singleton权限应用安装未指定UserID 0。
+处理步骤
+ 应用是singleton权限，安装时指定UserID 0。//指定userId安装命令\nhdc install -p hap名.hap -u 0 
+[h2]9568263 无法降级安装
+错误信息
+Error: install version downgrade.
+错误描述
+正在安装应用的VersionCode小于系统中已安装应用的VersionCode，安装失败。
+可能原因
+正在安装应用的VersionCode小于系统中已安装应用的VersionCode。
+处理步骤
+ 卸载已安装的应用，重新安装新应用。 
+[h2]9568304 应用不支持当前设备类型
+错误信息
+Error: device type is not supported.
+错误描述
+正在安装的应用不支持当前设备类型，安装失败。
+可能原因
+正在安装的应用不支持当前设备类型。
+处理步骤
+ 如需要适配当前设备，请在应用设备类型配置中增加当前设备类型。应用deviceTypes配置包含phone（手机）、tablet（平板）、2in1（2合1设备）、tv（智慧屏）、wearable（智能手表）和car（车机）。 
+[h2]9568317 应用的多进程配置与系统配置不匹配
+错误信息
+Error: isolationMode does not match the system.
+错误描述
+安装应用时，设置的isolationMode与系统配置项允许的系统配置不匹配。
+可能原因
+ 场景一：设备支持隔离模式，即persist.bms.supportIsolationMode为true时，HAP配置的isolationMode为nonisolationOnly。 场景二：设备不支持隔离模式，即persist.bms.supportIsolationMode为false时，HAP配置的isolationMode为isolationOnly。 
+处理步骤
+ 按照设备的隔离模式配置HAP配置文件isolationMode属性。 //查询设备persist.bms.supportIsolationMode值，若返回errNum is:106说明没配置\nhdc shell\nparam get persist.bms.supportIsolationMode\n//配置设备persist.bms.supportIsolationMode值\nhdc shell\nparam set persist.bms.supportIsolationMode [true|false] 
+[h2]9568315 数据代理的uri属性错误
+错误信息
+Error: uri in proxy data is wrong.
+错误描述
+应用module.json文件中proxyData标签的uri属性验证失败。
+可能原因
+uri不满足格式规范。
+处理步骤
+ 确认uri满足格式规范。//uri格式规范\n不同数据代理的uri不可重复，且需要满足datashareproxy://当前应用包名/xxx的格式 
+[h2]9568310 兼容策略不同
+错误信息
+Error: compatible policy not same.
+错误描述
+新包与已安装包兼容策略不同。
+可能原因
+ 应用已安装，再安装一个同包名的应用间共享库。 应用间共享库已安装，再安装一个同包名的应用。 
+处理步骤
+ 卸载已安装的应用或应用间共享库，再安装新包。 
+[h2]9568391 包管理服务已停止
+错误信息
+Error: bundle manager service is died.
+错误描述
+包管理服务已停止。
+可能原因
+系统出现未知的异常，导致系统服务重启。
+处理步骤
+1.查询设备/data/log/faultlog/faultlogger/目录下是否存在crash文件。
+2.crash文件中是否包含foundation字样的文件。
+3.请多次重试安装，如果还是报同样的错误，观察是否会多出包含foundation字样的crash文件生成。
+4.若多次重试都无法解决，请导出crash文件和日志文件提在线工单获取帮助。
+[h2]9568393 验证代码签名失败
+错误信息
+Error: verify code signature failed.
+错误描述
+验证代码签名失败。
+可能原因
+包没有代码签名信息。
+处理步骤
+ 安装最新版本DevEco Studio，重新签名。 
+[h2]9568257 验证pkcs7文件失败
+错误信息
+Error: fail to verify pkcs7 file.
+错误描述
+验证pkcs7文件失败。
+可能原因
+应用当前使用的签名不符合HarmonyOS应用签名的要求，通常是由于当时使用的是HarmonyOS应用的签名，应该替换为HarmonyOS应用的签名。
+处理步骤
+ 在为应用/服务签名时勾选“Support HarmonyOS”,完成HarmonyOS应用签名后再次启动调试或运行应用。  
+[h2]9568401 调试包仅支持运行在开发者模式设备
+错误信息
+Error: debug bundle can only be installed in developer mode.
+错误描述
+调试包仅支持运行在开发者模式设备。
+可能原因
+终端设备未开启“开发者模式”。
+处理步骤
+ 终端系统查看“设置 > 系统”中是否有“开发者选项”，如果不存在，可在“设置 > 关于本机”连续七次单击“版本号”，直到提示“开启开发者模式”，点击“确认开启”后输入PIN码（如果已设置），设备将自动重启。 USB数据线连接终端和PC，在“设置 > 系统 > 开发者选项”中，打开“USB调试”开关，弹出的“允许USB调试”的弹框，点击“允许”。 启动调试或运行应用。 
+[h2]9568386 卸载的应用不存在
+错误信息
+Error: uninstall missing installed bundle.
+错误描述
+卸载的应用不存在。
+可能原因
+要卸载的应用没有安装。
+处理步骤
+ 确认要卸载的应用是否已经安装。 
+[h2]9568388 企业设备管理不允许卸载该应用
+错误信息
+Error: Failed to uninstall the HAP because the uninstall is forbidden by enterprise device management.
+错误描述
+企业设备管理不允许卸载该应用。
+可能原因
+应用被设置为不允许被卸载。
+处理步骤
+ 由设置方取消该应用的卸载管控。 
+[h2]9568284 安装版本不匹配
+错误信息
+Error: install version not compatible.
+错误描述
+安装版本不匹配。
+可能原因
+当前安装HSP的版本信息与已安装HAP的版本信息不匹配。
+安装HSP时会做如下校验：
+ bundleName和HAP的一致。 version和HAP的一致。 签名和HAP的一致。 
+处理步骤
+ 卸载版本信息不匹配的HAP，再安装HSP。 修改HSP版本信息与HAP一致，再安装HSP。 
+[h2]9568287 安装包entry模块数量不合规
+错误信息
+Error: install invalid number of entry hap.
+错误描述
+安装包entry模块数量不合规。
+可能原因
+安装包中entry模块有多个。一个应用只能有一个entry模块，可以有多个feature模块。
+处理步骤
+ 保留一个entry模块，其余entry模块修改为feature（修改module.json5中type字段）。 
+[h2]9568281 安装包vendor不一致
+错误信息
+Error: install vendor not same.
+错误描述
+安装包vendor不一致。
+可能原因
+app.json5文件中app的vendor字段配置不一致。
+处理步骤
+ 若只有一个HAP，要求与已安装应用vendor字段一致，卸载重装即可。 若包含集成态HSP，要求集成态HSP与使用方HAP的vendor字段保持一致。 
+[h2]9568274 安装服务错误
+错误信息
+Error: install installd service error.
+错误描述
+安装服务错误。
+可能原因
+安装服务异常。
+处理步骤
+ 清除缓存，重启设备。 
+[h2]9568314 安装应用间共享库失败
+错误信息
+Error: Failed to install the HSP because installing a shared bundle specified by hapFilePaths is not allowed.
+错误描述
+安装应用间共享库失败。
+可能原因
+安装应用间共享HSP时使用“hdc app install ***”指令。
+处理步骤
+ 安装应用间HSP时使用“hdc install -s ***”指令。 
+[h2]9568359 安装设置selinux失败
+错误信息
+Error: installd set selinux label failed.
+错误描述
+安装设置selinux失败。
+可能原因
+签名配置文件中APL字段错误。APL有“normal”、“system_basic”和“system_core”三种等级。
+处理步骤
+ 确认签名文件p7b中apl字段是否有误。  若apl字段有误，修改UnsgnedReleasedProfileTemplate.json文件中apl字段，并重新签名。  
+[h2]9568403 安装加密校验失败
+错误信息
+Error: check encryption failed.
+错误描述
+安装加密校验失败。
+可能原因
+可能是镜像版本较老；或者HAP包lib目录内非so文件导致。
+处理步骤
+ 安装新版本镜像。 删除HAP工程中lib目录内非so文件，重新签名打包。 
+[h2]9568278 安装包的版本号不一致
+错误信息
+error: install version code not same.
+可能原因
+ 设备上安装的应用和安装报错的应用包版本号（versionCode）不一致。 安装多个包中存在版本号（versionCode）不一致。 
+处理步骤
+ 调整安装包的版本和设备中已存在的应用包的版本号（versionCode）一致，或者卸载设备中的应用，再去安装新的应用包。 调整安装的多个包的版本号（versionCode），所有的包都需要保持版本号（versionCode）一致。 

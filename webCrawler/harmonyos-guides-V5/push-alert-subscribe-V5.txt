@@ -1,0 +1,28 @@
+推送授权订阅消息
+场景介绍
+为了向用户提供更好的服务和更优的体验，Push Kit为开发者提供了一次性授权订阅消息（以下简称消息订阅）能力。当且仅当用户同意订阅后，开发者可向用户推送对应的消息，从而实现服务闭环。
+开通权益
+消息订阅能力目前处于Beta测试阶段，仅对受邀应用开放申请。
+授权订阅消息与通知消息自分类中的“订阅”类型（category取值为SUBSCRIPTION）无关。
+ 授权订阅消息由Push Kit进行弹窗，请求用户授权通过后，开发者才能向用户推送特定模板的消息内容。详情见本章的弹窗样式与查看模板详情章节。 订阅类消息为通知消息的一种类型，开发者需根据自身场景申请通知消息自分类权益。通知消息通过Push Kit通道直接下发。 
+频控规则
+调测阶段，每个项目每日全网最多可推送1000条测试消息。发送测试消息需设置testMessage为true。
+正式发布阶段，单设备单应用下每日推送消息总条数受设备消息频控限制，所有场景化消息发送条数不超过3000条。
+单设备单应用下，发起消息订阅不大于每5分钟30次，超过30次会进入频控状态，5分钟内不能对进入频控的同一终端再次发送订阅请求，超过5分钟后重置。
+不论是测试消息还是正式消息，授权订阅消息单次推送仅能携带一个Token。
+开发步骤
+[h2]项目配置
+ 登录 AppGallery Connect，参见指导设置应用分类（已配置可跳过）。 在“项目设置 > 数据处理位置”页面，设置默认数据处理位置为“中国”，参见指导设置数据处理位置。 
+[h2]查看模板详情
+ 订阅消息仅可使用AppGallery Connect网站上已配置的模板，最终展现在用户终端的通知消息内容由模板固定文字，与您传入的“keyword”共同组成。 当前仅对二级应用分类为“工具”或“购物”的应用开放了可订阅模板。您可在AppGallery Connect网站上的“我的应用 > 应用上架 > 应用信息”中查看和修改应用分类。 
+ 完成项目配置后，在AppGallery Connect网站点击“我的项目”，选择对应项目。在左侧导航栏选择“增长 > 推送服务 > 配置”导航到“配置”页签，在该页面选择需要消息订阅的应用，点击“管理”按钮。   进入消息订阅页面，可通过模板名称、模板ID和消息类型，组合查询该应用的模板列表。   选择对应的模板，点击 查看 按钮即可展示该模板的详情，包括模板的基本信息和模板实时预览，其中需要关注的是占位符key值，您使用该模板发送消息时可替换占位符内容来更新消息内容。   
+[h2]推送授权订阅消息
+获得应用对应的模板后，需要在应用进行代码适配，发起订阅通知请求（授权订阅弹窗请参见弹窗样式），告知用户是否接受应用向其发送通知，若用户允许即可推送消息。
+ 参见指导获取Push Token。 为确保应用可正常收到消息，建议应用发送通知前调用requestEnableNotification()方法弹出提醒，告知用户需要允许接收通知消息。详情请参见Notification Kit-请求通知授权。 应用调用serviceNotification.requestSubscribeNotification()方法发起消息订阅（授权订阅弹窗请参见弹窗样式），示例如下：import { UIAbility } from '@kit.AbilityKit';\nimport { BusinessError } from '@kit.BasicServicesKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';\nimport { serviceNotification } from '@kit.PushKit';\n \nexport default class EntryAbility extends UIAbility {\n  async requestSubscribeNotification() {\n    try {\n      // entityIds请替换为待订阅的模板ID\n      let entityIds: string[] = ['id1', 'id2'];\n      hilog.info(0x0000, 'testTag', 'Request subscribe notification begin.');\n      hilog.info(0x0000, 'testTag', 'Request subscribe notification entityIds: %{public}s', entityIds);\n      const data: serviceNotification.RequestResult = await serviceNotification.requestSubscribeNotification(this.context, entityIds);\n      hilog.info(0x0000, 'testTag', 'Succeeded in requesting subscribe notification: %{public}s', JSON.stringify(data.entityResult));\n    } catch (err) {\n      let e: BusinessError = err as BusinessError;\n      hilog.error(0x0000, 'testTag', 'Failed to request subscribe notification: %{public}d %{public}s', e.code, e.message);\n    }\n  }\n  \n  async onForeground(): Promise<void> {\n    try {\n      await this.requestSubscribeNotification();\n    } catch (err) {\n      let e: BusinessError = err as BusinessError;\n      hilog.error(0x0000, 'testTag', 'Failed to request subscribe notification: %{public}d %{public}s', e.code, e.message);\n    }\n  }\n}     单次订阅最多支持输入3个entityId，若存在完全相同的entityId，最终只会保留1个。    当用户同意订阅（ResultCode的值为0），应用服务端调用REST API推送订阅消息，消息详情可参见场景化消息API接口功能介绍，请求示例如下：// Request URL \nPOST https://push-api.cloud.huawei.com/v3/[projectId]/messages:send\n \n// Request Header \nContent-Type: application/json\nAuthorization: Bearer eyJr*****OiIx---****.eyJh*****iJodHR--***.QRod*****4Gp---****\npush-type: 0\n \n// Request Body\n{\n  \"pushOptions\": {\n    \"testMessage\": true\n  },\n  \"payload\": {\n    \"subscription\": {\n      \"entityId\": \"TM*****FA9\",\n      \"data\": {\n        \"keyword1\": \"接单了\",\n        \"keyword2\": \"苏A12345\",\n        \"keyword3\": \"司机路径\"\n      },\n      \"clickAction\": {\n        \"actionType\": 0                \n      }\n    }\n  },\n  \"target\": {\n    \"token\": [\"iqaaa*****aaaa\"]\n  }\n}  [projectId]：项目ID，登录AppGallery Connect网站，选择“我的项目”，在项目列表中选择对应的项目，左侧导航栏选择“项目设置”，在该页面获取。 Authorization：JWT格式字符串，可参见Authorization获取。 push-type：0表示Alert消息，此处为授权订阅消息场景。 entityId：订阅消息对应的模板实例ID。 data：订阅消息模板中的占位符需要被替换的变量值，详情请参见查看模板详情。data中每个keyword的值不能超过50个字符，详情请参见data。 actionType：0表示点击消息打开应用首页。 token：Push Token，可参见获取Push Token获取。推送授权订阅消息时，单次推送仅能携带一个Token。 testMessage：测试消息标识，true表示测试消息。每个项目每天限制发送1000条测试消息，单次推送仅能发送一个Token。详情请参见testMessage。      本示例仅包含REST API中部分消息字段，关于服务端开发的更多详情请参见端云调试。    
+弹窗样式
+弹窗样式请参考如下示例：
+弹窗中包含以下信息：
+ 您的应用名称，告知用户当前发起消息订阅的主体。 您想要发送的消息模板的名称，如上图中的“会议提醒”，详情见查看模板详情。当用户选择了一个或多个模板，且点击“允许本次发送”或“始终允许”后，您就可以向用户发送对应模板的消息。 用户授权订阅按钮。 
+其中用户授权订阅按钮分为“允许本次发送”、“始终允许”和“取消”：
+ 允许本次发送：代表用户允许订阅本次勾选的模板，当您成功发送模板对应的消息后，下次针对同样的模板发起消息订阅时仍弹出弹窗，请求用户授权。 始终允许：代表用户始终允许订阅本次勾选的模板，当您成功发送模板对应的消息后，下次针对同样的模板发起消息订阅时将不再弹出弹窗，默认用户允许本次订阅。 取消：代表用户不允许本次订阅，您无法向用户发送模板对应的消息，下次针对同样的模板发起消息订阅时仍弹出弹窗，请求用户授权。 
+消息订阅为一次性授权订阅，无论用户是否已经授权“始终允许”，您推送消息前都需要发起消息订阅。

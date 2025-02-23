@@ -1,0 +1,28 @@
+数据迁移
+ohpm-repo2.2.0版本开始支持数据迁移功能。在ohpm-repo 配置文件中，db是元数据存储的配置项，store是文件存储的配置项，db和store不能随意搭配，需要符合下面表格中的匹配规范。如果需要改变db和store的存储方式，需要进行数据迁移操作。
+db：元数据存储
+与db所适配的store：三方包文件存储
+filedb
+file storage
+mysql(ohpm-repo 1.1.0开始支持）
+file storage，sftp storage(ohpm-repo 1.1.0开始支持），custom storage(ohpm-repo 2.2.0开始支持）
+简要流程
+为保证数据不丢失，请在数据迁移前务必进行数据的备份；启动ohpm-repo，使用迁移命令导出数据；修改配置文件中db和store的存储方式，以新存储方式启动ohpm-repo；使用迁移命令导入数据。
+如果您当前使用的ohpm-repo版本不支持您所需要的存储方式，请参考升级指导文档，进行ohpm-repo的升级。
+备份ohpm-repo数据
+请参考 数据备份指导文档 进行操作。
+使用迁移命令导出数据
+导出DB数据使用 export_userinfo 命令导出下面九个数据表的数据，并且导出加密组件，在命令执行目录生成打包 export_userInfo_xxx.zip 文件。 user group groupmember publickey access_token uplink uplinkproxy repo validation_configohpm-repo export_userinfo   导出已上架的包列表使用 export_pkginfo 命令，导出已上架的包列表。ohpm-repo export_pkginfo   批量下载包文件使用batch_download命令，从ohpm-repo配置的store存储目录中批量下载包文件。 使用第2步生成的 pkgInfo_xxxx.json 作为 batch_download 命令参数，批量下载har或tgz包，在命令执行目录生成 batch_download_xxx.zip 文件。 
+如果不迁移所有的包，您可以在第2步生成的pkgInfo_xxxx.json文件中删除掉不需要下载的包。
+ohpm-repo batch_download <pkgInfo_xxxx.json地址>
+batch_download_xxx.zip 文件中存在 pkgInfo.json 文件，其中记录了每个包的 文件名、组织、上传者，用于在批量上传时准确指定发包来源。
+新存储方式重启ohpm-repo
+打开ohpm-repo压缩包解压根目录中配置文件config.yaml，修改db和store配置项，指定所需存储方式。
+修改db和store配置项后，需要您在配置文件中同时配置新的<deploy_root>目录。
+使用修改后的配置文件重新执行安装命令（这一步必须执行，初始化数据库和其他必要的配置）
+ohpm-repo install --config <配置文件路径>
+根据提示信息刷新环境变量，然后重新启动ohpm-repo
+ohpm-repo start
+使用迁移命令导入数据
+若需要部署在新机器上，将上面ohpm-repo导出的export_userInfo_xxx.zip 和 batch_download_xxx.zip文件传到需要部署的机器中。需要先导入DB数据，再进行批量上传，避免上传时找不到对应的用户和组织而报错。
+导入DB数据。使用import_userinfo命令将export_userInfo_xxx.zip中的数据导入数据库。 ohpm-repo import_userinfo <zip_file> --clean-db   '--clean-db' 表示在导入数据前会清空所有表数据，包括启动ohpm-repo时默认生成的admin用户。如果不配置 '--clean-db'，导入过程中可能存在相同数据，默认会以兼容的方式跳过该数据的导入。例如：存在相同的admin用户，数据库中原本存在的admin用户假设为A1，导入数据中的admin用户设为A2。默认保留A1，如果A2的id在其他待导入表数据中存在，将会提前替换为A1的id。要注意的是，之后需要使用A1的密码进行登录。  所有数据导入成功后，可登录ohpm-repo管理网页进行验证。  批量上传包到ohpm-repo配置的store目录。使用 batch_publish 命令，将批量下载生成的 batch_download_xxx.zip 中的包依次发布到ohpm-repo。 ohpm-repo batch_publish <zip_file>   所有包发布成功。进入ohpm-repo网站查看包数量和包详情是否正确。  在batch_publish命令后面可以配置--force，如果进行批量上传时某个包的组织在ohpm-repo中不存在，将任意选取ohpm-repo中一位管理员用户作为组织负责人，自动创建组织。  

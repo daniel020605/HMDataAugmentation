@@ -1,0 +1,50 @@
+Poi搜索
+场景介绍
+提供多种查询Poi信息的能力：
+ 关键字搜索：通过用户输入的关键字，返回地点列表。 周边搜索：基于用户设备位置进行地点查找。 自动补全：根据输入的关键字返回预测的输入关键字和地点查询建议。 地点详情：查询某个地点更详细的信息。 
+接口说明
+以下是Poi搜索相关接口，主要由site命名空间下的方法提供，更多接口及使用方法请参见接口文档。
+接口名
+描述
+searchByText(searchByTextParams: SearchByTextParams): Promise<SearchByTextResult>
+关键字搜索。
+searchByText(context: common.Context, searchByTextParams: SearchByTextParams): Promise<SearchByTextResult>
+关键字搜索。支持上传Context上下文。
+nearbySearch(nearbySearchParams: NearbySearchParams): Promise<NearbySearchResult>
+周边搜索。
+nearbySearch(context: common.Context, nearbySearchParams: NearbySearchParams): Promise<NearbySearchResult>
+周边搜索。支持上传Context上下文。
+queryAutoComplete(queryAutoCompleteParams: QueryAutoCompleteParams): Promise<QueryAutoCompleteResult>
+自动补全。
+queryAutoComplete(context: common.Context, queryAutoCompleteParams: QueryAutoCompleteParams): Promise<QueryAutoCompleteResult>
+自动补全。支持上传Context上下文。
+searchById(searchByIdParams: SearchByIdParams): Promise<SearchByIdResult>
+地点详情。
+searchById(context: common.Context, searchByIdParams: SearchByIdParams): Promise<SearchByIdResult>
+地点详情。支持上传Context上下文。
+SearchByTextParams
+关键字搜索的参数。
+NearbySearchParams
+周边搜索的参数。
+QueryAutoCompleteParams
+自动补全的参数。
+SearchByIdParams
+地点详情的参数。
+SearchByTextResult
+关键字搜索的结果。
+NearbySearchResult
+周边搜索的结果。
+QueryAutoCompleteResult
+自动补全的结果。
+SearchByIdResult
+地点详情的结果。
+开发步骤
+import { site } from '@kit.MapKit';
+[h2]关键字搜索
+let params: site.SearchByTextParams = {\n  // 指定关键字\n  query: \"Piazzale Dante, 41, 55049 Viareggio, Tuscany, Italy\",\n  // 经纬度坐标\n  location: {\n    latitude: 31.984,\n    longitude: 118.76625\n  },\n  // 指定地理位置的范围半径\n  radius: 10000,\n  language: \"en\"\n};\n// 返回关键字搜索结果\nconst result = await site.searchByText(params);\nconsole.info(\"Succeeded in searching by text.\");
+[h2]周边搜索
+let params: site.NearbySearchParams = {\n  // 指定关键字\n  query: \"stazione di pomezia\",\n  // 经纬度坐标\n  location: {\n    latitude: 31.984410259206815,\n    longitude: 118.76625379397866\n  },\n  // 指定地理位置的范围半径\n  radius: 5000,\n  // 指定需要展示的poi类别\n  poiTypes: [\"NATIONAL_RAILWAY_STATION\"],\n  language: \"en\",\n  pageIndex: 1,\n  pageSize: 1\n};\n// 返回周边搜索结果\nconst result = await site.nearbySearch(params);\nconsole.info(\"Succeeded in searching nearby.\");
+[h2]自动补全
+let params: site.QueryAutoCompleteParams = {\n  // 指定关键字\n  query: \"hotel\",\n  // 经纬度坐标\n  location: {\n    latitude: 31.984410259206815,\n    longitude: 118.76625379397866\n  },\n  language: \"en\",\n  // 返回子节点\n  isChildren: true\n};\n// 返回自动补全结果\nconst result = await site.queryAutoComplete(params);\nconsole.info(\"Succeeded in querying.\");
+[h2]地点详情
+let params: site.SearchByIdParams = {\n  // 指定主键地点ID\n  siteId: \"144129739873977856\",\n  language: \"en\",\n  // 返回子节点\n  isChildren: true\n};\n// 返回地点详情结果\nconst result = await site.searchById(params);\nconsole.info(\"Succeeded in searching.\");

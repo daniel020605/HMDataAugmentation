@@ -1,0 +1,47 @@
+接入方案
+方案概述
+开发者需要按照意图定义，进行意图注册并实现意图调用；用户通过对小艺对话进行自然语言输入，小艺理解语义转换成意图调用（含意图参数），执行意图调用实现对应交互体验。
+端侧意图注册
+以“搜索旅游攻略”特性为例，开发者首先要注册“查看旅游攻略”（ViewTravelGuides），其他意图见各垂域意图Schema。开发者需要编辑对应的意图配置PROJECT_HOME/entry/src/main/resources/base/profile/insight_intent.json文件，实现意图注册。
+{\n  \"insightIntents\": [\n    {\n      \"intentName\": \"ViewTravelGuides\",\n      \"domain\": \"TravelDomain\",\n      \"intentVersion\": \"1.0.1\",\n      \"srcEntry\": \"./ets/entryability/InsightIntentExecutorImpl.ets\",\n      \"uiAbility\": {\n        \"ability\": \"EntryAbility\",\n        \"executeMode\": [\n          \"background\",\n          \"foreground\"\n        ]\n      },\n      \"uiExtension\": {\n        \"ability\": \"insightIntentUIExtensionAbility\"\n      }\n    }\n  ]\n}
+字段
+说明
+约束
+insightIntents
+应用支持的意图API列表
+必须声明应用支持插件包含的必选API，应用上架时会进行校验。
+intentName
+意图API名称
+ 名称应当遵循意图框架规范，当前仅支持预置意图API，不允许自定义。 应用内意图名称唯一，不允许出现相同的名称定义。 
+domain
+意图所属的垂域
+-
+intentVersion
+意图API版本号
+意图引用API时会校验该版本号，只有和意图定义的版本号一致才能正常调用。具体版本定义参考预置意图API。
+srcEntry
+意图API入口代码文件相对路径
+根据意图API实现业务文件填写。
+uiAbility
+UIAbility执行配置
+提供意图执行的前台界面或后台无界面执行时需要进行声明配置。
+uiExtension
+InsightIntentUIExtensionAbility执行配置
+提供意图执行的窗口化界面时需要进行声明配置。
+ability
+意图调用API所在ability名称
+本意图API所在的实现ability名称，可根据实际业务命名。
+executeMode
+意图执行支持的模式
+在UIAbility组件中特有属性，包含如下枚举值：
+ background：后台执行，指UIAbility组件的后台执行（无界面）。 foreground：前台执行，指UIAbility组件的前台执行（界面）。 
+端侧前台意图调用
+开发者需自己实现InsightIntentExecutor，并在对应回调实现打开落地页（点击推荐卡片跳转的界面，如旅游攻略落页面）的能力，ViewTravelGuides的意图调用字段定义见查看旅游攻略 （ViewTravelGuides）。
+步骤如下：
+ 继承InsightIntentExecutor。 重写对应方法，例如目标拉起前台页面，则可重写onExecuteInUIAbilityForegroundMode方法。 通过意图名称，识别查看旅游攻略意图(ViewTravelGuides)，在对应的方法中传递意图参数（param），并拉起对应落地页（点击推荐卡片跳转的界面，如旅游攻略落页面）。 
+import { insightIntent, InsightIntentExecutor } from '@kit.AbilityKit';\nimport { window } from '@kit.ArkUI';\nimport { BusinessError } from '@kit.BasicServicesKit';\n\n/**\n * 意图调用样例 */\nexport default class InsightIntentExecutorImpl extends InsightIntentExecutor {\n  private static readonly VIEW_TRAVEL_GUIDES = 'ViewTravelGuides';\n  /**\n   * override 执行前台UIAbility意图\n   *\n   * @param name 意图名称\n   * @param param 意图参数\n   * @param pageLoader 窗口\n   * @returns 意图调用结果\n   */\n  onExecuteInUIAbilityForegroundMode(name: string, param: Record<string, Object>, pageLoader: window.WindowStage):\n    Promise<insightIntent.ExecuteResult> {\n    // 根据意图名称分发处理逻辑\n    switch (name) {\n      case InsightIntentExecutorImpl.VIEW_TRAVEL_GUIDES:\n        return this.viewTravelGuides(param, pageLoader);\n      default:\n        break;\n    }\n    return Promise.resolve({\n      code: -1,\n      result: {\n        message: 'unknown intent'\n      }\n    } as insightIntent.ExecuteResult)\n  }\n  /**\n   * 实现调用查看旅游攻略功能\n   *\n   * @param param 意图参数\n   * @param pageLoader 窗口\n   */\n  private viewTravelGuides(param: Record<string, Object>, pageLoader: window.WindowStage): Promise<insightIntent.ExecuteResult> {\n    return new Promise((resolve, reject) => {\n      // TODO 实现意图调用，loadContent的入参为旅游攻略落地页路径，例如：pages/TravelGuidePage\n      pageLoader.loadContent('pages/TravelGuidePage')\n        .then(() => {\n          let entityId: string = (param.items as Array<object>)?.[0]?.['entityId'];\n          // TODO 调用成功的情况，此处可以打印日志\n          resolve({\n            code: 0,\n            result: {\n              message: 'Intent execute succeed'\n            }\n          });\n        })\n        .catch((err: BusinessError) => {\n          // TODO 调用失败的情况\n          resolve({\n            code: -1,\n            result: {\n              message: 'Intent execute failed'\n            }\n          })\n        });\n    })\n  }\n}
+端侧前台窗口意图调用
+开发者需自己实现InsightIntentExecutor，并在对应回调实现窗口页面内容加载的能力。
+步骤如下：
+ 继承InsightIntentExecutor。 重写对应方法，例如目标拉起前台窗口化页面，则可重写onExecuteInUIExtensionAbility方法。 通过意图名称，识别打开蓝牙意图（LoadBluetoothCard）调用扩展意图，在对应的方法中传递意图参数（param），并拉起对应窗口化页面（如打开蓝牙窗口化页面）。 
+import { insightIntent, InsightIntentExecutor, UIExtensionContentSession } from '@kit.AbilityKit';\n\n/**\n * 意图调用样例 */\nexport default class IntentExecutorImpl extends InsightIntentExecutor {\n  private static readonly TAG: string = 'IntentExecutorImpl';\n  private static readonly LOAD_BLUETOOTH_CARD: string = 'LoadBluetoothCard';\n  /**\n   * override 执行前台UI扩展意图\n   *\n   * @param name 意图名称\n   * @param param 意图参数\n   * @param pageLoader 窗口\n   * @returns 意图调用结果\n   */\n  async onExecuteInUIExtensionAbility(name: string, param: Record<string, Object>,\n    pageLoader: UIExtensionContentSession):\n    Promise<insightIntent.ExecuteResult> {\n    console.info(IntentExecutorImpl.TAG, `onExecuteInUIExtensionAbility`);\n    switch (name) {\n      case IntentExecutorImpl.LOAD_BLUETOOTH_CARD:\n        console.info(IntentExecutorImpl.TAG, `onExecuteInUIAbilityForegroundMode::ForegroundUiAbility intent`);\n        return this.openLoadBluetoothCard(pageLoader);\n      default:\n        console.info(IntentExecutorImpl.TAG, `onExecuteInUIAbilityForegroundMode::invalid intent`);\n        break;\n    }\n\n    let result: insightIntent.ExecuteResult = {\n      code: -1,\n      result: {\n        message: 'onExecuteInUIExtensionAbility failed'\n      }\n    };\n    return result;\n  }\n\n  /**\n   * 打开加载蓝牙卡片意图\n   *\n   * @param pageLoader 意图内容Session对象\n   * @returns 执行结果\n   */\n  private async openLoadBluetoothCard(pageLoader: UIExtensionContentSession): Promise<insightIntent.ExecuteResult> {\n    pageLoader.loadContent('pages/UiExtensionPage');\n    let result: insightIntent.ExecuteResult = {\n      code: 0,\n      result: {\n        message: 'intent execute succeed'\n      }\n    }\n    return result;\n  }\n}

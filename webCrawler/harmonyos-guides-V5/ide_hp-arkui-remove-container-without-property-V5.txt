@@ -1,0 +1,14 @@
+@performance/hp-arkui-remove-container-without-property
+建议尽量减少视图嵌套层次。该规则曾用名：@performance/hp-arkui-reduce-view-nest-level 。
+通用丢帧场景下，建议优先修改。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@performance/hp-arkui-remove-container-without-property\": \"suggestion\",\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+@Entry\n@Component\nstruct MyComponent{\n  @State number: Number[] = Array.from(Array<number>(1000), (val, i) => i);\n  scroller: Scroller = new Scroller()\n  build() {\n    Column() {\n      Grid(this.scroller) {\n        ForEach(this.number, (item: number) => {\n          GridItem() {\n            Text(item.toString())\n              .fontSize(16)\n              .backgroundColor(0xF9CF93)\n              .width('100%')\n              .height(80)\n              .textAlign(TextAlign.Center)\n              .border({width:1})\n          }\n        }, (item:string) => item)\n      }\n      .columnsTemplate('1fr 1fr 1fr 1fr 1fr')\n      .columnsGap(0)\n      .rowsGap(0)\n      .size({ width: \"100%\", height: \"100%\" })\n    }\n  }\n}
+反例
+@Entry\n@Component\nstruct MyComponent{\n  @State number: Number[] = Array.from(Array<number>(1000), (val, i) => i);\n  scroller: Scroller = new Scroller()\n  build() {\n    Column() {\n      Grid(this.scroller) {\n        ForEach(this.number, (item: number) => {\n          GridItem() {\n            Flex() {\n              Flex() {\n                Flex() {\n                  Text(item.toString())\n                    .fontSize(16)\n                    .backgroundColor(0xF9CF93)\n                    .width('100%')\n                    .height(80)\n                    .textAlign(TextAlign.Center)\n                    .border({width:1})\n                }\n              }\n            }\n          }\n        }, (item:string) => item)\n      }\n      .columnsTemplate('1fr 1fr 1fr 1fr 1fr')\n      .columnsGap(0)\n      .rowsGap(0)\n      .size({ width: \"100%\", height: \"100%\" })\n    }\n  }\n}
+规则集
+plugin:@performance/recommended
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

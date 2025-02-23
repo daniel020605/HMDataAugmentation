@@ -1,0 +1,13 @@
+@typescript-eslint/no-shadow
+禁止声明与外部作用域变量同名的变量。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/no-shadow\": \"error\"\n  }\n}
+选项
+详情请参考@typescript-eslint/no-shadow选项。
+正例
+/*eslint no-shadow: \"error\"*/\nconst a = '1';\nexport function b() {\n  const a1 = '10';\n  console.info(a1);\n}\n\nexport const c = () => {\n  const a1 = '10';\n  console.info(a1);\n};\n\nconsole.info(a);
+反例
+/*eslint no-shadow: \"error\"*/\nconst a = '3';\nexport function b() {\n  const a = '10';\n  console.info(a);\n}\n\nexport const c = () => {\n  const a = '10';\n  console.info(a);\n};\n\nconsole.info(a);
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

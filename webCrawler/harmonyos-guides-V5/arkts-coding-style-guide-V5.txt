@@ -1,0 +1,217 @@
+ArkTS编程规范
+目标和适用范围
+本文参考业界标准及实践，结合ArkTS语言特点，为提高代码的规范、安全、性能提供编码指南。
+本文适用于开发者进行系统开发或者应用开发时，使用ArkTS编写代码的场景。
+规则来源
+ArkTS在保持TypeScript基本语法风格的基础上，进一步强化静态检查和分析。本文部分规则筛选自《OpenHarmony应用TS&JS编程指南》，为ArkTS语言新增的语法添加了规则，旨在提高代码可读性、执行性能。
+章节概览
+[h2]代码风格
+包含命名和格式。
+[h2]编程实践
+包含声明与初始化、数据类型、运算与表达式、异常等。
+参考了《OpenHarmony应用TS&JS编程指南》中的规则，对其中ArkTS语言不涉及的部分作了去除，为ArkTS语言新增的语法添加了规则。
+术语和定义
+总体原则
+规则分为两个级别：要求、建议。
+要求：表示原则上应该遵从。本文所有内容目前均为针对ArkTS的要求。
+建议：表示该条款属于最佳实践，可结合实际情况考虑是否纳入。
+命名
+[h2]为标识符取一个好名字，提高代码可读性
+【描述】
+好的标识符命名，应遵循以下基本原则：
+能清晰的表达意图，避免使用单个字母、未成惯例的缩写来命名使用正确的英文单词并符合英文语法，不要使用中文拼音能区分出意思，避免造成误导
+[h2]类名、枚举名、命名空间名采用UpperCamelCase风格
+【级别】建议
+【描述】
+类采用首字母大写的驼峰命名法。
+类名通常是名词或名词短语，例如Person、Student、Worker。不应使用动词，也应该避免类似Data、Info这样的模糊词。
+【正例】
+// 类名\nclass User {\n  username: string\n\n  constructor(username: string) {\n    this.username = username;\n  }\n\n  sayHi() {\n    console.log('hi' + this.username);\n  }\n}\n\n// 枚举名\nenum UserType {\n  TEACHER = 0,\n  STUDENT = 1\n};\n\n// 命名空间\nnamespace Base64Utils {\n  function encrypt() {\n    // todo encrypt\n  }\n\n  function decrypt() {\n    // todo decrypt\n  }\n};
+[h2]变量名、方法名、参数名采用lowerCamelCase风格
+【级别】建议
+【描述】
+函数的命名通常是动词或动词短语，采用小驼峰命名，示例如下：
+load + 属性名()put + 属性名()is + 布尔属性名()has + 名词/形容词()动词()动词 + 宾语() 变量的名字通常是名词或名词短语，应采用小驼峰命名，以便于理解其含义。 
+【正例】
+let msg = 'Hello world';\n\nfunction sendMsg(msg: string) {\n  // todo send message\n}\n\nlet userName = 'Zhangsan';\n\nfunction findUser(userName: string) {\n  // todo find user by user name\n}
+[h2]常量名、枚举值名采用全部大写，单词间使用下划线隔开
+【级别】建议
+【描述】
+常量命名，应该由全大写单词与下划线组成，单词间用下划线分割。常量命名要尽量表达完整的语义。
+【正例】
+const MAX_USER_SIZE = 10000;\n\nenum UserType {\n  TEACHER = 0,\n  STUDENT = 1\n};
+[h2]避免使用否定的布尔变量名，布尔型的局部变量或方法需加上表达是非意义的前缀
+【级别】建议
+【描述】
+布尔型的局部变量建议加上表达是非意义的前缀，比如is，也可以是has、can、should等。但是，当使用逻辑非运算符，并出现双重否定时，会出现理解问题，比如!isNotError，意味着什么，不是很好理解。因此，应避免定义否定的布尔变量名。
+【反例】
+let isNoError = true;\nlet isNotFound = false;\n\nfunction empty() {}\nfunction next() {}
+【正例】
+let isError = false;\nlet isFound = true;\n\nfunction isEmpty() {}\nfunction hasNext() {}
+格式
+[h2]使用空格缩进，禁止使用tab字符
+【级别】建议
+【描述】
+只允许使用空格(space)进行缩进。
+建议大部分场景优先使用2个空格，换行导致的缩进优先使用4个空格。
+不允许插入制表符Tab。当前几乎所有的集成开发环境（IDE）和代码编辑器都支持配置将Tab键自动扩展为2个空格输入，应在代码编辑器中配置使用空格进行缩进。
+【正例】
+class DataSource {\n  id: number = 0\n  title: string = ''\n  content: string = ''\n}\n\nconst dataSource: DataSource[] = [\n  {\n    id: 1,\n    title: 'Title 1',\n    content: 'Content 1'\n  },\n  {\n    id: 2,\n    title: 'Title 2',\n    content: 'Content 2'\n  }\n\n];\n\nfunction test(dataSource: DataSource[]) {\n  if (!dataSource.length) {\n    return;\n  }\n\n  for (let data of dataSource) {\n    if (!data || !data.id || !data.title || !data.content) {\n      continue;\n    }\n    // some code\n  }\n\n  // some code\n}
+[h2]行宽不超过120个字符
+【级别】建议
+【描述】
+代码行宽不宜过长，否则不利于阅读。
+控制行宽可以间接的引导程序员去缩短函数、变量的命名，减少嵌套的层数，精炼注释，提升代码可读性。
+建议每行字符数不要超过120个；除非超过120能显著增加可读性，并且不会隐藏信息。
+例外：如果一行注释包含了超过120个字符的命令或URL，则可以保持一行，以方便复制、粘贴和通过grep查找；预处理的error信息在一行便于阅读和理解，即使超过120个字符。
+[h2]条件语句和循环语句的实现必须使用大括号
+【级别】建议
+【描述】
+在if、for、do、while等语句的执行体加大括号{}是一种最佳实践，因为省略大括号容易导致错误，并且降低代码的清晰度。
+【反例】
+if (condition)\n  console.log('success');\n\nfor (let idx = 0; idx < 5; ++idx)\n  console.log(idx);
+【正例】
+if (condition) {\n  console.log('success');\n}\n\nfor (let idx = 0; idx < 5; ++idx) {\n  console.log(idx);\n}
+[h2]switch语句的case和default需缩进一层
+【级别】建议
+【描述】
+switch的case和default要缩进一层（2个空格）。开关标签之后换行的语句，需再缩进一层（2个空格）。
+【正例】
+switch (condition) {\n  case 0: {\n    doSomething();\n    break;\n  }\n  case 1: {\n    doOtherthing();\n    break;\n  }\n  default:\n    break;\n}
+[h2]表达式换行需保持一致性，运算符放行末
+【级别】建议
+【描述】
+当语句过长，或者可读性不佳时，需要在合适的地方换行。
+换行时将操作符放在行末，表示“未结束，后续还有”，保持与常用的格式化工具的默认配置一致。
+【正例】
+// 假设条件语句超出行宽\nif (userCount > MAX_USER_COUNT ||\n  userCount < MIN_USER_COUNT) {\n  doSomething();\n}
+[h2]多个变量定义和赋值语句不允许写在一行
+【级别】要求
+【描述】
+每个语句的变量声明都应只声明一个变量。
+这种方式更易添加变量声明，不用考虑将;变成,，以免引入错误。另外，每个语句只声明一个变量，用debugger逐个调试也很方便，而不是一次跳过所有变量。
+【反例】
+let maxCount = 10, isCompleted = false;\nlet pointX, pointY;\npointX = 10; pointY = 0;
+【正例】
+let maxCount = 10;\nlet isCompleted = false;\nlet pointX = 0;\nlet pointY = 0;
+[h2]空格应该突出关键字和重要信息，避免不必要的空格
+【级别】建议
+【描述】
+空格应该突出关键字和重要信息。总体建议如下：
+if, for, while, switch等关键字与左括号(之间加空格。在函数定义和调用时，函数名称与参数列表的左括号(之间不加空格。关键字else或catch与其之前的大括号}之间加空格。任何打开大括号({)之前加空格，有两个例外： a) 在作为函数的第一个参数或数组中的第一个元素时，对象之前不用加空格，例如：foo({ name: 'abc' })。 b) 在模板中，不用加空格，例如：abc${name}。 二元操作符(+ - * = < > <= >= === !== && ||)前后加空格；三元操作符(? :)符号两侧均加空格。数组初始化中的逗号和函数中多个参数之间的逗号后加空格。在逗号(,)或分号(;)之前不加空格。数组的中括号([])内侧不要加空格。不要出现多个连续空格。在某行中，多个空格若不是用来作缩进的，通常是个错误。
+【反例】
+// if 和左括号 ( 之间没有加空格\nif(isJedi) {\n  fight();\n}\n\n// 函数名fight和左括号 ( 之间加了空格\nfunction fight (): void {\n  console.log('Swooosh!');\n}
+【正例】
+// if 和左括号之间加一个空格\nif (isJedi) {\n  fight();\n}\n\n// 函数名fight和左括号 ( 之间不加空格\nfunction fight(): void {\n  console.log('Swooosh!');\n}
+【反例】
+if (flag) {\n  //...\n}else {  // else 与其前面的大括号 } 之间没有加空格\n  //...\n}
+【正例】
+if (flag) {\n  //...\n} else {  // else 与其前面的大括号 } 之间增加空格\n  //...\n}
+【正例】
+function foo() {  // 函数声明时，左大括号 { 之前加个空格\n  //...\n}\n\nbar('attr', {  // 左大括号前加个空格\n  age: '1 year',\n  sbreed: 'Bernese Mountain Dog',\n});
+【正例】
+const arr = [1, 2, 3];  // 数组初始化中的逗号后面加个空格，逗号前面不加空格\nmyFunc(bar, foo, baz);  // 函数的多个参数之间的逗号后加个空格，逗号前面不加空格
+[h2]建议字符串使用单引号
+【级别】建议
+【描述】
+较为约定俗成，单引号优于双引号。
+【反例】
+let message = \"world\";\nconsole.log(message);
+【正例】
+let message = 'world';\nconsole.log(message);
+[h2]对象字面量属性超过4个，需要都换行
+【级别】建议
+【描述】
+对象字面量要么每个属性都换行，要么所有属性都在同一行。当对象字面量属性超过4个的时候，建议统一换行。
+【反例】
+interface I {\n  name: string\n  age: number\n  value: number\n  sum: number\n  foo: boolean\n  bar: boolean\n}\n\nlet obj: I = { name: 'tom', age: 16, value: 1, sum: 2, foo: true, bar: false }
+【正例】
+interface I {\n  name: string\n  age: number\n  value: number\n  sum: number\n  foo: boolean\n  bar: boolean\n}\n\nlet obj: I = {\n  name: 'tom',\n  age: 16,\n  value: 1,\n  sum: 2,\n  foo: true,\n  bar: false\n}
+[h2]把else/catch放在if/try代码块关闭括号的同一行
+【级别】建议
+【描述】
+在写条件语句时，建议把else放在if代码块关闭括号的同一行。同样，在写异常处理语句时，建议把catch也放在try代码块关闭括号的同一行。
+【反例】
+if (isOk) {\n  doThing1();\n  doThing2();\n}\nelse {\n  doThing3();\n}
+【正例】
+if (isOk) {\n  doThing1();\n  doThing2();\n} else {\n  doThing3();\n}
+【反例】
+try {\n  doSomething();\n}\ncatch (err) {\n  // 处理错误\n}
+【正例】
+try {\n  doSomething();\n} catch (err) {\n  // 处理错误\n}
+[h2]大括号{和语句在同一行
+【级别】建议
+【描述】
+应保持一致的大括号风格。建议将大括号放在控制语句或声明语句同一行的位置。
+【反例】
+function foo()\n{\n  //...\n}
+【正例】
+function foo() {\n  //...\n}
+编程实践
+[h2]建议添加类属性的可访问修饰符
+【级别】建议
+【描述】
+在ArkTS中，提供了private, protected和public可访问修饰符。默认情况下一个属性的可访问修饰符为public。选取适当的可访问修饰符可以提升代码的安全性、可读性。注意：如果类中包含private属性，无法通过对象字面量初始化该类。
+【反例】
+class C {\n  count: number = 0\n\n  getCount(): number {\n    return this.count\n  }\n}
+【正例】
+class C {\n  private count: number = 0\n\n  public getCount(): number {\n    return this.count\n  }\n}
+[h2]不建议省略浮点数小数点前后的0
+【级别】建议
+【描述】
+在ArkTS中，浮点值会包含一个小数点，没有要求小数点之前或之后必须有一个数字。在小数点前面和后面均添加数字可以提高代码可读性。
+【反例】
+const num = .5;\nconst num = 2.;\nconst num = -.7;
+【正例】
+const num = 0.5;\nconst num = 2.0;\nconst num = -0.7;
+[h2]判断变量是否为Number.NaN时必须使用Number.isNaN()方法
+【级别】要求
+【描述】
+在ArkTS中，Number.NaN是Number类型的一个特殊值。它被用来表示非数值，这里的数值是指在IEEE浮点数算术标准中定义的双精度64位格式的值。
+因为在ArkTS中Number.NaN独特之处在于它不等于任何值，包括它本身，与Number.NaN进行比较的结果是令人困惑：Number.NaN !== Number.NaN or Number.NaN != Number.NaN的值都是true。
+因此，必须使用Number.isNaN()函数来测试一个值是否是Number.NaN。
+【反例】
+if (foo == Number.NaN) {\n  // ...\n}\n\nif (foo != Number.NaN) {\n  // ...\n}
+【正例】
+if (Number.isNaN(foo)) {\n  // ...\n}\n\nif (!Number.isNaN(foo)) {\n  // ...\n}
+[h2]数组遍历优先使用Array对象方法
+【级别】要求
+【描述】
+对于数组的遍历处理，应该优先使用Array对象方法，如：forEach(), map(), every(), filter(), find(), findIndex(), reduce(), some()。
+【反例】
+const numbers = [1, 2, 3, 4, 5];\n// 依赖已有数组来创建新的数组时，通过for遍历，生成一个新数组\nconst increasedByOne: number[] = [];\nfor (let i = 0; i < numbers.length; i++) {\n  increasedByOne.push(numbers[i] + 1);\n}
+【正例】
+const numbers = [1, 2, 3, 4, 5];\n// better: 使用map方法是更好的方式\nconst increasedByOne: number[] = numbers.map(num => num + 1);
+[h2]不要在控制性条件表达式中执行赋值操作
+【级别】要求
+【描述】
+控制性条件表达式常用于if、while、for、?:等条件判断中。
+在控制性条件表达式中执行赋值，常常导致意料之外的行为，且代码的可读性非常差。
+【反例】
+// 在控制性判断中赋值不易理解\nif (isFoo = false) {\n  ...\n}
+【正例】
+const isFoo = someBoolean; // 在上面赋值，if条件判断中直接使用\nif (isFoo) {\n  ...\n}
+[h2]在finally代码块中，不要使用return、break、continue或抛出异常，避免finally块非正常结束
+【级别】要求
+【描述】
+在finally代码块中，直接使用return、break、continue、throw语句，或由于调用方法的异常未处理，会导致finally代码块无法正常结束。非正常结束的finally代码块会影响try或catch代码块中异常的抛出，也可能会影响方法的返回值。所以要保证finally代码块正常结束。
+【反例】
+function foo() {\n  try {\n    ...\n    return 1;\n  } catch (err) {\n    ...\n    return 2;\n  } finally {\n    return 3;\n }\n}
+【正例】
+function foo() {\n  try {\n    ...\n    return 1;\n  } catch (err) {\n    ...\n    return 2;\n  } finally {\n    console.log('XXX!');\n  }\n}
+[h2]避免使用ESObject
+【级别】建议
+【描述】
+ESObject主要用在ArkTS和TS/JS跨语言调用场景中的类型标注，在非跨语言调用场景中使用ESObject标注类型，会引入不必要的跨语言调用，造成额外性能开销。
+【反例】
+// lib.ets\nexport interface I {\n  sum: number\n}\n\nexport function getObject(value: number): I {\n  let obj: I = { sum: value };\n  return obj\n}\n\n// app.ets\nimport { getObject } from 'lib'\nlet obj: ESObject = getObject(123);
+【正例】
+// lib.ets\nexport interface I {\n  sum: number\n}\n\nexport function getObject(value: number): I {\n  let obj: I = { sum: value };\n  return obj\n}\n\n// app.ets\nimport { getObject, I } from 'lib'\nlet obj: I = getObject(123);
+[h2]使用T[]表示数组类型
+【级别】建议
+【描述】
+ArkTS提供了两种数组类型的表示方式：T[]和Array<T>。为了代码的可读性，建议所有数组类型均用T[]来表示。
+【反例】
+let x: Array<number> = [1, 2, 3];\nlet y: Array<string> = ['a', 'b', 'c'];
+【正例】
+// 统一使用T[]语法\nlet x: number[] = [1, 2, 3];\nlet y: string[] = ['a', 'b', 'c'];

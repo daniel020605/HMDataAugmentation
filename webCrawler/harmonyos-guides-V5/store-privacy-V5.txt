@@ -1,0 +1,57 @@
+隐私管理服务
+隐私管理服务为使用标准化隐私声明托管服务的应用/元服务提供隐私链接查询、隐私签署状态查询和停止隐私协议功能。
+场景介绍
+ 隐私链接查询在托管隐私声明的场景下，应用内查询或展示隐私协议所需。 隐私签署状态查询用户未签署托管隐私协议时，系统权限申请将会被驳回，避免在用户同意前重复无意义申请，支持开发者查询签署情况，以便于应用/元服务内规划相关权限及合理合规获取数据。 停止隐私协议用于停止用户已签署的隐私协议，停止隐私协议后再次打开应用会重新弹出标准化隐私弹框。 
+业务流程
+[h2]查询隐私链接信息
+ 用户需要查询隐私链接信息。 应用调用getAppPrivacyMgmtInfo接口查询隐私链接信息。 返回隐私链接信息。 应用将查询结果返回给用户。 
+[h2]查询隐私签署状态
+ 用户需要查询隐私签署状态信息。 应用/元服务调用getAppPrivacyResult接口查询隐私签署状态信息。 返回隐私签署状态信息。 应用/元服务将结果返回给用户。 
+[h2]停止隐私协议
+ 用户需要停止隐私协议。 应用调用disableService接口停止隐私协议。 
+约束与限制
+ 同一个Ability内不允许重复调用loadContent()方法加载页面。 应用/元服务需要接入隐私声明托管服务。 
+接口说明
+隐私管理服务提供以下接口，具体API说明详见接口文档。
+接口名
+描述
+getAppPrivacyMgmtInfo(): AppPrivacyMgmtInfo
+查询隐私链接信息接口，用于查询隐私链接信息。
+getAppPrivacyResult(): AppPrivacyResult[]
+查询隐私签署状态接口，用于查询隐私签署状态信息。
+disableService():void
+停止隐私协议接口，用于停止隐私协议。
+开发步骤
+[h2]查询隐私链接信息
+ 导入privacyManager模块及相关公共模块。import { privacyManager } from '@kit.StoreKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';  调用getAppPrivacyMgmtInfo方法查询隐私链接信息。try {\n  let appPrivacyManageInfo: privacyManager.AppPrivacyMgmtInfo = privacyManager.getAppPrivacyMgmtInfo();\n  hilog.info(0, 'TAG', \"Succeeded in getting AppPrivacyManageInfo type: \" + appPrivacyManageInfo[\"type\"]);\n  let privacyLinkInfoArray : privacyManager.AppPrivacyLink[] = appPrivacyManageInfo.privacyInfo;\n  hilog.info(0, 'TAG', \"Succeeded in getting AppPrivacyManageInfo size = \" + privacyLinkInfoArray.length);\n  for (let i = 0; i < privacyLinkInfoArray.length; i++) {\n    hilog.info(0, 'TAG', \"Succeeded in getting AppPrivacyManageInfo type = \" + privacyLinkInfoArray[i][\"type\"] + \", version = \" + privacyLinkInfoArray[i][\"versionCode\"] + \", url = \" + privacyLinkInfoArray[i][\"url\"]);\n  }\n} catch (error) {\n  hilog.error(0, 'TAG', \"GetAppPrivacyManageInfoPublic exception code: \" + error.code + \", exception message: \" + error.message);\n}  
+[h2]查询隐私签署状态
+ 导入privacyManager模块及相关公共模块。import { privacyManager } from '@kit.StoreKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';  调用getAppPrivacyResult方法查询隐私签署状态。try {\n  let appPrivacyResults: privacyManager.AppPrivacyResult[] = privacyManager.getAppPrivacyResult();\n  hilog.info(0, 'TAG', \"Succeeded in getting AppPrivacyResult size = \" + appPrivacyResults.length);\n  for (let i = 0; i < appPrivacyResults.length; i++) {\n    hilog.info(0, 'TAG', \"Succeeded in getting AppPrivacyResult type = \" + appPrivacyResults[i][\"type\"] + \", version = \" + appPrivacyResults[i][\"versionCode\"] + \", result = \"+appPrivacyResults[i][\"result\"]);\n  }\n} catch (error) {\n  hilog.error(0, 'TAG', \"GetAppPrivacyResultPublic exception code: \" + error.code + \", exception message: \" + error.message);\n}  
+[h2]停止隐私协议
+ 导入privacyManager模块及相关公共模块。import { privacyManager } from '@kit.StoreKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';  调用disableService方法停止隐私协议。try {\n  privacyManager.disableService();\n  hilog.info(0, 'TAG', \"Succeeded in disabling Service success.\");\n} catch (error) {\n  hilog.error(0, 'TAG', \"DisableService exception code: \" + error.code + \", exception message: \" + error.message);\n}  
+隐私弹框签署结果公共事件
+在接入标准化隐私声明托管服务之后，用户未签署隐私声明前，打开应用/元服务会弹出标准化隐私弹框，弹框样式如下：
+用户点击同意隐私弹框，应用市场会发送隐私弹框签署结果公共事件。应用可通过监听该事件，感知用户隐私签署结果。
+[h2]事件说明
+事件名称
+值
+描述
+COMMON_EVENT_PRIVACY_STATE_CHANGED
+usual.event.PRIVACY_STATE_CHANGED
+隐私弹框签署结果公共事件，事件携带数据如下：
+{
+'resultType': privacyResultType,
+'appIndex': appIndex
+}
+其中：
+ privacyResultType：1：同意完整模式 0：未同意 appIndex：分身索引 
+公共事件接收示例（无应用分身场景）：
+import { hilog } from '@kit.PerformanceAnalysisKit';\nimport { commonEventManager } from '@kit.BasicServicesKit';\nconst TAG = 'PrivacySubscribe';\n\nclass PrivacySubscribeSample {\n  private readonly eventId = 'usual.event.PRIVACY_STATE_CHANGED';\n  // 订阅者信息, 用于保存创建成功的订阅者对象，后续使用其完成订阅及退订的动作\n  private subscriber: commonEventManager.CommonEventSubscriber | undefined = undefined;\n  // 事件列表\n  private subscribeInfo: commonEventManager.CommonEventSubscribeInfo = {\n    events: [this.eventId]\n  };\n\n  public subscribe(): void {\n    hilog.info(0, TAG, \"subscribe\");\n    // 创建订阅者\n    commonEventManager.createSubscriber(this.subscribeInfo).then((commonEventSubscriber) => {\n      hilog.info(0, TAG, \"createSubscriber\");\n      this.subscriber = commonEventSubscriber;\n\n      // 订阅公共事件\n      try {\n        commonEventManager.subscribe(this.subscriber, (err, data) => {\n          if (err) {\n            hilog.error(0, TAG, `subscribe failed, code is ${err?.code}, message is ${err?.message}`);\n            return;\n          }\n\n          let result = JSON.parse(data?.data ?? '{}')?.resultType as number;\n          if (result === 1) {\n            // 隐私同意处理\n          }\n        });\n      } catch (error) {\n        hilog.error(0, TAG, \"init createSubscriber failed, exception code: \" + error.code + \", exception message: \" + error.message);\n      }\n    });\n  }\n}
+公共事件接收示例（应用分身场景）：
+import { hilog } from '@kit.PerformanceAnalysisKit';\nimport { commonEventManager } from '@kit.BasicServicesKit';\nimport { UIAbility } from '@kit.AbilityKit';\n\nconst TAG = 'PrivacyEventSubscriber';\n\nexport default class MyAbility extends UIAbility {\n  onBackground() {\n    let appCloneIndex = 0;\n    let applicationContext = this.context.getApplicationContext();\n    try {\n      appCloneIndex = applicationContext.getCurrentAppCloneIndex();\n    } catch (error) {\n      hilog.error(0, TAG, `getCurrentAppCloneIndex fail, exception code:` + error.code + `, exception message: ` + error.message);\n    }\n    new PrivacyEventSubscriber(appCloneIndex).subscribe();\n  }\n}\n\nclass PrivacyEventSubscriber {\n  private appCloneIndex: number = 0;\n  private readonly eventId = 'usual.event.PRIVACY_STATE_CHANGED';\n  // 订阅者信息, 用于保存创建成功的订阅者对象，后续使用其完成订阅及退订的动作\n  private subscriber: commonEventManager.CommonEventSubscriber | undefined = undefined;\n  // 事件列表\n  private subscribeInfo: commonEventManager.CommonEventSubscribeInfo = {\n    events: [this.eventId]\n  };\n\n  constructor(appCloneIndex: number) {\n    this.appCloneIndex = appCloneIndex;\n  }\n\n  public subscribe(): void {\n    hilog.info(0, TAG, \"subscribe\");\n    // 创建订阅者\n    commonEventManager.createSubscriber(this.subscribeInfo).then((commonEventSubscriber) => {\n      hilog.info(0, TAG, \"createSubscriber\");\n      this.subscriber = commonEventSubscriber;\n\n      // 订阅公共事件\n      try {\n        commonEventManager.subscribe(this.subscriber, (err, data) => {\n          if (err) {\n            hilog.error(0, TAG, `subscribe failed, code is ${err?.code}, message is ${err?.message}`);\n            return;\n          }\n\n          let result = JSON.parse(data?.data ?? '{}')?.resultType as number;\n          let appIndex = JSON.parse(data?.data ?? '{}')?.appIndex as number ?? 0;\n          // 公共事件传递的分身索引等于当前应用的分身索引\n          if (appIndex === this.appCloneIndex) {\n            if (result === 1) {\n              // 隐私同意处理\n            }\n          }\n        });\n      } catch (error) {\n        hilog.error(0, TAG, \"init createSubscriber failed, exception code: \" + error.code + \", exception message: \" + error.message);\n      }\n    });\n  }\n}
+未上架应用接入隐私管理服务
+针对未上架应用市场的应用，可以通过手动预置隐私链接信息模拟接入隐私托管和隐私管理服务。
+预置隐私链接信息完成后，打开应用会弹出统一隐私弹框，应用可以使用隐私管理服务提供的隐私链接查询、隐私签署状态查询和停止隐私协议等相关功能。
+ 将应用工程构建模式修改为debug模式。 打开代码工程中type为entry类型的模块，修改其中的src/main/module.json5文件，添加module.metadata信息，其中包含三个字段，值均为字符串类型：     字段名称 字段解释    appgallery_privacy_hosted 是否启用隐私弹框，1表示启用，其他值均表示不启用   appgallery_privacy_link_privacy_statement 隐私协议url（https），在隐私弹框中作为隐私协议的内容   appgallery_privacy_link_user_agreement 用户协议url（https），在隐私弹框中作为用户协议的内容     
+在华为应用市场可以正常使用、并且网络连通的情况下，使用hdc命令从本地文件安装应用，即可使用预置的隐私链接信息测试隐私弹框、调试隐私管理服务接口。
+示例配置：
+// module.json5\n{\n  \"module\": {\n    \"name\": \"entry\",\n    \"type\": \"entry\",\n    \"description\": \"$string:module_desc\",\n    \"metadata\": [\n      {\n        \"name\": \"appgallery_privacy_hosted\",\n        \"value\": \"1\"\n      },\n      {\n        \"name\": \"appgallery_privacy_link_privacy_statement\",\n        \"value\": \"https://www.example.com/\" // 必须是https网址\n      },\n      {\n        \"name\": \"appgallery_privacy_link_user_agreement\",\n        \"value\": \"https://www.example.com/\" // 必须是https网址\n      }\n    ],\n    // 其他内容\n  }\n}

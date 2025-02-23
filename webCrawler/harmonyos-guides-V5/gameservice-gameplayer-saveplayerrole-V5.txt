@@ -1,0 +1,8 @@
+提交角色信息
+玩家成功登录游戏并选择角色、区服后，游戏需要将角色信息提交到华为游戏服务器。
+前提条件
+已实现联合登录。
+开发步骤
+调用savePlayerRole接口，将角色信息上报至华为服务器。
+若游戏没有角色系统，“roleId”请传入“0”，“roleName”请传入“default”，请勿传\"\"和null。
+let context = getContext(this) as common.UIAbilityContext;\nlet request: gamePlayer.GSKPlayerRole = {\n  roleId: '123',   // 玩家角色ID，如游戏没有角色系统，请传入“0”，务必不要传\"\"和null。\n  roleName: 'Jason', // 玩家角色名，如游戏没有角色系统，请传入“default”，务必不要传\"\"和null。\n  serverId: '456',\n  serverName: 'Zhangshan',\n  gamePlayerId: '789', // 若是转移场景，请根据实际获取到的gamePlayerId传值。\n  teamPlayerId: '345', // 若是绑定场景，请根据实际获取到的teamPlayerId传值。\n  thirdOpenId: '123'   // 若游戏官方账号登录，请根据实际获取到的thirdOpenId传值。\n};\ntry {\n  gamePlayer.savePlayerRole(context, request).then(() => {\n     hilog.info(0x0000, 'testTag', `Succeeded in saving.`);\n  });\n} catch (error) {\n  let err = error as BusinessError;\n  hilog.error(0x0000, 'testTag', `Failed to save. Code: ${err.code}, message: ${err.message}`);\n}

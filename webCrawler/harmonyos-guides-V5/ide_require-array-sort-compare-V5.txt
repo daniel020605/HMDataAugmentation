@@ -1,0 +1,13 @@
+@typescript-eslint/require-array-sort-compare
+要求调用“Array#sort”时，始终提供“compareFunction”。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/require-array-sort-compare\": \"error\"\n  }\n}
+选项
+详情请参考@typescript-eslint/require-array-sort-compare选项。
+正例
+declare const array: string[];\n\narray.sort((a, b) => a.length - b.length);\narray.sort((a, b) => a.localeCompare(b));
+反例
+declare const array: number[];\ndeclare const stringArray: object[];\n\narray.sort();\n\n// String arrays should be sorted using `String#localeCompare`.\nstringArray.sort();
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

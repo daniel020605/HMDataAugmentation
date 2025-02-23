@@ -1,0 +1,14 @@
+@typescript-eslint/no-dynamic-delete
+不允许在computed key表达式上使用“delete”运算符。
+该规则仅支持对.js/.ts文件进行检查。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/no-dynamic-delete\": \"error\"\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+const container: Record<string, number> = {\n  /* ... */\n};\n\n// Constant runtime lookups by string index\ndelete container.aaa;\n\n// Constants that must be accessed by []\ndelete container['7'];\ndelete container['-Infinity'];
+反例
+const container: Record<string, number> = {\n  /* ... */\n};\n\n// Can be replaced with the constant equivalents, such as container.aaa\ndelete container['aaa'];\ndelete container['Infinity'];\n\n// Dynamic, difficult-to-reason-about lookups\nconst name = 'name';\ndelete container[name];\ndelete container[name.toUpperCase()];
+规则集
+plugin:@typescript-eslint/recommended\nplugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

@@ -1,0 +1,18 @@
+{
+    "https://box.nju.edu.cn/seafhttp/files/47e17047-31d7-49c4-bc09-217ea057d988/Index.png": [
+        {
+            "function_name": "build",
+            "content": "build() {\n    Row() {\n      Flex({justifyContent: FlexAlign.SpaceAround}){\n        Column(){\n          Image($r('app.media.app_icon')).width(28).height(28)\n          Text('黄金会员').fontSize(15)\n            .fontColor(Color.Black).margin({ top: 5 })\n        }\n\n        Column(){\n          Image($r('app.media.app_icon')).width(28).height(28)\n          Text('积分商城').fontSize(15)\n            .fontColor(Color.Black).margin({ top: 5 })\n        }\n\n        Column(){\n          Image($r('app.media.app_icon')).width(28).height(28)\n          Text('互动有礼').fontSize(15)\n            .fontColor(Color.Black).margin({ top: 5 })\n        }\n\n        Column(){\n          Image($r('app.media.app_icon')).width(28).height(28)\n          Text('红包卡卷').fontSize(15)\n            .fontColor(Color.Black).margin({ top: 5 })\n        }\n      }\n      .backgroundColor('#FFFFFF')\n      .borderRadius(20)\n      .padding(15)\n      .margin(10)\n    }\n    .width('100%')\n    .height('100%')\n    .backgroundColor('#e1e1e1')\n  }"
+        }
+    ],
+    "https://box.nju.edu.cn/seafhttp/files/1cadf290-7260-4d5f-96eb-b6d9e49efd32/ComponentPage.png": [
+        {
+            "function_name": "build",
+            "content": "build() {\n    Row(){\n      ForEach(this.arrayCon,(content: string)=>{\n        ConponentDev({title:content})\n      })\n    }\n    .width('100%')\n    .height('100%')\n    .padding(10)\n    .borderRadius(20)\n    .backgroundColor('#e1e1e1')\n  }"
+        },
+        {
+            "function_name": "build",
+            "content": "build(){\n    Flex({justifyContent: FlexAlign.SpaceAround}){\n      Column(){\n        Image($r('app.media.app_icon')).width(28).height(28)\n        Text(this.title).fontSize(15)\n          .fontColor(Color.Black).margin({ top: 5 })\n      }\n    }\n    .padding(10)\n    .layoutWeight(1)\n    .backgroundColor('#FFFFFF')\n  }"
+        }
+    ]
+}

@@ -1,0 +1,13 @@
+@hw-stylistic/space-infix-ops
+强制运算符前后都加空格。该规则仅检查.ets文件类型。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@hw-stylistic/space-infix-ops\": \"error\"\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+export function test(size: number) {\n  for (let i = 0; i < size; i++) {\n    console.info(`${i}`);\n  }\n}\n\nexport function test1(a: boolean, b: boolean, c: boolean) {\n  return a || (b && c)\n}
+反例
+export function test(size: number) {\n  // Operator '=' must be spaced.\n  // Operator '<' must be spaced.\n  for (let i=0; i<size; i++) {\n    console.info(`${i}`);\n  }\n}\n\nexport function test1(a: boolean, b: boolean, c: boolean) {\n  // Operator '||' must be spaced.\n  // Operator '&&' must be spaced.\n  return a||b&&c;\n}
+规则集
+\"plugin:@hw-stylistic/recommended\"\n\"plugin:@hw-stylistic/all\"
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

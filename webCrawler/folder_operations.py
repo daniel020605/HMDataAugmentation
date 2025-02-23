@@ -77,11 +77,46 @@ def copy_folders_with_files(source_directory, target_directory):
     recursive_search(source_directory, target_directory, counter)
 
 
+def collect_repo_and_project_names(source_directory, output_file):
+    with open(output_file, 'w', encoding='utf-8') as file:
+        def folder_contains_files(folder_path):
+            build_profile_path = os.path.join(folder_path, 'build-profile.json5')
+            hvigorfile_path = os.path.join(folder_path, 'hvigorfile.ts')
+            return os.path.isfile(build_profile_path) and os.path.isfile(hvigorfile_path)
+
+        def recursive_search(repo_name, current_directory):
+            counter = 1
+            for dir_name in os.listdir(current_directory):
+                dir_path = os.path.join(current_directory, dir_name)
+                if os.path.isdir(dir_path):
+                    try:
+                        if folder_contains_files(dir_path):
+                            file.write(f"仓库名: {repo_name}, 项目名: {dir_name}\n")
+                            print(f"Found matching project in {repo_name}: {dir_name}")
+                            counter += 1
+                        else:
+                            recursive_search(repo_name, dir_path)
+                    except FileNotFoundError as e:
+                        print(f"Skipping {dir_path}: {e}")
+                    except Exception as e:
+                        print(f"Error with {dir_path}: {e}")
+
+        def process_repo(repo_path):
+            repo_name = os.path.basename(repo_path)
+            recursive_search(repo_name, repo_path)
+
+        for repo_name in os.listdir(source_directory):
+            repo_path = os.path.join(source_directory, repo_name)
+            if os.path.isdir(repo_path):
+                process_repo(repo_path)
+
 if __name__ == "__main__":
-    source_directory = r''
-    target_directory = r''
+    source_directory = r'C:\Users\sunguyi\Desktop\repos\gitee_cloned_repos_5min_stars'
+    target_directory = r'C:\Users\sunguyi\Desktop\repos\gitee_5min_stars_projects'
     copy_folders_with_files(source_directory, target_directory)
     convert_chinese_to_pinyin(target_directory)
-
+    # source_directory = r'C:\Users\sunguyi\Desktop\repos\github_cloned_repos_1min_stars'  # 替换为你的根目录路径，其中包含多个仓库
+    # output_file = 'output.txt'  # 替换为你希望存储结果的txt文件路径
+    # collect_repo_and_project_names(source_directory, output_file)
 
 

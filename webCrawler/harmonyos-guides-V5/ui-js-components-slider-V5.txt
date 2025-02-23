@@ -1,0 +1,25 @@
+slider开发指导
+slider为滑动条组件，用来快速调节音量、亮度等。具体用法请参考slider。
+创建slider组件
+在pages/index目录下的hml文件中创建一个slider组件。
+<!-- xxx.hml -->\n<div class=\"container\">\n  <slider></slider>\n</div>
+/* xxx.css */\n.container {\n  width: 100%;\n  height: 100%;\n  background-color: #F1F3F5;\n  flex-direction: column;\n  justify-content: center;\n  align-items: center;\n}
+设置样式和属性
+slider组件通过color、selected-color、block-color样式分别为滑动条设置背景颜色、已选择颜色和滑块颜色。
+<!-- xxx.hml -->\n<div class=\"container\">\n  <slider class= \"sli\"></slider>\n</div>
+/* xxx.css */\n.container {\n  width: 100%;\n  height: 100%;\n  flex-direction: column;\n  justify-content: center;\n  align-items: center;\n  background-color: #F1F3F5;\n}\n.sli{\n  color: #fcfcfc;\n  scrollbar-color: aqua;\n  background-color: #b7e3f3;\n}
+通过添加mix、max、value、step、mode属性分别为滑动条设置最小值、最大值、初始值、滑动步长和滑动条样式。
+<!-- xxx.hml -->\n<div class=\"container\">\n  <slider min=\"0\" max=\"100\" value=\"1\" step=\"2\" mode=\"inset\" showtips=\"true\"></slider>\n</div>
+/* xxx.css */\n.container {\n  width: 100%;\n  height: 100%;\n  flex-direction: column;\n  justify-content: center;\n  align-items: center;\n  background-color: #F1F3F5;\n}
+mode属性为滑动条样式，可选值为：
+ outset：滑块在滑杆上。 inset：滑块在滑杆内。 
+绑定事件
+向slider组件添加change事件，添加时需要传入ChangeEvent参数。
+<!-- xxx.hml -->\n<div class=\"container\">\n  <text>slider start value is {{startValue}}</text>\n  <text>slider current value is {{currentValue}}</text>\n  <text>slider end value is {{endValue}}</text>\n  <slider min=\"0\" max=\"100\" value=\"{{value}}\" onchange=\"setvalue\"></slider>\n</div>
+/* xxx.css */\n.container {\n  width: 100%;\n  height: 100%; \n  flex-direction: column;\n  justify-content: center;\n  align-items: center;\n  background-color: #F1F3F5;\n}
+// xxx.js\nexport default {\n  data: {\n    value: 0,\n    startValue: 0,\n    currentValue: 0,\n    endValue: 0,\n  },\n  setvalue(e) {\n    if (e.mode == \"start\") {\n      this.value = e.value;\n      this.startValue = e.value;\n    } else if (e.mode == \"move\") {\n      this.value = e.value;\n      this.currentValue = e.value;\n    } else if (e.mode == \"end\") {\n      this.value = e.value;\n      this.endValue = e.value;\n    }\n  }\n}
+场景示例
+开发者可以通过调整滑动条的值来改变图片大小，并且动态打印当前图片的宽和高。
+<!-- xxx.hml -->\n<div class=\"container\">\n  <image src=\"common/landscape3.jpg\" style=\" width: {{WidthVal}}px;height:{{HeightVal}}px;margin-top: -150px;\"></image>\n  <div class=\"txt\">\n    <slider min=\"0\" max=\"100\" value=\"{{value}}\" onchange=\"setvalue\"></slider>\n    <text>The width of this picture is    {{WidthVal}}</text>\n    <text>The height of this picture is  {{HeightVal}}</text>\n  </div>\n</div>
+/* xxx.css */\n.container {\n  width: 100%;\n  height: 100%;\n  flex-direction: column;\n  justify-content: center;\n  align-items: center;\n  background-color: #F1F3F5;\n}\n.txt{\n  flex-direction: column;\n  justify-content: center;\n  align-items: center;\n  position: fixed;\n  top: 65%;\n}\ntext{\n  margin-top: 30px;\n}
+// xxx.js\nexport default{\n  data: {\n    value: 0,\n    WidthVal: 200,\n    HeightVal: 200\n  },\n  setvalue(e) {\n    this.WidthVal = 200 + e.value;\n    this.HeightVal = 200 + e.value\n  }\n}

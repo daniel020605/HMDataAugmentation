@@ -1,0 +1,13 @@
+@typescript-eslint/prefer-enum-initializers
+推荐显式初始化每个枚举成员值。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/prefer-enum-initializers\": \"error\"\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+export enum Status {\n  open = 'Open',\n  close = 'Close'\n}\n\nexport enum Direction {\n  up = '1',\n  down = '2'\n}\n\nexport enum Color {\n  red = 'Red',\n  green = 'Green',\n  blue = 'Blue'\n}
+反例
+export enum Status {\n  open,\n  close\n}\n\nexport enum Direction {\n  up,\n  down\n}\n\nexport enum Color {\n  red,\n  green = 'Green',\n  blue\n}
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

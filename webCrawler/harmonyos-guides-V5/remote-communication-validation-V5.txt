@@ -1,0 +1,6 @@
+使用自定义证书校验
+场景介绍
+本协议栈框架会将服务器证书传递给调用方，调用方可以根据自身业务需要，对证书进行校验。例如：
+证书过期，但客户端不关注日期，此时可以只校验证书的内容，不校验日期。银行类APP，需要对证书内容进行百分百的匹配，此时可以直接对证书进行二进制对比。
+开发步骤
+导包。import { rcp } from '@kit.RemoteCommunicationKit'; 定义应用的证书校验器。// 自定义证书校验器\nconst selfDefinedRemoteValidation = (context: rcp.ValidationContext) => {\n  // 判断context是否为空或者undefined\n  if (context === null) {\n    return false;\n  }\n  // 循环遍历context中x509证书并最后返回证书版本是否符合预期\n  for (let i = 0; i <= context.x509Certs.length; i++) {\n    let cert = context.x509Certs[i];\n    if (cert === null) {\n      console.info(`Cert error: ${cert}}`);\n      continue;\n    }\n    console.info(`Cert suceess: ${cert}}`);\n    // 注意，此处只是模拟证书版本，实际请根据业务进行判断\n    return cert.getVersion() === 0\n  }\n  return true;\n} 使用证书校验器。let request = new rcp.Request('GET');\n\n//将证书校验器配置到请求中\nrequest.configuration = {\n  security: {\n    remoteValidation: selfDefinedRemoteValidation\n  }\n};\n\n//创建session\nlet session = rcp.createSession();\ntry {\n  //发起请求\n  session.fetch(request);\n  session.close();\n} catch (error) {\n  console.error(`Rcp err: Code is ${error.code}, message is ${JSON.stringify(error)}`);\n  session.close();\n} 

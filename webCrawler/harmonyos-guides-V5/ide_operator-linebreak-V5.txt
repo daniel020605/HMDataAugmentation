@@ -1,0 +1,13 @@
+@hw-stylistic/operator-linebreak
+强制运算符位于代码行末。该规则仅检查.ets文件类型。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@hw-stylistic/operator-linebreak\": \"error\"\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+export function test(n1: number, n2: number): void {\n  if (n1 > n2) {\n    console.info('hello');\n  }\n\n  if (n1 >\n    n2) {\n    console.info('hello');\n  }\n}
+反例
+export function test(n1: number, n2: number, n3: number): void {\n  if (n1 > n2\n    // '||' should be placed at the end of the line.\n    || n1 < n3) {\n    console.info('hello');\n  }\n}
+规则集
+\"plugin:@hw-stylistic/recommended\"\n\"plugin:@hw-stylistic/all\"
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

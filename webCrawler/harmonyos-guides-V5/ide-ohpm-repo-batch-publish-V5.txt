@@ -1,0 +1,22 @@
+ohpm-repo batch_publish
+批量上传包文件。
+前提条件
+已成功执行batch_download 命令、 export_userinfo 命令、import_userinfo 命令，确保每个包指定的包文件、用户和组织都存在。
+命令格式
+ohpm-repo batch_publish <zip_file>
+功能描述
+根据提供的zip文件批量上传其中的包到ohpm-repo。
+参数
+[h2]<zip_file>
+类型： String必填参数
+必须在batch_publish命令后面配置<zip_file>参数，指定执行batch_download命令导出的zip文件。
+选项
+[h2]--force
+默认值：false类型：Boolean
+在batch_publish命令后面配置--force，进行批量上传时某个包的组织在ohpm-repo中不存在，将选取一位管理员用户作为组织负责人自动创建组织。
+示例
+执行以下命令：
+ohpm-repo batch_publish <zip_file> --force
+结果示例：
+PS C:\\Users\\xxxxx\\Desktop> ohpm-repo batch_publish C:\\Users\\xxxxx\\Desktop\\batch_download_1712071006796.zip --force\n...\n[2024-04-02T23:50:29.100] [INFO] default - all 912 package(s) are successfully published\n[2024-04-02T23:50:29.101] [WARN] default - You are using \"filedb\" to store data. If you have already started a repository service, please run `ohpm-repo restart` to restart the service.
+如果ohpm-repo实例的数据存储类型为filedb，请执行ohpm-repo restart命令重启ohpm-repo服务，以便刷新ohpm-repo实例缓存中的数据。该操作会影响正在使用ohpm-repo服务的用户，请提前告知。

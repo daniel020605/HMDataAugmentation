@@ -1,0 +1,13 @@
+@typescript-eslint/ban-tslint-comment
+不允许使用`//tslint:<rule-flag>`格式的注释。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/ban-tslint-comment\": \"error\"\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+// This is a comment that just happens to mention tslint\n/* This is a multiline comment that just happens to mention tslint */\nconsole.log('hello'); // This is a comment that just happens to mention tslint
+反例
+/* tslint:disable */\n/* tslint:enable */\n/* tslint:disable:rule1 rule2 rule3... */\n/* tslint:enable:rule1 rule2 rule3... */\n// tslint:disable-next-line\nconsole.log('hello'); // tslint:disable-line\n// tslint:disable-next-line:rule1 rule2 rule3...
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

@@ -1,0 +1,6 @@
+自定义界面扫码黑屏现象
+问题现象
+自定义启动相机却显示黑屏现象。
+解决措施
+参考ArkTS API错误码1000500001。
+ 没有初始化customScan.init。 自定义扫码customScan.ViewControl宽高比不符合相机流比率，常见相机流比例有：1:1、4:3、16:9。 前后台相互切换逻辑错误：切换至后台时，在页面生命周期onPageHide中先暂停并释放相机流（customScan.stop、customScan.release）。重新切换到前台后，在页面生命周期onPageShow中再重启相机流（customScan.start）。 

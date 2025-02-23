@@ -1,0 +1,14 @@
+@performance/hp-arkui-load-on-demand
+建议使用按需加载。
+滑动丢帧场景下，建议优先修改。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@performance/hp-arkui-load-on-demand\": \"warn\",\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+// 源码文件，请以工程实际为准\nimport { MyDataSource } from './MyDataSource';\n\n@Reusable\n@Component\nstruct ItemComponent {\n  @State introduce: string = ''\n\n  aboutToReuse(params: Record<string, ESObject>) {\n    this.introduce = params.introduce\n  }\n\n  build() {\n    Text(this.introduce)\n      .fontSize(14)\n      .padding({ left: 5, right: 5 })\n      .margin({ top: 5 })\n  }\n}\n\n@Entry\n@Component\nstruct MyComponent {\n  private data: MyDataSource = new MyDataSource()\n\n  build() {\n    List() {\n      LazyForEach(this.data, (item: string) => {\n        ListItem() {\n          // 使用reuseId对不同的自定义组件实例分别标注复用组，以达到最佳的复用效果\n          ItemComponent({ introduce: item }).reuseId(item)\n        }\n      }, (item: string) => item)\n    }\n    .width('100%')\n    .height('100%')\n  }\n}
+反例
+@Entry\n@Component\nstruct MyComponent {\n  @State arr: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]\n\n  build() {\n    List() {\n      // List中建议使用LazyForEach\n      ForEach(this.arr, (item: number) => {\n        ListItem() {\n          Text(`item value: ${item}`)\n        }\n      }, (item: number) => item.toString())\n    }\n    .width('100%')\n    .height('100%')\n  }\n}
+规则集
+plugin:@performance/recommended
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

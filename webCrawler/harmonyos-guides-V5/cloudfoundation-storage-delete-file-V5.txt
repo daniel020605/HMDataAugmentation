@@ -1,0 +1,10 @@
+删除云侧文件
+当云侧文件不需要时，您可以在应用客户端删除云侧的文件。
+前提条件
+ 您已初始化存储实例。 您已在云侧上传文件。 
+操作步骤
+调用StorageBucket.deleteFile删除云侧的文件。
+删除操作不可逆，一旦执行，文件会被物理删除，不可找回。
+完整示例代码如下：
+import { cloudStorage } from '@kit.CloudFoundationKit';\nimport { BusinessError } from '@kit.BasicServicesKit';\n\nlet storageBucket: cloudStorage.StorageBucket = cloudStorage.bucket();\n\n@Component\nexport struct testPage {\n  build() {\n  }\n\n  // 删除云侧文件\n  deleteFile() {\n    // 删除云存储默认实例中screenshot_xxx.jpg文件\n    storageBucket.deleteFile('screenshot_xxx.jpg').then(() => {\n      console.info(`deleteFile successfully`);\n    }).catch((err: BusinessError) => {\n      console.error(`deleteFile failed, Code: ${err.code}, message: ${err.message}`);\n    });\n  }\n}
+删除文件后，可以登录AppGallery Connect，选择项目，进入“云存储”界面查看文件列表。

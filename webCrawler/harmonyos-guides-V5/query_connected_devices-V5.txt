@@ -1,0 +1,5 @@
+已连接穿戴设备查询
+该接口的调用需要在开发者联盟申请设备基础信息权限（请参考申请接入Wear Engine服务）。
+Wear Engine提供查询用户已连接的穿戴设备列表（即支持Wear Engine能力且与手机侧运动健康App处于连接状态的穿戴设备）的接口。
+建议开发者在使用Wear Engine其他API接口前先实现该接口功能。
+ 应用调用wearEngine中的getDeviceClient方法，获取DeviceClient对象。 调用getConnectedDevices方法，查询用户已连接的穿戴设备列表。// 在使用Wear Engine服务前，请导入WearEngine与相关模块\nimport { wearEngine } from '@kit.WearEngine';\nimport { BusinessError } from '@kit.BasicServicesKit';\n\n// 步骤1：获取DeviceClient对象\n// getContext(this) 表示应用上下文Context对象\nlet deviceClient: wearEngine.DeviceClient = wearEngine.getDeviceClient(getContext(this));\n// 创建一个设备列表用于存储返回的设备\nlet deviceList: wearEngine.Device[] = [];\n\n// 步骤2：调用getConnectedDevices方法，查询用户是否有已连接的穿戴设备\ndeviceClient.getConnectedDevices().then(devices => {\n  // 处理返回的设备列表\n  deviceList = devices ;\n  console.info(`Succeeded in getting deviceList, deviceList number is ${deviceList.length}`);\n}).catch((error: BusinessError) => {\n  // 处理调用失败时捕获到的异常\n  console.error(`Failed to get deviceList. Code is ${error.code}, message is ${error.message}`);\n})  

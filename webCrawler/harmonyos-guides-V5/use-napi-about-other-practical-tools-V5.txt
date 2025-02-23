@@ -1,0 +1,26 @@
+使用Node-API接口关于其他实用工具
+简介
+Node-API接口提供了一些实用接口，可以帮助开发者更好地进行Node-API相关开发。
+基本概念
+模块加载： 在Node-API模块中，模块是指包含特定功能的ArkTS文件，通过import导入lib共享库中的模块。了解Node-API模块中的加载机制以及模块之间的依赖关系对于理解node_api_get_module_file_name接口的使用很有帮助。文件路径和URL： node_api_get_module_file_name返回的是加载项的绝对路径的URL。比较ArkTS值严格相等： 比较两个ArkTS值是否严格相等。严格相等比较不会进行类型转换，它要求两个值的类型和值完全相同才会返回true。处理异步操作：：通过Libuv可以实现异步操作，避免阻塞主线程，使得程序可以同时执行多个任务而不会出现阻塞现象。实现事件循环：：Libuv提供了事件循环机制，可以处理事件、触发回调函数，并管理事件队列，使得Node-API模块能够实现事件驱动的编程模型。
+场景和功能介绍
+使用示例
+Node-API接口开发流程参考使用Node-API实现跨语言交互开发流程，本文仅对接口对应C++及ArkTS相关代码进行展示。
+[h2]node_api_get_module_file_name
+用于获取加载项加载位置的绝对路径。
+cpp部分代码
+#include \"napi/native_api.h\"\n\nstatic napi_value GetModuleFileName(napi_env env, napi_callback_info info)\n{\n    // 声明一个const char类型的指针变量file，用于存储模块绝对路径\n    const char *file = nullptr;\n    napi_value value = nullptr;\n    // 获取当前模块的绝对路径，并将结果存储在file变量中\n    napi_status status = node_api_get_module_file_name(env, &file);\n    if (status != napi_ok) {\n        napi_throw_error(env, nullptr, \"Failed to get module file name\");\n        return nullptr;\n    }\n    // 创建一个包含绝对路径的napi_value类型的字符串\n    napi_create_string_utf8(env, file, NAPI_AUTO_LENGTH, &value);\n    return value;\n}
+接口声明
+// index.d.ts\nexport const getModuleFileName: () => string | void;
+ArkTS侧示例代码
+import hilog from '@ohos.hilog'\nimport testNapi from 'libentry.so'\n\nlet filename = testNapi.getModuleFileName();\nhilog.info(0x0000, 'testTag', 'Test Node-API node_api_get_module_file_name:%{public}s', filename);
+[h2]napi_strict_equals
+判断给定的两个ArkTS value是否严格相等。
+cpp部分代码
+#include \"napi/native_api.h\"\n\nstatic napi_value StrictEquals(napi_env env, napi_callback_info info)\n{\n    // 接受两个入参\n    size_t argc = 2;\n    napi_value args[2] = {nullptr};\n    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);\n    // 调用napi_strict_equals接口判断给定的两个ArkTS value是否严格相等\n    bool result = true;\n    napi_status status = napi_strict_equals(env, args[0], args[1], &result);\n    if (status != napi_ok) {\n        napi_throw_error(env, nullptr, \"Node-API napi_get_cb_info fail\");\n        return nullptr;\n    }\n    // 将结果转成napi_value类型返回\n    napi_value returnValue = nullptr;\n    napi_get_boolean(env, result, &returnValue);\n    return returnValue;\n}
+接口声明
+// index.d.ts\nexport const strictEquals : (lhs: string, rhs: string | number) => boolean | void;
+ArkTS侧示例代码
+import hilog from '@ohos.hilog'\nimport testNapi from 'libentry.so'\ntry {\n  let lhs = \"123\";\n  let rhs = \"123\";\n  let str = \"456\";\n  let num = 123;\n  hilog.info(0x0000, 'testTag', 'Test Node-API napi_strict_equals: %{public}s', testNapi.strictEquals(lhs, rhs));\n  hilog.info(0x0000, 'testTag', 'Test Node-API napi_strict_equals: %{public}s', testNapi.strictEquals(lhs, str));\n  hilog.info(0x0000, 'testTag', 'Test Node-API napi_strict_equals: %{public}s', testNapi.strictEquals(lhs, num));\n} catch (error) {\n  hilog.error(0x0000, 'testTag', 'Test Node-API napi_strict_equals error: %{public}s', error.message);\n\n}
+以上代码如果要在native cpp中打印日志，需在CMakeLists.txt文件中添加以下配置信息（并添加头文件：#include \"hilog/log.h\"）：
+// CMakeLists.txt\nadd_definitions( \"-DLOG_DOMAIN=0xd0d0\" )\nadd_definitions( \"-DLOG_TAG=\\\"testTag\\\"\" )\ntarget_link_libraries(entry PUBLIC libhilog_ndk.z.so)

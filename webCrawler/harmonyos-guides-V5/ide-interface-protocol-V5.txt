@@ -1,0 +1,321 @@
+ohpm仓库接口协议
+概述
+ohpm客户端与ohpm-repo私仓通过REST API交互，目前一共有六种API：
+Fetch Metadata：用于获取鸿蒙三方库的元数据。三方库的下载地址也是元数据的一部分，在实现ohpm-repo时，具体的下载操作可以由ohpm-repo实现，也可以使用存储插件，代理给其它文件服务实现。无论采用哪种实现方式，在ohpm客户端向返回的下载地址发起请求时，如果ohpm客户端配置了Access Token，则在下载请求的Http Header中的Authorization字段会携带相应的Access Token，否则ohpm客户端假定下载不需要额外的认证。Login（可选）: 用于客户端登录。在使用公私钥认证时，ohpm客户端通过Login API从ohpm-repo获取一个Token，然后在调用publish，unpublish和dist-tags的API时，会在Http Header的Authorization字段携带相应的Token；如果选用Access Token的认证方式，则不需要实现该API。Publish：用于发布一个鸿蒙三方库到ohpm-repo私仓，需要先进行认证。Unpublish：用于从ohpm-repo私仓下架（删除）一个鸿蒙三方库（下架一个包的某个版本，或是整个包），需要先进行认证。Ping：用户检测与ohpm-repo仓库的网络连通性，不需要认证。DistTags：用于管理tag标签，包含新增、更新和删除三类操作，需要先进行认证。查询某个包的所有标签复用Fetch Metadata接口，不需要认证。
+ohpm客户端在访问ohpm-repo时，支持公私钥和Access Token两种认证方式：
+在使用公私钥认证时，ohpm客户端通过Login API从ohpm-repo获取一个Token（Token生成细节请参考Login API的具体定义），然后在调用publish，unpublish和dist-tags的API时，会在Http Header的Authorization字段携带相应的Token。在使用Access Token认证时，需要在ohpm客户端配置一个（或两个）Access Token。在ohpm客户端访问ohpm-repo时，Http Header的Authorization字段将携带相应的Access Token。ohpm客户端可以针对只读和读写操作配置不同的Access Token，如果配置了只读Access Token，在调用Fetch Metadata和Ping时，会使用只读Access Token，否则，在调用其他API时，ohpm客户端都会使用读写Access Token。Access Token一般由ohpm-repo管理界面生成，当然ohpm-repo也可以使用认证插件，将Access Token的生成代理给专门的认证服务，ohpm-repo可以调用认证服务的API来完成相应的认证操作。
+Fetch Metadata
+返回指定包的metadata元数据。
+GET <router-prefix>/:group?/:package_name
+属性
+类型
+必填项
+描述
+group
+string
+否
+组织名，以@开头，比如@ohos
+package_name
+string
+是
+包名 (不含组织部分)
+请求示例（以请求一个应用内的HAR包 @test/package1 为例）：
+curl \"http://myohpmrepo.com/ohpm/@test/package1\"
+响应成功示例（以请求一个应用内的HAR包 @test/package1 为例）：
+{\n  \"_id\": \"@test/package1\",\n  \"name\": \"@test/package1\",\n  \"description\": \"Please describe the basic information.\",\n  \"dist-tags\": {\n    \"latest\": \"2.0.0\"\n  },\n  \"versions\": {\n    \"1.0.0\": {\n      \"name\": \"@test/package1\",\n      \"version\": \"1.0.0\",\n      \"description\": \"Please describe the basic information.\",\n      \"main\": \"Index.ets\",\n      \"author\": {\n        \"name\": \"apple11\",\n        \"url\": \"\",\n        \"email\": \"\"\n      },\n      \"license\": \"Apache-2.0\",\n      \"dependencies\": {\n      },\n      \"artifactType\": \"original\",\n      \"_nodeVersion\": \"20.14.0\",\n      \"_ohpmVersion\": \"ohpm-repo-5.0.3-rc.2\",\n      \"_id\": \"@test/package1@1.0.0\",\n      \"dist\": {\n        \"integrity\": \"sha512-UAPn6H3lsqQvwmevJSbWWv52PA8Ii6rgutLeJnVAHkNrUX2isytQ2pkzjodHuroYb64XKcwg+E6I8tUcFxwF3A==\",\n        \"tarball\": \"https://10.70.95.74:8077/ohpm/@test/package1/-/@test/package1-1.0.0.har\"\n      }\n    },\n    \"2.0.0\": {\n      \"name\": \"@test/package1\",\n      \"version\": \"2.0.0\",\n      \"description\": \"Please describe the basic information.\",\n      \"main\": \"Index.ets\",\n      \"author\": {\n        \"name\": \"apple11\",\n        \"url\": \"\",\n        \"email\": \"\"\n      },\n      \"license\": \"Apache-2.0\",\n      \"dependencies\": {\n      },\n      \"artifactType\": \"original\",\n      \"_nodeVersion\": \"20.14.0\",\n      \"_ohpmVersion\": \"ohpm-repo-5.0.3-rc.2\",\n      \"_id\": \"@test/package1@2.0.0\",\n      \"dist\": {\n        \"integrity\": \"sha512-6C47XiyVfUAljbS2d08LWEJE2dZHPFi6SNYEsR0REQVKUwlNKf6hNI8wKaI0dHCmDPhQPymOdGeTF+2E3fZWgQ==\",\n        \"tarball\": \"https://10.70.95.74:8077/ohpm/@test/package1/-/@test/package1-2.0.0.har\"\n      }\n    }\n  },\n  \"_rev\": \"2\",\n  \"time\": {\n    \"1.0.0\": \"2024-06-26T14:48:17.302+08:00\",\n    \"created\": \"2024-06-26T14:48:17.302+08:00\",\n    \"modified\": \"2024-06-26T14:48:27.785+08:00\",\n    \"2.0.0\": \"2024-06-26T14:48:27.785+08:00\"\n  }\n}
+[h2]metadata响应数据说明:
+响应数据中包含八个顶级字段，描述如下：
+属性
+类型
+必填项
+描述
+_id
+string
+是
+包名，并用作数据库的主键ID
+_rev
+number
+是
+包的版本数量
+name
+string
+是
+包名
+description
+string
+是
+包的描述
+dist-tags
+json
+是
+包的所有标签信息
+versions
+json
+是
+包的所有版本数据
+packageType
+string
+否
+包的类型，详情见说明
+time
+json
+是
+包的发布时间
+name: 包名，可以包含组织名称，比如@myscop/myhsplib。dist-tags: 描述包的标签与包具体版本的映射关系，每一个包都有一个latest标签维护当前最大版本。packageType（可选）: 描述包的类型，只有当请求的包为HSP包时，元数据中才存在packageType字段，且必须为InterfaceHar。time: 维护包所有版本的发布时间，其中created表示包的首个版本发布时间，modified表示包最后一个版本的发布时间。
+顶级字段中versions字段包含包的所有版本数据，有17个字段内容，描述如下：
+属性
+类型
+必填项
+描述
+_id
+string
+是
+包名@包的版本号，如：@myscope/myhsplib@1.0.0
+_nodeVersion
+string
+是
+发布时使用的node.js版本
+_ohpmVersion
+string
+是
+发布时使用的ohpm客户端版本
+name
+string
+是
+包名
+version
+string
+是
+包的版本号
+description
+string
+是
+包的描述
+author
+json
+是
+包的作者信息
+repository
+string
+否
+包的源码仓库地址
+license
+string
+否
+包的项目开源许可证，详情见说明
+packageType
+string
+否
+包的类型，详情见说明
+dependencies
+json
+否
+包的运行时依赖
+devDependencies
+json
+否
+包的开发态依赖
+dynamicDependencies
+json
+否
+包的动态依赖，只针对HSP包
+types
+string
+条件必填
+包的类型声明文件
+main
+string
+条件必填
+包的入口文件
+dist
+json
+是
+维护包的SSRI值及下载地址，详情见说明
+hspType
+string
+条件必填
+HSP包的类型，详情见说明
+author: 描述包的作者信息，具体为：name: 必填，作者名字；url: 可选，作者主页地址；email: 可选，作者联系邮箱。 license: 当前项目的开源许可证。遵循spdx license规范。许可证若为 GPL，repository建议不为空。packageType: 描述包的类型，只有当请求的包为HSP包时，元数据中才存在packageType字段，且必须为InterfaceHar。hspType: 描述HSP包的类型，当packageType为InterfaceHar时，需要存在hspType字段，目前hspType只支持应用内HSP(bundle_app)。types: 指定包类型定义的文件名。当用ArkTs定义新的类型，需要提供给其他开发者使用，则需要指定其声明文件，一般为.d.ts和.d.ets文件，当包为HSP包时，该文件必须存在。main: 指定加载的入口文件，当types不存在时，main必须存在。dist: 维护包的SSRI值及下载地址，具体字段有：integrity: .har文件的SSRI值，用于完整性校验；tarball: .har文件的下载地址;integrity_hsp: 当包hspType为bundle_app时，会存在.hsp后缀的文件，该字段为的.hsp文件的SSRI值；resolved_hsp: .hsp文件的下载地址。 
+Login
+客户端登录，获得上传包，下架包和编辑标签tag时所需的 token。
+POST <router-prefix>/login
+请求示例：
+curl --request POST\n       --header \"command: login\"\n       --header \"version: v1\" \n       --header \"Content-Type: application/json\" \n       --data @./path/to/login-body/file.json \\ \n       \"http://myohpmrepo.com/repos/ohpm/login\"
+请求示例中请求体（@./path/to/login-body/file.json）示例 ：
+{\n  \"publishId\": \"95115BAFDE\",\n  \"timestamp\": 1702088629606,\n  \"nonce\": \"e3b3d53f91d0488f9838c86e306ca9f5\",\n  \"signature\": \"qXYUnUK8Quy95a...\",\n  \"version\": \"v1\"\n}
+请求体包含五个字段，描述如下：
+属性
+类型
+必填项
+描述
+version
+string
+是
+协议版本
+publishId
+string
+是
+发布码
+timestamp
+number
+是
+发布时间戳
+nonce
+string
+是
+随机数
+signature
+string
+是
+签名值，具体见说明
+1、publishId: 由ohpm-repo私仓生成的发布码，与用户绑定，每个用户的发布码是唯一的，在客户端的 .ohpmrc 文件中通过 publish_id 配置；
+2、timestamp: 时间戳，单位为毫秒；
+3、nonce: 客户端在登录时动态生成的uuidv4随机数；
+4、signature: 客户端在登录时，将协议版本、发布码、发布时间戳和随机数以 v{version}-{publishId}-{timestamp}-{nonce} 格式组合而成，并使用私钥经RSA-SHA256算法签名而生成。
+响应成功示例：
+{\n  \"success\": true,\n  \"token\": \"7100c3f38dddf3cf8234....\"\n}
+token: 使用公私钥认证时，ohpm-repo生成的认证信息。认证信息必须验证有效，才有权限执行上传包、下架包和编辑标签tag等操作。
+Publish
+[h2]上传一个HAR/HSP包到ohpm-repo私仓中
+PUT <router-prefix>/:package_name
+属性
+类型
+必填项
+描述
+package_name
+string
+是
+包名
+若包名中包含组织名，则package_name为包名进行url编码后的结果，比如：当包名为@myscope/mypkg时，package_name为@myscope%2fmypkg。
+请求示例（以上传一个应用内的HSP包 @myscope/myhsppkg 为例）：
+curl --request PUT\n     --header \"command: publish\"\n     --header \"version: v1\"\n     --header \"Content-Type: application/json\"\n     --data @./path/to/metadata/file.json\n     --header \"Authorization: <token>\" \\\n     \"http://myohpmrepo.com/repos/ohpm/@myscope%2fmypkg\"
+请求示例中metadata元数据文件（@./path/to/metadata/file.json）内容由ohpm客户端生成，内容如下所示：
+{\n  \"_id\": \"@myscop/myhsppkg\",\n  \"name\": \"@myscop/myhsppkg\",\n  \"packageType\": \"InterfaceHar\",\n  \"description\": \"Please describe the basic information.\",\n  \"dist-tags\": {\n    \"latest\": \"1.0.4\"\n  },\n  \"versions\": {\n    \"1.0.4\": {\n      \"name\": \"@myscope/myhsppkg\",\n      \"version\": \"1.0.4\",\n      \"description\": \"Please describe the basic information.\",\n      \"author\": {\n        \"name\": \"fsq\",\n        \"url\": \"\",\n        \"email\": \"\"\n      },\n      \"license\": \"Apache-2.0\",\n      \"packageType\": \"InterfaceHar\",\n      \"dependencies\": {\n        \"pkga\": \"1.0.0\",\n        \"pkgb\": \"1.0.0\"\n      },\n      \"types\": \"Index.d.ets\",\n      \"_nodeVersion\": \"16.20.1\",\n      \"_ohpmVersion\": \"1.4.0\",\n      \"_id\": \"@myscope/myhsppkg@1.0.4\",\n      \"dist\": {\n        \"integrity\": \"sha512-0bHCBS2JtlyX7Gq5q6tbO2eRRbj0RO2cAAagC/K6/zmDZHPGrnIScDkD3Yjip8I/YWq7VbY7HYlHXtcLApILVg==\",\n        \"tarball\": \"https://localhost:8081/repos/ohpm/@myscope/myhsppkg/-/@myscope/myhsppkg-1.0.4.har\",\n        \"integrity_hsp\": \"sha512-3B7KlJFEHuQ9X+Zxl+oRVIL8CCczaPu2nEGQvXrULrViXuY80Ld2CnkQEVFfd/eZK6DNAFTS1wBhqOTLYtOqow==\"\n      }\n    }\n  },\n  \"_attachments\": {\n    \"@test/ohpmhsplib-1.0.4.har\": {\n      \"content_type\": \"application/octet-stream\",\n      \"data\": \"H4sIAAAAAAAACu1ZUU...\",\n      \"length\": 858\n    },\n    \"@test/ohpmhsplib-1.0.4.hsp\": {\n      \"content_type\": \"application/octet-stream\",\n      \"data\": \"UEsDBAoAAAgAAAAAIU5v...\",\n      \"length\": 29185\n    }\n  },\n  \"hspType\": \"bundle_app\"\n}
+当上传的包为应用内HSP包时，包格式为tgz格式，内部包含.har及.hsp两个文件，且在元数据的_attachments部分会包含这两个文件。当上传的包为HAR包，包格式为.har格式。当上传HSP包时，提交的元数据中会存在packageType字段，且为InterfaceHar。当上传的包为应用内HSP包时，提交的元数据中version的dist域中存在integrity_hsp字段，表示HSP部分的SSRI值。
+响应成功示例：
+状态码：status=200\n状态描述：statusText='success'\n响应体：\n{\n    \"code\": 200,\n    \"message\": \"success\"，\n    \"additionalMsg: \"\"\n}
+响应失败示例：
+状态码：status=500\n状态描述：statusText='error message'\n响应体：\n{\n    \"code\": 500,\n    \"message\": \"message\"，\n    \"error\": \"error message\"，\n    \"additionalMsg: \"\"\n}
+1、发布失败时，ohpm客户端会根据状态码取响应体中error字段的值或状态描述statusText的值，进行打印提示。
+2、additionalMsg: 当响应体中存在该字段且不为空时，ohpm客户端会在发布包成功后打印该字段的值。
+[h2]流式上传一个HAR/HSP到ohpm-repo
+ohpm客户端从5.0.1版本开始支持使用流式上传，当上传的三方包大小超过阈值（默认5M）时，ohpm会优先调用流式上传接口进行上传。
+POST <router-prefix>/stream/:package_name
+属性
+类型
+必填项
+描述
+package_name
+string
+是
+包名
+若包名中包含组织名，则package_name为包名进行url编码后的结果，比如：当包名为@myscope/mypkg时，package_name为@myscope%2fmypkg。
+请求示例（以上传一个应用内的HSP包 @myscope/myhsppkg 为例）：
+curl --request POST\n     --header \"command: publish\"\n     --header \"version: v1\"\n     --form \"pkg_stream=@hsp.tgz;application/octet-stream\"\n     --form \"metadata=@./path/to/metadata/file.json\"\n     --header \"Authorization: <token>\" \\\n     \"http://myohpmrepo.com/repos/ohpm/stream/@myscope%2fmypkg\"
+其中， Content-Type是multipart/form-data；hsp.tgz是待上传的HSP包。
+请求示例中元数据文件（@./path/to/metadata/file.json）内容由ohpm客户端生成，如下所示：
+{\n  \"_id\": \"@myscop/myhsppkg\",\n  \"name\": \"@myscop/myhsppkg\",\n  \"packageType\": \"InterfaceHar\",\n  \"description\": \"Please describe the basic information.\",\n  \"dist-tags\": {\n    \"latest\": \"1.0.4\"\n  },\n  \"versions\": {\n    \"1.0.4\": {\n      \"name\": \"@myscope/myhsppkg\",\n      \"version\": \"1.0.4\",\n      \"description\": \"Please describe the basic information.\",\n      \"author\": {\n        \"name\": \"fsq\",\n        \"url\": \"\",\n        \"email\": \"\"\n      },\n      \"license\": \"Apache-2.0\",\n      \"packageType\": \"InterfaceHar\",\n      \"dependencies\": {\n        \"pkga\": \"1.0.0\",\n        \"pkgb\": \"1.0.0\"\n      },\n      \"types\": \"Index.d.ets\",\n      \"_nodeVersion\": \"16.20.1\",\n      \"_ohpmVersion\": \"1.4.0\",\n      \"_id\": \"@myscope/myhsppkg@1.0.4\",\n      \"dist\": {\n        \"integrity\": \"sha512-0bHCBS2JtlyX7Gq5q6tbO2eRRbj0RO2cAAagC/K6/zmDZHPGrnIScDkD3Yjip8I/YWq7VbY7HYlHXtcLApILVg==\",\n        \"tarball\": \"https://localhost:8081/repos/ohpm/@myscope/myhsppkg/-/@myscope/myhsppkg-1.0.4.har\",\n        \"integrity_hsp\": \"sha512-3B7KlJFEHuQ9X+Zxl+oRVIL8CCczaPu2nEGQvXrULrViXuY80Ld2CnkQEVFfd/eZK6DNAFTS1wBhqOTLYtOqow==\"\n      }\n    }\n  },\n  \"hspType\": \"bundle_app\"\n}
+当上传的包为应用内HSP包时，包格式为tgz格式，内部包含.har及.hsp两个文件。当上传的包为HAR包，包格式为.har格式。当上传HSP包时，提交的元数据中会存在packageType字段，且为InterfaceHar。当上传的包为应用内HSP包时，提交的元数据中version的dist域中存在integrity_hsp字段，表示HSP部分的SSRI值。
+响应成功示例：
+状态码：status=200\n状态描述：statusText='success'\n响应体：\n{\n    \"code\": 200,\n    \"message\": \"success\"，\n    \"additionalMsg: \"\"\n}
+响应失败示例：
+状态码：status=500\n状态描述：statusText='error message'\n响应体：\n{\n    \"code\": 500,\n    \"message\": \"message\"，\n    \"error\": \"error message\"，\n    \"additionalMsg: \"\"\n}
+1、发布失败时，ohpm客户端会根据状态码取响应体中error字段的值或状态描述statusText的值，进行打印提示。
+2、additionalMsg: 当响应体中存在该字段且不为空时，ohpm客户端会在发布包成功后打印该字段的值。
+Unpublish
+从ohpm-repo中下架一个HAR/HSP包 （下架一个包的某个版本，或是整个包）。
+DELETE <router-prefix>/:package_name
+属性
+类型
+必填项
+描述
+package_name
+string
+是
+包名
+若包名中包含组织名，则package_name为包名进行url编码后的结果，比如：当包名为@myscope/myhsppkg时，package_name为@myscope%2fmyhsppkg。若指定具体版本需要在包名中加上@<version>部分，比如：@myscope%2fmyhsppkg@1.0.0。若不指定具体版本，则表示下架该包所有版本。
+请求示例：
+curl --request DELETE\n     --header \"command: unpublish\"\n     --header \"version: v1\"\n     --header \"Authorization: <token>\" \\\n     \"http://myohpmrepo.com/repos/ohpm/@myscope%2fmyhsppkg@1.0.0\"
+Ping
+检测与ohpm-repo仓库的网络连通性。
+GET <router-prefix>/-/ping
+请求示例：
+curl \"http://myohpmrepo.com/repos/ohpm/-/ping\"
+响应成功示例：
+{\n    \"code\": 200,\n    \"message\": \"success\"\n}
+DistTags
+[h2]新增tag
+为包添加tag。
+POST <router-prefix>/-/package/:package_name/dist-tags/:tag
+属性
+类型
+必填项
+描述
+package_name
+string
+是
+包名
+tag
+string
+是
+标签名
+若包名中包含组织名，则package_name为包名进行url编码后的结果，比如：当包名为@myscope/mypkg时，package_name为@myscope%2fmypkg。
+请求示例（为包 @myscope/myhsppkg@1.0.0 增加标签（tag）test）：
+curl --request POST\n     --header \"command: dist-tags\"\n     --header \"version: v1\"\n     --header \"Content-Type: application/json; charset=UTF-8\"\n     --data “{\"version\": \"1.0.0\"}”\n     --header \"Authorization: <token>\" \\\n     \"http://myohpmrepo.com/repos/ohpm/-/package/@myscope%2fmypkg/dist-tags/test\"
+[h2]更新tag
+修改包tag对应的版本号。
+PUT <router-prefix>/-/package/:package_name/dist-tags/:tag
+属性
+类型
+必填项
+描述
+package_name
+string
+是
+包名
+tag
+string
+是
+标签名
+请求示例（为包 @myscope/myhsppkg 修改标签（tag）test对应版本号为2.0.0）：
+curl --request PUT\n     --header \"command: dist-tags\"\n     --header \"version: v1\"\n     --header \"Content-Type: application/json; charset=UTF-8\"\n     --data “{\"version\": \"2.0.0\"}”\n     --header \"Authorization: <token>\" \\\n     \"http://myohpmrepo.com/repos/ohpm/-/package/@myscope%2fmypkg/dist-tags/test\"
+[h2]删除tag
+删除包的tag。
+DELETE <router-prefix>/-/package/:package_name/dist-tags/:tag
+属性
+类型
+必填项
+描述
+package_name
+string
+是
+包名
+tag
+string
+是
+标签名
+请求示例（删除包 @myscope/myhsppkg 的标签（tag）test）：
+curl --request DELETE\n     --header \"command: dist-tags\"\n     --header \"version: v1\"\n     --header \"Authorization: <token>\" \\\n     \"http://myohpmrepo.com/repos/ohpm/-/package/@myscope%2fmypkg/dist-tags/test\"
+仓库响应码说明
+响应码
+范围
+说明
+200
+仓库所有接口
+成功
+400
+仓库所有接口
+客户端传参校验失败、登录失败
+401
+Publish, Unpublish, DistTags
+认证失败
+404
+访问仓库不存在的接口
+接口不存在
+500
+仓库所有接口
+服务内部错误
+598
+Publish,
+当仓库上传接口返回的响应状态码为598时，ohpm 5.0.1及以上版本会尝试去重新上传
+由于流式上传接口在ohpm 5.0.1版本才开始支持，当ohpm调用该接口时，若返回的响应状态码为404时，ohpm客户端会再次调用上传接口上传。为了保证与ohpm客户端的兼容性，请确保当访问仓库不存在的接口仓库的响应状态码为404。

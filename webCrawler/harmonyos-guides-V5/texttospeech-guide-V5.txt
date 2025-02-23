@@ -1,0 +1,68 @@
+文本转语音
+Core Speech Kit支持将一篇不超过10000字符的中文文本（简体中文、繁体中文、数字、中文语境下的英文）合成为语音，并以聆小珊女声音色中文播报。
+开发者可对播报的策略进行设置，包括单词播报、数字播报、静音停顿、汉字发音策略。
+场景介绍
+手机/平板等设备在无网状态下，系统应用无障碍（屏幕朗读）接入文本转语音能力，为视障人士或不方便阅读场景提供播报能力。
+约束与限制
+该能力当前不支持模拟器。
+开发步骤
+ 在使用文本转语音时，将实现文本转语音相关的类添加至工程。import { textToSpeech } from '@kit.CoreSpeechKit';\nimport { BusinessError } from '@kit.BasicServicesKit';  调用createEngine接口，创建textToSpeechEngine实例。createEngine接口提供了两种调用形式，当前以其中一种作为示例，其他方式可参考API参考。 let ttsEngine: textToSpeech.TextToSpeechEngine;\n\n// 设置创建引擎参数\nlet extraParam: Record<string, Object> = {\"style\": 'interaction-broadcast', \"locate\": 'CN', \"name\": 'EngineName'};\nlet initParamsInfo: textToSpeech.CreateEngineParams = {\n  language: 'zh-CN',\n  person: 0,\n  online: 1,\n  extraParams: extraParam\n};\n\n// 调用createEngine方法\ntextToSpeech.createEngine(initParamsInfo, (err: BusinessError, textToSpeechEngine: textToSpeech.TextToSpeechEngine) => {\n  if (!err) {\n    console.info('Succeeded in creating engine');\n    // 接收创建引擎的实例\n    ttsEngine = textToSpeechEngine;\n  } else {\n    console.error(`Failed to create engine. Code: ${err.code}, message: ${err.message}.`);\n  }\n});  得到TextToSpeechEngine实例对象后，实例化SpeakParams对象、SpeakListener对象，并传入待合成及播报的文本originalText，调用speak接口进行播报。// 设置speak的回调信息\nlet speakListener: textToSpeech.SpeakListener = {\n  // 开始播报回调\n  onStart(requestId: string, response: textToSpeech.StartResponse) {\n    console.info(`onStart, requestId: ${requestId} response: ${JSON.stringify(response)}`);\n  },\n  // 合成完成及播报完成回调\n  onComplete(requestId: string, response: textToSpeech.CompleteResponse) {\n    console.info(`onComplete, requestId: ${requestId} response: ${JSON.stringify(response)}`);\n  },\n  // 停止播报回调\n  onStop(requestId: string, response: textToSpeech.StopResponse) {\n    console.info(`onStop, requestId: ${requestId} response: ${JSON.stringify(response)}`);\n  },\n  // 返回音频流\n  onData(requestId: string, audio: ArrayBuffer, response: textToSpeech.SynthesisResponse) {\n    console.info(`onData, requestId: ${requestId} sequence: ${JSON.stringify(response)} audio: ${JSON.stringify(audio)}`);\n  },\n  // 错误回调\n  onError(requestId: string, errorCode: number, errorMessage: string) {\n    console.error(`onError, requestId: ${requestId} errorCode: ${errorCode} errorMessage: ${errorMessage}`);\n  }\n};\n// 设置回调\nttsEngine.setListener(speakListener);\nlet originalText: string = 'Hello HarmonyOS';\n// 设置播报相关参数\nlet extraParam: Record<string, Object> = {\"queueMode\": 0, \"speed\": 1, \"volume\": 2, \"pitch\": 1, \"languageContext\": 'zh-CN',  \n\"audioType\": \"pcm\", \"soundChannel\": 3, \"playType\": 1 };\nlet speakParams: textToSpeech.SpeakParams = {\n  requestId: '123456', // requestId在同一实例内仅能用一次，请勿重复设置\n  extraParams: extraParam\n};\n// 调用播报方法\n// 开发者可以通过修改speakParams主动设置播报策略\nttsEngine.speak(originalText, speakParams);  （可选）当需要停止合成及播报时，可调用stop接口。ttsEngine.stop();  （可选）当需要查询文本转语音服务是否处于忙碌状态时，可调用isBusy接口。ttsEngine.isBusy();  （可选）当需要查询支持的语种音色信息时，可调用listVoices接口。         listVoices接口提供了两种调用形式，当前以其中一种作为示例，其他方式可参考API参考。        // 在组件中声明并初始化字符串voiceInfo\n@State voiceInfo: string = \"\";\n\n// 设置查询相关参数\nlet voicesQuery: textToSpeech.VoiceQuery = {\n  requestId: '12345678', // requestId在同一实例内仅能用一次，请勿重复设置\n  online: 1\n};\n// 调用listVoices方法，以callback返回\nttsEngine.listVoices(voicesQuery, (err: BusinessError, voiceInfo: textToSpeech.VoiceInfo[]) => {\n  if (!err) {\n    // 接收目前支持的语种音色等信息\n    this.voiceInfo = JSON.stringify(voiceInfo);\n    console.info(`Succeeded in listing voices, voiceInfo is ${this.voiceInfo}`);\n  } else {\n    console.error(`Failed to list voices. Code: ${err.code}, message: ${err.message}`);\n  }\n});   
+设置播报策略
+由于不同场景下，模型自动判断所选择的播报策略可能与实际需求不同，此章节提供对于播报策略进行主动设置的方法。
+以下取值说明均为有效取值，若所使用的数值在有效取值之外则播报结果可能与预期不符，并产生错误的播报结果。
+[h2]设置单词播报方式
+文本格式：[hN] (N=0/1/2)
+N取值说明：
+取值
+说明
+0
+智能判断单词播放方式。默认值为0。
+1
+逐个字母进行播报。
+2
+以单词方式进行播报。
+文本示例：
+\"hello[h1] world\"
+hello使用单词发音，world及后续单词将会逐个字母进行发音。
+[h2]设置数字播报策略
+格式：[nN] (N=0/1/2)
+N取值说明：
+取值
+说明
+0
+智能判断数字处理策略。默认值为0。
+1
+作为号码逐个数字播报。
+2
+作为数值播报。超过18位数字不支持，自动按逐个数字进行播报。
+文本示例：
+\"[n2]123[n1]456[n0]\"
+其中，123将会按照数值播报，456则会按照号码播报，而后的文本中的数字，均会自动判断。
+[h2]插入静音停顿
+格式：[pN]
+描述：N为无符号整数，单位为ms。
+文本示例：
+\"你好[p500]小艺\"
+该句播报时，将会在“你好”后插入500ms的静音停顿。
+[h2]指定汉字发音
+汉字声调用后接一位数字1~5分别表示阴平、阳平、上声、去声和轻声5个声调。
+格式：[=MN]
+描述：M表示拼音，N表示声调。
+N取值说明：
+取值
+说明
+1
+阴平
+2
+阳平
+3
+上声
+4
+去声
+5
+轻声
+文本示例：
+\"着[=zhuo2]手\"
+“着”字将读作“zhuó”。
+开发实例
+import { textToSpeech } from '@kit.CoreSpeechKit';\nimport { BusinessError } from '@kit.BasicServicesKit';\n\nlet ttsEngine: textToSpeech.TextToSpeechEngine;\n@Entry\n@Component\nstruct Index {\n  @State createCount: number = 0;\n  @State result: boolean = false;\n  @State voiceInfo: string = \"\";\n  @State text: string = \"\";\n  @State textContent: string = \"\";\n  @State utteranceId: string = \"123456\";\n  @State originalText: string = \"\\n\\t\\t古人学问无遗力，少壮工夫老始成；\\n\\t\\t\" +\n    \"纸上得来终觉浅，绝知此事要躬行。\\n\\t\\t\";\n  @State illegalText: string = \"\";\n\n  build() {\n    Column() {\n      Scroll() {\n        Column() {\n          TextArea({ placeholder: 'Please enter tts original text', text: `${this.originalText}` })\n            .margin(20)\n            .focusable(false)\n            .border({ width: 5, color: 0x317AE7, radius: 10, style: BorderStyle.Dotted })\n            .onChange((value: string) => {\n              this.originalText = value;\n              console.info(`original text: ${this.originalText}`);\n            })\n\n          Button() {\n            Text(\"CreateEngineByCallback\")\n              .fontColor(Color.White)\n              .fontSize(20)\n          }\n          .type(ButtonType.Capsule)\n          .backgroundColor(\"#0x317AE7\")\n          .width(\"80%\")\n          .height(50)\n          .margin(10)\n          .onClick(() => {\n            this.createCount++;\n            console.info(`CreateTtsEngine：createCount:${this.createCount}`);\n            this.createByCallback();\n          })\n\n          Button() {\n            Text(\"speak\")\n              .fontColor(Color.White)\n              .fontSize(20)\n          }\n          .type(ButtonType.Capsule)\n          .backgroundColor(\"#0x317AE7\")\n          .width(\"80%\")\n          .height(50)\n          .margin(10)\n          .onClick(() => {\n            this.createCount++;\n            this.speak();\n          })\n\n          Button() {\n            Text(\"listVoicesCallback\")\n              .fontColor(Color.White)\n              .fontSize(20)\n          }\n          .type(ButtonType.Capsule)\n          .backgroundColor(\"#0x317AE7\")\n          .width(\"80%\")\n          .height(50)\n          .margin(10)\n          .onClick(() => {\n            this.listVoicesCallback();\n          })\n\n          Button() {\n            Text(\"stop\")\n              .fontColor(Color.White)\n              .fontSize(20)\n          }\n          .type(ButtonType.Capsule)\n          .backgroundColor(\"#0x317AE7\")\n          .width(\"80%\")\n          .height(50)\n          .margin(10)\n          .onClick(() => {\n            // 停止播报\n            console.info(\"Stop button clicked.\");\n            ttsEngine.stop();\n          })\n\n          Button() {\n            Text(\"isBusy\")\n              .fontColor(Color.White)\n              .fontSize(20)\n          }\n          .type(ButtonType.Capsule)\n          .backgroundColor(\"#0x317AE7\")\n          .width(\"80%\")\n          .height(50)\n          .margin(10)\n          .onClick(() => {\n            // 查询播报状态\n            let isBusy = ttsEngine.isBusy();\n            console.info(`isBusy: ${isBusy}`);\n          })\n\n          Button() {\n            Text(\"shutdown\")\n              .fontColor(Color.White)\n              .fontSize(20)\n          }\n          .type(ButtonType.Capsule)\n          .backgroundColor(\"#0x317AA7\")\n          .width(\"80%\")\n          .height(50)\n          .margin(10)\n          .onClick(() => {\n            // 释放引擎\n            ttsEngine.shutdown();\n          })\n        }\n        .layoutWeight(1)\n      }\n      .width('100%')\n      .height('100%')\n    }\n  }\n\n  // 创建引擎，通过callback形式返回\n  private createByCallback() {\n    // 设置创建引擎参数\n    let extraParam: Record<string, Object> = {\"style\": 'interaction-broadcast', \"locate\": 'CN', \"name\": 'EngineName'};\n    let initParamsInfo: textToSpeech.CreateEngineParams = {\n      language: 'zh-CN',\n      person: 0,\n      online: 1,\n      extraParams: extraParam\n    };\n    \n    // 调用createEngine方法\n    textToSpeech.createEngine(initParamsInfo, (err: BusinessError, textToSpeechEngine: textToSpeech.TextToSpeechEngine) => {\n      if (!err) {\n        console.info('Succeeded in creating engine.');\n        // 接收创建引擎的实例\n        ttsEngine = textToSpeechEngine;\n      } else {\n        console.error(`Failed to create engine. Code: ${err.code}, message: ${err.message}.`);\n      }\n    });\n  };\n\n  // 调用speak播报方法\n  private speak() {\n    let speakListener: textToSpeech.SpeakListener = {\n      // 开始播报回调\n      onStart(requestId: string, response: textToSpeech.StartResponse) {\n        console.info(`onStart, requestId: ${requestId} response: ${JSON.stringify(response)}`);\n      },\n      // 完成播报回调\n      onComplete(requestId: string, response: textToSpeech.CompleteResponse) {\n        console.info(`onComplete, requestId: ${requestId} response: ${JSON.stringify(response)}`);\n      }, \n      // 停止播报完成回调，调用stop方法并完成时会触发此回调\n      onStop(requestId: string, response: textToSpeech.StopResponse) {\n        console.info(`onStop, requestId: ${requestId} response: ${JSON.stringify(response)}`);\n      },\n      // 返回音频流\n      onData(requestId: string, audio: ArrayBuffer, response: textToSpeech.SynthesisResponse) {\n        console.info(`onData, requestId: ${requestId} sequence: ${JSON.stringify(response)} audio: ${JSON.stringify(audio)}`);\n      },\n      // 错误回调，播报过程发生错误时触发此回调\n      onError(requestId: string, errorCode: number, errorMessage: string) {\n        console.error(`onError, requestId: ${requestId} errorCode: ${errorCode} errorMessage: ${errorMessage}`);\n      }\n    };\n   // 设置回调\n   ttsEngine.setListener(speakListener);\n   // 设置播报相关参数\n   let extraParam: Record<string, Object> = {\"queueMode\": 0, \"speed\": 1, \"volume\": 2, \"pitch\": 1, \"languageContext\": 'zh-CN', \"audioType\": \"pcm\", \"soundChannel\": 3, \"playType\":1}\n   let speakParams: textToSpeech.SpeakParams = {\n      requestId: '123456-a', // requestId在同一实例内仅能用一次，请勿重复设置\n      extraParams: extraParam\n     };\n   // 调用speak播报方法\n   ttsEngine.speak(this.originalText, speakParams);\n  };\n\n  // 查询语种音色信息，以callback形式返回\n  private listVoicesCallback() {\n    // 设置查询相关参数\n    let voicesQuery: textToSpeech.VoiceQuery = {\n      requestId: '123456-b', // requestId在同一实例内仅能用一次，请勿重复设置\n      online: 1\n    };\n\n    // 调用listVoices方法，以callback返回语种音色查询结果\n    ttsEngine.listVoices(voicesQuery, (err: BusinessError, voiceInfo: textToSpeech.VoiceInfo[]) => {\n      if (!err) {\n        // 接收目前支持的语种音色等信息\n        this.voiceInfo = JSON.stringify(voiceInfo);\n        console.info(`Succeeded in listing voices, voiceInfo is ${voiceInfo}`);\n      } else {\n        console.error(`Failed to list voices. Code: ${err.code}, message: ${err.message}`);\n      }\n    });\n  };\n}

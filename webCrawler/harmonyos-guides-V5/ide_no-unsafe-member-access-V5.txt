@@ -1,0 +1,14 @@
+@typescript-eslint/no-unsafe-member-access
+禁止成员访问“any”类型的值。
+该规则仅支持对.js/.ts文件进行检查。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/no-unsafe-member-access\": \"error\"\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+declare const properlyTyped: { prop: { a: string } };\n\nexport const v1 = properlyTyped.prop.a;\n\nconst key = 'a';\nexport const v2 = properlyTyped.prop[key];\n\nconst arr = ['1', '2', '3'];\nlet idx = 1;\nexport const v3 = arr[idx];\nexport const v4 = arr[idx++];
+反例
+declare const properlyTyped: { prop: { a: any } };\n\nexport const v1 = properlyTyped.prop.a;\n\nconst key = 'a' as any;\nexport const v2 = properlyTyped.prop[key];\n\nconst arr = ['1', '2', '3'];\nlet idx: any = 1;\nexport const v3 = arr[idx];\nexport const v4 = arr[idx++];
+规则集
+plugin:@typescript-eslint/recommended\nplugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

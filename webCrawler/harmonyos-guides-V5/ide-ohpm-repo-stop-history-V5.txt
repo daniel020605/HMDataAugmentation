@@ -1,0 +1,10 @@
+ohpm-repo stop
+停止ohpm-repo实例。
+命令格式
+ohpm-repo stop
+功能描述
+用于停止ohpm-repo实例。
+示例
+执行以下命令：
+ohpm-repo stop
+结果示例：

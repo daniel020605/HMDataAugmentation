@@ -1,0 +1,10 @@
+写入数据
+您可以通过upsert()将一个或者一组对象写入到当前存储区中。在写入对象时，如果在存储区已经存在主键相同的对象，则更新已有的对象；如果不存在，则写入一个新的对象。写入的数据可以来自于新建对象，或者从存储区查询出来的对象。
+写入一组对象时，数据的写入操作是原子性的，即对象列表中的对象要么全部成功写入，要么全部失败。
+调用写入数据方法，有两种返回方式，返回一个Promise对象或者在参数中传入一个callback对象返回，下面以Promise为例详细说明。
+Promise对象中封装了写入操作执行的结果，通过该Promise对象可以异步侦听执行结果：如果执行成功，可以获取写入的对象数量；如果执行失败，可以获取错误信息。
+注意事项：
+ 写入一组对象时，该组中的对象必须属于同一个对象类型，否则会导致写入失败。 写入一组对象时，数据总大小不能超过2MB，否则会导致写入失败。 写入一组对象时，数据总条数不能超过1000条，否则会导致写入失败。 
+代码示例：
+将BookInfo对象写入至存储区中，写入成功后，返回写入的数量；写入失败，抛出异常。
+async upsert() {\n  try {\n    let databaseZone = cloudDatabase.zone(\"QuickStartDemo\");\n    let book = new BookInfo();\n    book.id = 3;\n    book.bookName = '左传';\n    book.price = 100.0;\n    let record = await databaseZone.upsert(book);\n    console.info(`Succeeded in upserting a book , result: ` + JSON.stringify(record));\n  } catch (err) {\n    console.error(`Failed to upsert a book , Code: ${err.code}, message: ${err.message}`);\n  }\n}

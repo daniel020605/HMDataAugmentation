@@ -1,0 +1,7 @@
+自定义界面如何连续扫码（customScan.rescan）
+问题现象
+自定义界面扫码扫到码值后，如何连续扫码？
+解决措施
+customScan.rescan可以重新触发一次扫码，必须在customScan.start(viewControl, callback)方法Callback接口回调中有效，Promise方式无效。
+示例：
+import { AsyncCallback, BusinessError } from '@kit.BasicServicesKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';\nimport { customScan, scanBarcode } from '@kit.ScanKit';\n\n@Entry\n@Component\nstruct Index {\n  private callback: AsyncCallback<Array<scanBarcode.ScanResult>> =\n    async (error: BusinessError, result: Array<scanBarcode.ScanResult>) => {\n      if (error) {\n        hilog.error(0x0001, '[Scan Sample]',\n          `Failed to get ScanResult by callback. Code: ${error.code}, message: ${error.message}`);\n        return;\n      }\n      hilog.info(0x0001, '[Scan Sample]',\n        `Succeeded in getting ScanResult by callback, result is ${JSON.stringify(result)}`);\n      try {\n        // 重新触发扫码：不需要重启相机并重新触发一次扫码，可以在start接口的Callback异步回调中，调用rescan接口。\n        customScan.rescan();\n      } catch (error) {\n        hilog.error(0x0001, '[Scan Sample]', `Failed to rescan. Code: ${error.code}, message: ${error.message}`);\n      }\n    }\n\n  build() {\n  }\n}

@@ -1,0 +1,10 @@
+获取云侧文件列表
+您可以获取指定云侧目录下所有的文件信息，包括文件存储目录、文件名称等。
+前提条件
+ 您已初始化存储实例。 您已在云侧上传文件。 
+操作步骤
+调用StorageBucket.list可以获取云侧指定目录的文件列表。
+完整示例代码如下：
+import { cloudStorage } from '@kit.CloudFoundationKit';\nimport { BusinessError } from '@kit.BasicServicesKit';\n\nlet storageBucket: cloudStorage.StorageBucket = cloudStorage.bucket();\n\n@Component\nexport struct testPage {\n  build() {\n  }\n\n  // 获取文件列表\n  getList() {\n    // 获取云存储默认实例中根路径下的文件列表\n    storageBucket.list('').then((result: cloudStorage.ListResults) => {\n      console.info(`list: ${JSON.stringify(result)}`);\n    }).catch((err: BusinessError) => {\n      console.error(`list failed, Code: ${err.code}, message: ${err.message}`);\n    });\n  }\n}
+获取文件列表信息结构如下：
+{\n  directories: [\"empty-dir1\\/\"],\n  files: [\"IMG_20240229_103118.jpg\", \"IMG_20240318_093732.jpg\"]\n}

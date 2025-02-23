@@ -1,0 +1,13 @@
+@typescript-eslint/array-type
+定义数组类型时，建议使用相同的样式。比如都使用T[]或者都使用Array<T>。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/array-type\": \"error\"\n  }\n}
+选项
+详情请参考typescript/array-type 选项。
+正例
+const x: string[] = ['a', 'b'];\nconst y: readonly string[] = ['a', 'b'];\n\nexport { x, y };
+反例
+const x: Array<string> = ['a', 'b'];\nconst y: ReadonlyArray<string> = ['a', 'b'];\n\nexport { x, y };
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

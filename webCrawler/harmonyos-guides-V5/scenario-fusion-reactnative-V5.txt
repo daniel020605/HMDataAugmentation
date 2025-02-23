@@ -1,0 +1,15 @@
+React Native框架+H5接入智能填充
+目前仅支持已适配HarmonyOS的三方框架应用使用。
+HarmonyOS版React Native环境搭建请参考官方文档React Native环境搭建指导。
+前提条件
+设备智能填充开关必须处于打开状态，请前往“设置 > 隐私和安全 > 智能填充”页面开启开关。设备已连接互联网并且登录华为账号。该应用需已加入智能填充白名单。
+开发准备
+配置React Native已适配HarmonyOS的工程。
+React Native原生输入框效果图
+示例代码
+在React Native原生输入框TextInput需要配置textContentType属性来支持智能填充，代码如下：
+import React from 'react';\nimport { Text, TextInput, View, StyleSheet } from 'react-native';\nconst styles = StyleSheet.create({\n  default: {\n    borderWidth: StyleSheet.hairlineWidth,\n    borderColor: '#0f0f0f',\n    flex: 1,\n    fontSize: 13,\n    padding: 4,\n    height: 80,\n    width: 200,\n  },\n  labelContainer: {\n    flexDirection: 'row',\n    marginVertical: 2,\n  },\n  label: {\n    width: 140,\n    textAlign: 'right',\n    marginRight: 10,\n    paddingTop: 2,\n    fontSize: 15,\n  },\n  inputContainer: {\n    flex: 1,\n  }\n});\nclass WithLabel extends React.Component<$FlowFixMeProps> {\n  render(): React.Node {\n    return (\n      <View style={styles.labelContainer}>\n        <Text style={styles.label}>{this.props.label}</Text>\n        <View style={styles.inputContainer}>{this.props.children}</View>\n      </View>\n    );\n  }\n}\nconst RNTesterApp = () => {\n  return (\n    <View style={{width: '100%', height: '100%'}}>\n      <WithLabel label=\"昵称\">\n        <TextInput textContentType=\"nickname\" style={styles.default} />\n      </WithLabel>\n      <WithLabel label=\"姓名\">\n        <TextInput textContentType=\"name\" style={styles.default} />\n      </WithLabel>\n      <WithLabel label=\"手机号\">\n        <TextInput textContentType=\"telephoneNumber\" style={styles.default} />\n      </WithLabel>\n      <WithLabel label=\"邮件\">\n        <TextInput textContentType=\"emailAddress\" style={styles.default} />\n      </WithLabel>\n      <WithLabel label=\"身份证号\">\n        <TextInput textContentType=\"idCardNumber\" style={styles.default} />\n      </WithLabel>\n      <WithLabel label=\"全部地址\">\n        <TextInput textContentType=\"formatAddress\" style={styles.default} />\n      </WithLabel>\n      <WithLabel label=\"带街道的详细地址\">\n        <TextInput textContentType=\"fullStreetAddress\" style={styles.default}  />\n      </WithLabel>\n      <WithLabel label=\"不带街道的详细地址\">\n        <TextInput textContentType=\"detailInfoWithoutStreet\" style={styles.default} />\n      </WithLabel>\n    </View>\n  );\n};\nexport default RNTesterApp;
+React Native框架中加载的H5页面效果图
+React Native框架加载H5页面场景，代码如下：
+import React from 'react';\nimport { View } from 'react-native';\nimport { WebView } from 'react-native-webview';\n\nconst RNTesterApp = () => {\n  return (\n    <View style={{width: '100%', height: '100%'}}>\n      <WebView\n        source={require('./autofill_h5.html')}\n        style={{flex: 1, paddingTop: 50}}\n      />\n    </View>\n  );\n};\n\nexport default RNTesterApp;
+autofill_h5.html实现参考示例代码。

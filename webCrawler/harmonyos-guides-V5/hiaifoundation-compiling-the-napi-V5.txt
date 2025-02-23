@@ -1,0 +1,8 @@
+配置项目NAPI
+编译HAP时，NAPI层的so需要编译依赖NDK中的libneural_network_core.so和libhiai_foundation.so。
+头文件引用
+按需引用NNCore和Hiai Foundation的头文件。
+#include \"neural_network_runtime/neural_network_core.h\"\n#include \"hiai_foundation/hiai_options.h\"
+编写CMakeLists.txt
+CMakeLists.txt示例代码如下：
+# the minimum version of CMake.\ncmake_minimum_required(VERSION 3.4.1)\nproject(HiaiDemo)\n\nset(NATIVERENDER_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})\n\ninclude_directories(${NATIVERENDER_ROOT_PATH}\n                    ${NATIVERENDER_ROOT_PATH}/include)\n\ninclude_directories(${HMOS_SDK_NATIVE}/sysroot/usr/lib)\nFIND_LIBRARY(hiai_foundation-lib hiai_foundation)\n\nadd_library(entry SHARED Classification.cpp HIAIModelManager.cpp)\n\ntarget_link_libraries(entry PUBLIC libace_napi.z.so\n    libhilog_ndk.z.so\n    librawfile.z.so\n    ${hiai_foundation-lib}\n    libneural_network_core.so\n    )

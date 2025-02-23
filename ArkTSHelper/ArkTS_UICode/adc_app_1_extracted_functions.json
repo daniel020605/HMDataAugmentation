@@ -1,0 +1,26 @@
+{
+    "entry\\src\\main\\ets\\pages\\Index.ets": [
+        {
+            "function_name": "build",
+            "content": "build() {\n    Row() {\n      Column() {\n        value_text({ adc_value: $adc_value, temperature: $temperature });\n        get_value_button({ adc_value: $adc_value, temperature: $temperature });\n      }\n      .margin({ top: '10%', left: '15%' })\n\n      Column() {\n        value_QRcode({ adc_value: $adc_value, temperature: $temperature, visual: $visual });\n        show_switch({ visual: $visual });\n      }\n      .margin({ top: '20%', left: '15%' })\n    }\n  }"
+        }
+    ],
+    "entry\\src\\main\\ets\\pages\\widgets.ets": [
+        {
+            "function_name": "build",
+            "content": "build() {\n    Column() {\n      Text(\"adc数值：\" + this.adc_value)\n        .fontSize(40)\n        .fontWeight(FontWeight.Bold)\n        .id(\"adc_value\")\n      Text(\"温度：\" + this.temperature.toFixed(1) + \"°C\") // toFixed(1) 浮点数保留一位小数\n        .fontSize(40)\n        .fontWeight(FontWeight.Bold)\n        .id(\"Temp_value\")\n    }\n  }"
+        },
+        {
+            "function_name": "build",
+            "content": "build() {\n    Column() {\n      Button() {\n        Text('获取')\n          .fontSize(20)\n          .fontWeight(FontWeight.Bold)\n          .fontStyle(FontStyle.Italic)\n      }\n      .type(ButtonType.Capsule)\n      .margin({\n        top: 20\n      })\n      .backgroundColor('#0D9FFB')\n      .width('20%')\n      .height('10%')\n      .id(\"get_adc_button\")\n      .onClick(() => {\n        this.get_adc_value();\n      })\n    }\n  }"
+        },
+        {
+            "function_name": "build",
+            "content": "build() {\n    Column() {\n      QRCode(\"adc数值：\" + this.adc_value + \"\\n\" +\n      \"温度：\" + this.temperature.toFixed(1) + \"°C\")\n        .id(\"QRCode\")\n        .width(100)\n        .visibility(this.visual);\n    }\n  }"
+        },
+        {
+            "function_name": "build",
+            "content": "build() {\n    Column() {\n      Toggle({ type: ToggleType.Switch, isOn: Boolean(1 - this.visual) })\n        .onChange((isOn) => {\n          this.visual = 1 - this.visual;\n        })\n        .id(\"Toggle\")\n    }\n  }"
+        }
+    ]
+}

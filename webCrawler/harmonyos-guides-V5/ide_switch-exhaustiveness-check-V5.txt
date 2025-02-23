@@ -1,0 +1,14 @@
+@typescript-eslint/switch-exhaustiveness-check
+要求switch语句对于联合类型中值的判断是详尽无遗的。
+当switch语句中的判断条件是字面量值的集合或者是一个枚举类型，如果case语句中缺少任何一个值的判断，并且没有default语句时，此规则会告警。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/switch-exhaustiveness-check\": \"error\"\n  }\n}
+选项
+详情请参考@typescript-eslint/switch-exhaustiveness-check选项。
+正例
+type Day =\n  | 'Monday'\n  | 'Tuesday'\n  | 'Wednesday'\n  | 'Thursday'\n  | 'Friday'\n  | 'Saturday'\n  | 'Sunday';\n\ndeclare const day1: Day;\n\nlet result = '0';\n\nswitch (day1) {\n  case 'Monday':\n    result = '1';\n    break;\n  case 'Tuesday':\n    result = '2';\n    break;\n  case 'Wednesday':\n    result = '3';\n    break;\n  case 'Thursday':\n    result = '4';\n    break;\n  case 'Friday':\n    result = '5';\n    break;\n  case 'Saturday':\n    result = '6';\n    break;\n  case 'Sunday':\n    result = '7';\n    break;\n}\n\ndeclare const day2: Day;\n\nresult = '0';\n\nswitch (day2) {\n  case 'Monday':\n    result = '1';\n    break;\n  default:\n    result = '42';\n}\nconsole.info(result);\n\nenum Fruit {\n  apple = 'apple',\n  banana = 'banana',\n  cherry = 'cherry'\n}\n\ndeclare const fruit: Fruit;\n\nswitch (fruit) {\n  case Fruit.apple:\n    console.log('an apple');\n    break;\n\n  case Fruit.banana:\n    console.log('a banana');\n    break;\n\n  case Fruit.cherry:\n    console.log('a cherry');\n    break;\n}
+反例
+type Day =\n  | 'Monday'\n  | 'Tuesday'\n  | 'Wednesday'\n  | 'Thursday'\n  | 'Friday'\n  | 'Saturday'\n  | 'Sunday';\n\ndeclare const day: Day;\nlet result = '0';\n\nswitch (day) {\n  // 只处理了'Monday'，缺少其他值的判断，并且也没有default分支\n  case 'Monday':\n    result = '1';\n    break;\n}\nconsole.info(result);
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。
