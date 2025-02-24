@@ -19,7 +19,6 @@ def process_file(file_path, output_folder):
         html_content = file.read()
     soup = BeautifulSoup(html_content, 'html.parser')
 
-    print(soup.find('h4', string= re.compile(r"^(\[h2])*类型定义")))
     file_name = os.path.basename(file_path)
     if "errorcode" in file_name or "error-code" in file_name or "errcode" in file_name:
         # todo: more info
@@ -705,7 +704,7 @@ def guarantee_extract(soup):
         content_text = next_div.text
         if (table_text.strip() or content_text.strip() or h4_text.strip()):
             sql = f"""INSERT INTO HMGuarantee (Title, Module, Content) VALUES (`{title_text}`, `{h4_text}`, `{content_text}`);\n"""
-            print(sql)
+            # print(sql)
             res += sql
         next_div = next_div.find_next('div')
 
@@ -739,8 +738,8 @@ def process_folder(folder_path, output_folder):
 if __name__ == '__main__':
     path = './harmonyos-references-V5'
     output_folder = './harmony-references-V5-sql'
-    # process_folder(path, output_folder)
+    process_folder(path, output_folder)
 
-    output_folder = './'
-    file_path = './harmonyos-references-V5/xengine-kit-xengine-V5.html'
-    process_file(file_path, output_folder)
+    # output_folder = './'
+    # file_path = './harmonyos-references-V5/xengine-kit-xengine-V5.html'
+    # process_file(file_path, output_folder)
