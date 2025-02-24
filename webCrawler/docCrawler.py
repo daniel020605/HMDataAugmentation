@@ -126,11 +126,11 @@ def get_by_topic(topic):
 if __name__ == '__main__':
     # 需要提前创建对应文件夹
     # "harmonyos-guides-V5" "harmonyos-references-V5" "best-practices-V5" "harmonyos-releases-V5" "harmonyos-faqs-V5"
-    get_by_topic("harmonyos-references-V5")
-    get_by_topic("harmonyos-releases-V5")
-    get_by_topic("best-practices-V5")
-    get_by_topic("harmonyos-faqs-V5")
-    get_by_topic("harmonyos-guides-V5")
+    get_by_topic("harmonyos-references-V14")
+    get_by_topic("harmonyos-releases-V14")
+    get_by_topic("best-practices-V14")
+    get_by_topic("harmonyos-faqs-V14")
+    get_by_topic("harmonyos-guides-V14")
 
     # 计算/docs目录下的文件包括多少字符：9402554
 

@@ -19,19 +19,22 @@ def process_file(file_path, output_folder):
         html_content = file.read()
     soup = BeautifulSoup(html_content, 'html.parser')
 
-    if os.path.basename(file_path).startswith("errorcode"):
+    print(soup.find('h4', string= re.compile(r"^(\[h2])*类型定义")))
+    file_name = os.path.basename(file_path)
+    if "errorcode" in file_name or "error-code" in file_name or "errcode" in file_name:
+        # todo: more info
         sql_statements += extract_error_code_info(soup)
-    if soup.find('div', {'id': '\\"成员变量\\"'}):
+    if soup.find('div', {'id': '\\"成员变量\\"'}) :
         sql_statements += (extract_class_info(soup))
-    if soup.find('div', {'id': '\\"枚举\\"'}):
+    if soup.find('div', {'id': '\\"枚举\\"'}) :
         sql_statements += (find_enum_section(soup))
-    if soup.find('div', {'id': '\\"枚举类型说明\\"'}):
+    if soup.find('div', {'id': '\\"枚举类型说明\\"'}) :
         sql_statements += (find_enum_section2(soup))
-    if soup.find('div', {'id': '\\"函数说明\\"'}):
+    if soup.find('div', {'id': '\\"函数说明\\"'}) :
         sql_statements += (find_functions_section(soup))
-    if soup.find('div', {'id': '\\"成员变量\\"'}):
+    if soup.find('div', {'id': '\\"成员变量\\"'}) :
         sql_statements += (extract_class_info(soup))
-    if soup.find('div', {'id': '\\"类型定义\\"'}):
+    if soup.find('div', {'id': '\\"类型定义\\"'}) :
         sql_statements += (extract_type_definitions(soup))
     if soup.find('div', {'id': '\\"pub-attribs\\"'}):
         sql_statements += (extract_struct_info(soup))
@@ -39,8 +42,11 @@ def process_file(file_path, output_folder):
     if soup.find('div', {'id': '\\"子组件\\"'}) or soup.find("div", {'id':'\\"接口\\"'}):
         sql_statements += (extract_component_info(soup))
 
-    if soup.find('strong', string="起始版本：") and soup.find('h4', string="导入模块"):
+    if soup.find('strong', string=re.compile(r"^起始版本")) or soup.find('h4', string=re.compile(r"导入模块")):
         sql_statements += (extract_module_info(soup))
+
+    if sql_statements == "":
+        sql_statements += (guarantee_extract(soup))
 
 
     output_file_path = os.path.join(output_folder, os.path.basename(file_path).replace('.html', '.sql'))
@@ -73,7 +79,7 @@ def extract_error_code_info(soup):
 
     sql_statements = ""
     for error in error_codes:
-        sql_statements += f"INSERT INTO ErrorCodes (ErrorCode, ErrorInfo, ErrorDescription, PossibleCauses, HandlingSteps) VALUES ('{error['error_code']}', '{error['error_info']}', '{error['error_description']}', '{json.dumps(error['possible_causes'], ensure_ascii=False)}', '{json.dumps(error['handling_steps'], ensure_ascii=False)}');\n"
+        sql_statements += f"INSERT INTO ErrorCodes (ErrorCode, ErrorInfo, ErrorDescription, PossibleCauses, HandlingSteps) VALUES (`{error['error_code']}`, `{error['error_info']}`, `{error['error_description']}`, `{json.dumps(error['possible_causes'], ensure_ascii=False)}`, `{json.dumps(error['handling_steps'], ensure_ascii=False)}`);\n"
 
     return sql_statements
 
@@ -111,7 +117,7 @@ def find_enum_section(soup):
                     enum_data.append((enum_name, value_name, value, description+api_level))
 
         for enum_name, value_name, value, description in enum_data:
-            res += f"INSERT INTO HMEnums (EnumName, SystemCapability, EnumValueName, EnumValue, Description) VALUES ('{enum_name}', '{system_capability}', '{value_name}', '{value}', '{description}');\n"
+            res += f"INSERT INTO HMEnums (EnumName, SystemCapability, EnumValueName, EnumValue, Description) VALUES (`{enum_name}`, `{system_capability}`, `{value_name}`, `{value}`, `{description}`);\n"
         return res
     else:
         print("未找到 id 为 '枚举' 的 div 标签")
@@ -153,7 +159,7 @@ def find_enum_section2(soup):
                 enum_data.append((enum_name, value_name, value_desc, description + api_level))
 
             for enum_name, value_name, value_desc, description in enum_data:
-                res += f"INSERT INTO HMEnums (EnumName, SystemCapability, EnumValueName, EnumValue, Description) VALUES ('{enum_name}', '{system_capability}', '{value_name}', NULL, '{value_desc}');\n"
+                res += f"INSERT INTO HMEnums (EnumName, SystemCapability, EnumValueName, EnumValue, Description) VALUES (`{enum_name}`, `{system_capability}`, `{value_name}`, NULL, `{value_desc}`);\n"
         else:
             print("未找到下一个 div 标签")
         return res
@@ -248,7 +254,7 @@ def find_functions_section(soup):
                 error_codes_json = json.dumps(error_codes, ensure_ascii=False)
 
                 res += (f"INSERT INTO HMFunctions (FunctionName, FunctionParameters, ReturnType, ReturnValue, FullFunctionName, RequiredPermissions, SystemCapability, ErrorCodes, Example, FunctionDescription)"
-                        f" VALUES ('{function_name}', '{str(parameters_json)}', '{return_type}', '{return_values_json}', '{function_signature}', '-', '{system_capability}', '{error_codes_json}', NULL, '{description}');\n")
+                        f" VALUES (`{function_name}`, `{str(parameters_json)}`, `{return_type}`, `{return_values_json}`, `{function_signature}`, `-`, `{system_capability}`, `{error_codes_json}`, NULL, `{description}`);\n")
         return res
     else:
         print("未找到 id 为 '函数说明' 的 div 标签")
@@ -287,7 +293,7 @@ def extract_class_info(soup):
         INSERT INTO HMClasses (
             ClassName, MemberVariables, Methods, Constructors, InnerClasses, Example, ClassDescription
         ) VALUES (
-            '{class_name}', '{member_variables_json}', NULL, NULL, NULL, NULL, '{class_description}'
+            `{class_name}`, `{member_variables_json}`, NULL, NULL, NULL, NULL, `{class_description}`
         );
         """
         return sql
@@ -326,7 +332,7 @@ def extract_struct_info(soup):
         INSERT INTO HMStructs (
             StructName, MemberVariables
         ) VALUES (
-            '{class_name}', '{member_variables_json}'
+            `{class_name}`, `{member_variables_json}`
         );
         """
         return sql
@@ -365,11 +371,12 @@ def extract_type_definitions(soup):
 
         # 生成插入语句
         for type_def in type_definitions:
-            sql = f"INSERT INTO HMTypeDefinitions (TypeName, TypeCategory, Description) VALUES ('{type_def['TypeName']}', '{type_def['TypeCategory']}', '{type_def['Description']}');"
+            sql = f"INSERT INTO HMTypeDefinitions (TypeName, TypeCategory, Description) VALUES (`{type_def['TypeName']}`, `{type_def['TypeCategory']}`, `{type_def['Description']}`);"
             res += sql + '\n'
         return res
     else:
         print("未找到 id 为 '类型定义' 的 div 标签")
+        return res
 
 
 from extractTool import table2json
@@ -431,7 +438,7 @@ def extract_component_info(soup):
         function_name = function_declare_text.split('(')[0]
         function_signature = function_declare_text
         sub_sql = f"INSERT INTO HMFunctions (FunctionName, FunctionParameters, ReturnType, ReturnValue, FullFunctionName, RequiredPermissions, SystemCapability, ErrorCodes, Example, FunctionDescription)"\
-                  f" VALUES ('{function_name}', '{interface_info}', '{return_type}', '{return_values_json}', '{function_signature}', '-', '{sub_system_capability_text}', NULL, NULL, '{function_desc_text+sub_meta_api_text+sub_system_capability_text}');\n"
+                  f" VALUES (`{function_name}`, `{interface_info}`, `{return_type}`, `{return_values_json}`, `{function_signature}`, `-`, `{sub_system_capability_text}`, NULL, NULL, `{function_desc_text+sub_meta_api_text+sub_system_capability_text}`);\n"
         res += sub_sql
         next_div = interfaces_soup.find_next_sibling('div')
         # todo:检验是否可以匹配
@@ -474,7 +481,7 @@ def extract_component_info(soup):
             if sub_title:
                 sub_title_text = sub_title.text
 
-            sub_meta_api = next_div.find('p', text=re.compile(r'元服务API：'))
+            sub_meta_api = next_div.find('p', string=re.compile(r'元服务API：'))
             if sub_meta_api:
                 sub_meta_api_text = sub_meta_api.text
 
@@ -571,7 +578,7 @@ def extract_component_info(soup):
             """)
             next_div = next_div.find_next_sibling('div')
         example_text = str(examples)
-    sql = f"""INSERT INTO Components (ComponentName, SubComponents, Attributes, Interfaces, SystemCapabilities, Parameters, Events, Examples, Description) VALUES ('{title_text}', '{sub_component_text}', '{attributes_text}', '{interfaces_text}', '{system_capabilities_text}', '{params_text}', '{event_text}','{example_text}', '{note_text}');\n"""
+    sql = f"""INSERT INTO Components (ComponentName, SubComponents, Attributes, Interfaces, SystemCapabilities, Parameters, Events, Examples, Description) VALUES (`{title_text}`, `{sub_component_text}`, `{attributes_text}`, `{interfaces_text}`, `{system_capabilities_text}`, `{params_text}`, `{event_text}`,`{example_text}`, `{note_text}`);\n"""
     res += sql
     return res
 
@@ -597,7 +604,7 @@ def extract_module_info(soup):
             if module_desc_soup:
                 module_desc_text = module_desc_soup.text
 
-    import_module = soup.find('h4', string=re.compile(r'导入模块：'))
+    import_module = soup.find('h4', string=re.compile(r'导入模块'))
     if import_module:
         if import_module.find_next_sibling('pre'):
             import_module_text = import_module.find_next_sibling('pre').text
@@ -654,13 +661,60 @@ def extract_module_info(soup):
             table_soup = next_div.find('table')
             while table_soup:
                 # todo: format table text
-                module_tables_text += table2json(table_soup)
+                module_tables_text += str(table2json(table_soup))
                 table_soup = table_soup.find_next('table')
 
-            sql = f"""INSERT INTO HMModules (ModuleName, ModuleDescription, Version, ImportModule, FunctionName, FunctionDescription, SystemCapability, MetaAPI, SystemCapability, Version, Tables) VALUES ('{title_text}', '{module_desc_text}', '{version_text}', '{import_module_text}', '{function_name_text}', '{function_desc_text}', '{sub_system_capability_text}', '{module_meta_api_text}', '{module_system_capability_text}', '{module_version_text}', '{module_tables_text}');\n"""
+            sql = f"""INSERT INTO HMModules (ModuleName, ModuleDescription, ModuleVersion, ImportModule, FunctionName, FullName, FunctionDescription, ModuleConstraint, MetaAPI, SystemCapability, Version, Tables) VALUES (`{title_text}`, `{module_desc_text}`, `{version_text}`, `{import_module_text}`, `{function_name_text}`,`{function_full_text}`,  `{function_desc_text}`, `{module_constraint_text}`, `{module_meta_api_text}`, `{module_system_capability_text}`, `{module_version_text}`, `{module_tables_text}`);\n"""
+            res += sql
             next_div = next_div.find_next_sibling('div', {'class': '\\"section\\"'})
 
     return res
+
+
+def guarantee_extract(soup):
+    res = ""
+
+    title_text = ""
+    title = soup.find('h1')
+    if title:
+        title_text = title.text
+
+    next_div = soup.find('div')
+    while next_div:
+        h4_text = ""
+        h4 = next_div.find('h4')
+        if h4:
+            h4_text = h4.text
+
+        table_text = ""
+        table = next_div.find("table")
+
+        if table:
+            # 1. 提取 table 并删除
+            removed_table = table.extract()
+
+            # 2. 将删除 table 后的 next_div 转换成文本
+            div_text = next_div.get_text(strip=True)
+            # 3. 处理 table 数据
+            table_text = str(table2json(removed_table))
+            # 4. 将处理后的 table 数据放回原位置
+            new_table_tag = soup.new_tag("div")
+            new_table_tag.string = table_text
+            next_div.append(new_table_tag)
+
+        content_text = next_div.text
+        if (table_text.strip() or content_text.strip() or h4_text.strip()):
+            sql = f"""INSERT INTO HMGuarantee (Title, Module, Content) VALUES (`{title_text}`, `{h4_text}`, `{content_text}`);\n"""
+            print(sql)
+            res += sql
+        next_div = next_div.find_next('div')
+
+    return res
+
+
+
+
+
 
 def process_folder(folder_path, output_folder):
     for root, dirs, files in os.walk(folder_path):
@@ -688,5 +742,5 @@ if __name__ == '__main__':
     # process_folder(path, output_folder)
 
     output_folder = './'
-    file_path = './harmonyos-references-V5/ts-basic-components-textpicker-V5.html'
+    file_path = './harmonyos-references-V5/xengine-kit-xengine-V5.html'
     process_file(file_path, output_folder)
