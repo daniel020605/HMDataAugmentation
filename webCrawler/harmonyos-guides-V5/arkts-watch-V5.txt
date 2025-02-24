@@ -1,0 +1,30 @@
+@Watch装饰器：状态变量更改通知
+@Watch应用于对状态变量的监听。如果开发者需要关注某个状态变量的值是否改变，可以使用@Watch为状态变量设置回调函数。
+@Watch提供了状态变量的监听能力，@Watch仅能监听到可以观察到的变化。
+在阅读本文档前，建议开发者对状态管理基本观察能力有基本的了解。建议提前阅读：@State。
+从API version 9开始，该装饰器支持在ArkTS卡片中使用。
+从API version 11开始，该装饰器支持在元服务中使用。
+概述
+@Watch用于监听状态变量的变化，当状态变量变化时，@Watch的回调方法将被调用。@Watch在ArkUI框架内部判断数值有无更新使用的是严格相等（===），遵循严格相等规范。当在严格相等为false的情况下，就会触发@Watch的回调。
+装饰器说明
+语法说明
+该函数是自定义组件的成员函数，changedPropertyName是被watch的属性名。
+在多个状态变量绑定同一个@Watch的回调方法的时候，可以通过changedPropertyName进行不同的逻辑处理
+将属性名作为字符串输入参数，不返回任何内容。
+观察变化和行为表现
+当观察到状态变量的变化（包括双向绑定的AppStorage和LocalStorage中对应的key发生的变化）的时候，对应的@Watch的回调方法将被触发； @Watch方法在自定义组件的属性变更之后同步执行； 如果在@Watch的方法里改变了其他的状态变量，也会引起状态变更和@Watch的执行； 在第一次初始化的时候，@Watch装饰的方法不会被调用，即认为初始化不是状态变量的改变。只有在后续状态改变时，才会调用@Watch回调方法。 
+限制条件
+建议开发者避免无限循环。循环可能是因为在@Watch的回调方法里直接或者间接地修改了同一个状态变量引起的。为了避免循环的产生，建议不要在@Watch的回调方法里修改当前装饰的状态变量； 开发者应关注性能，属性值更新函数会延迟组件的重新渲染（具体请见上面的行为表现），因此，回调函数应仅执行快速运算； 不建议在@Watch函数中调用async await，因为@Watch设计的用途是为了快速的计算，异步行为可能会导致重新渲染速度的性能问题。 @Watch参数为必选，且参数类型必须是string，否则编译期会报错。 
+// 错误写法，编译报错\n@State @Watch() num: number = 10;\n@State @Watch(change) num: number = 10;\n\n// 正确写法\n@State @Watch('change') num: number = 10;\nchange() {\n  console.log(`xxx`);\n}
+@Watch内的参数必须是声明的方法名，否则编译期会报错。
+// 错误写法，没有对应名称的函数，编译报错\n@State @Watch('change') num: number = 10;\nonChange() {\n  console.log(`xxx`);\n}\n\n// 正确写法\n@State @Watch('change') num: number = 10;\nchange() {\n  console.log(`xxx`);\n}
+常规变量不能被@Watch装饰，否则编译期会报错。
+//错误写法\n@Watch('change') num: number = 10;\nchange() {\n  console.log(`xxx`);\n}\n\n// 正确写法\n@State @Watch('change') num: number = 10;\nchange() {\n  console.log(`xxx`);\n}
+使用场景
+[h2]@Watch和自定义组件更新
+以下示例展示组件更新和@Watch的处理步骤。count在CountModifier中由@State装饰，在TotalView中由@Prop装饰。
+@Component\nstruct TotalView {\n  @Prop @Watch('onCountUpdated') count: number = 0;\n  @State total: number = 0;\n  // @Watch 回调\n  onCountUpdated(propName: string): void {\n    this.total += this.count;\n  }\n\n  build() {\n    Text(`Total: ${this.total}`)\n  }\n}\n\n@Entry\n@Component\nstruct CountModifier {\n  @State count: number = 0;\n\n  build() {\n    Column() {\n      Button('add to basket')\n        .onClick(() => {\n          this.count++\n        })\n      TotalView({ count: this.count })\n    }\n  }\n}
+处理步骤：
+CountModifier自定义组件的Button.onClick点击事件自增count。 由于@State count变量更改，子组件TotalView中的@Prop被更新，其@Watch('onCountUpdated')方法被调用，更新了子组件TotalView 中的total变量。 子组件TotalView中的Text重新渲染。 
+[h2]@Watch与@Link组合使用
+以下示例说明了如何在子组件中观察@Link变量。

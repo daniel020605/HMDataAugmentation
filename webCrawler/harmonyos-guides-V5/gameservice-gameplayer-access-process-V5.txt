@@ -1,0 +1,29 @@
+接入流程
+接口说明
+具体API说明请详见接口文档。
+接口名
+描述
+init(context: common.UIAbilityContext): Promise<void>
+游戏初始化接口，使用默认的上下文信息，通过Promise对象获取返回值。
+unionLogin(context: common.UIAbilityContext, loginParam: UnionLoginParam): Promise<UnionLoginResult>
+华为账号和游戏官方账号联合登录接口，通过Promise对象获取返回值。
+bindPlayer(context: common.UIAbilityContext, thirdOpenId: string, teamPlayerId: string): Promise<void>
+华为账号对应的teamPlayerId与游戏官方账号绑定接口，通过Promise对象获取返回值。
+unbindPlayer(context: common.UIAbilityContext, thirdOpenId: string, teamPlayerId: string): Promise<void>
+华为账号对应的teamPlayerId与游戏官方账号解绑接口，通过Promise对象获取返回值。
+解除华为账号的绑定关系后，玩家可以重新进入联合登录弹框页面。
+verifyLocalPlayer(context: common.UIAbilityContext, thirdUserInfo: ThirdUserInfo): Promise<void>
+合规校验接口，校验当前设备登录的华为账号的实名认证、游戏防沉迷信息，通过Promise对象获取返回值。
+savePlayerRole(context: common.UIAbilityContext, request: GSKPlayerRole): Promise<void>
+保存角色信息到游戏服务器，使用默认的上下文信息，通过Promise对象获取返回值。
+on(type: 'playerChanged', callback: Callback<PlayerChangedResult>): void
+玩家变化事件监听接口，通过Callback回调获取玩家变化结果信息。
+业务总流程
+[h2]联合登录场景一：玩家选择“华为账号登录”方式
+ 玩家启动游戏。 游戏启动后调用Game Service Kit的init接口进行游戏业务的初始化。 Game Service Kit向玩家弹出华为隐私协议弹框要求用户签署隐私协议。        如果玩家此时不签署协议，则会退出当前游戏。 如果玩家已经签署隐私协议，则不会再弹出隐私协议弹框，并继续执行步骤4。  init接口调用成功后，游戏调用on接口注册playerChanged事件监听。           当监听到playerChanged事件（如玩家切换游戏账号）时，应重新执行unionLogin登录逻辑。如果游戏有session或其他用户缓存，则需在重新执行unionLogin登录逻辑前清除本地缓存信息。   游戏调用unionLogin接口进行联合登录。           单机游戏需要配置APP ID映射关系，在调用unionLogin后，可将返回的teamPlayerId作为玩家标识。   Game Service Kit向玩家展示联合登录弹框。 玩家选择“华为账号登录”。 玩家成功登录后，游戏获取到玩家标识、needBinding、accountName等信息。 游戏判断accountName为“hw_account”时，通过Account Kit对应的创建授权/登录请求接口，获取用于服务器校验的Authorization Code信息。        当needBinding为true时（绑定场景），华为玩家标识需与游戏官方账号进行绑定，应调用createAuthorizationWithHuaweiIDRequest接口创建授权请求（授权获取手机号），并获取手机号等信息。              若当前华为账号实名认证为未成年人，即使授权成功也无法获取到手机号。 授权手机号时，若玩家拒绝授权，或出现导致账号未实际绑定的其它情况，调用unbindPlayer接口重置玩家的登录方式。重置后，玩家再次进入游戏可以在联合登录框重新选择登录方式，否则玩家再次进入游戏默认使用绑定登录方式。 若获取的授权手机号为空，此时游戏可弹出手机号输入框，支持游戏通过玩家输入的手机号进行授权。    当needBinding为false时（转移场景），调用createLoginWithHuaweiIDRequest接口创建登录请求。      游戏服务器需要根据玩家选择的登录场景进行适配：  转移场景下，服务器需与HarmonyOS/EMUI系统的渠道包策略保持一致。 绑定场景下/选择游戏官方账号登录场景下，服务器策略和游戏官方包保持一致。    玩家信息校验。        游戏客户端将玩家信息（Authorization Code、玩家标识等）上传给游戏开发者服务器。             如果您没有自己的服务器，可以在客户端完成玩家标识信息校验。但为了保证安全性，强烈建议您在服务器验证玩家标识。   开发者服务器调用华为账号服务器的获取用户级凭证接口，根据Authorization Code获取玩家的Access Token。 开发者服务器调用华为游戏服务器的获取玩家标识接口，根据Access Token获取服务器侧的玩家标识。 开发者服务器将客户端与服务器分别获取的玩家标识进行一致性核验，包括thirdOpenId、teamPlayerId/gamePlayerId。  当needBinding值为true时，需先判定获取的手机号以及玩家标识信息（与游戏官方账号）的注册与绑定情况，然后将玩家标识与游戏官方账号进行绑定。        判断授权获取的手机号是否已注册游戏官方账号。如未注册，则先进行注册。 判断teamPlayerId与游戏官方账号是否已绑定。如未绑定，则进行绑定。如已绑定，则执行步骤12。 游戏调用bindPlayer接口绑定并上报绑定结果。  游戏调用verifyLocalPlayer接口进行合规校验，华为侧将校验当前设备的账号实名认证和游戏防沉迷管控情况，如校验未通过将返回对应的错误码。 合规校验成功后，在玩家创建角色时，游戏必须调用savePlayerRole将角色信息上报。 
+[h2]联合登录场景二：玩家使用“游戏官方账号登录”方式
+ 玩家启动游戏。 游戏启动后调用Game Service Kit的init接口进行游戏业务的初始化。 Game Service Kit向玩家弹出华为隐私协议弹框要求用户签署隐私协议。        如果玩家此时不签署协议，则会退出当前游戏。 如果玩家已经签署隐私协议，则不会再弹出隐私协议弹框，并继续执行步骤4。  init接口调用成功后，游戏调用on接口注册playerChanged事件监听。           当监听到playerChanged事件（如玩家切换游戏账号）时，应重新执行unionLogin登录逻辑。如果游戏有session或其他用户缓存，则需在重新执行unionLogin登录逻辑前清除本地缓存信息。   游戏调用unionLogin接口进行联合登录。 Game Service Kit向玩家展示联合登录弹框。 玩家选择游戏官方账号登录。 游戏获取到accountName等信息。 游戏判断accountName为unionLogin接口传入的thirdAccountInfo.accountName或“official_account”时，进行游戏官方账号自行登录处理。 玩家选择游戏官方账号成功登录后，游戏调用verifyLocalPlayer接口进行合规校验，华为侧将校验当前设备的账号实名认证和游戏防沉迷管控情况，如校验未通过将返回对应的错误码。 合规校验成功后，在玩家创建角色时，游戏必须调用savePlayerRole将角色信息上报。 
+转移游戏进度流程
+ 玩家下载并登录HarmonyOS NEXT游戏。 游戏参照正常流程发起联合登录，具体流程请参见游戏登录。 Game Service Kit将向玩家展示联合登录弹框（此处以游戏支持转移为例）。 玩家选择“玩过，继续游戏”。 Game Service Kit返回idCompatibleType（ID兼容类型）等玩家信息。 根据idCompatibleType字段值，进行相应处理。        1：玩家选择转移方式，且原APK游戏使用了playerId作为玩家标识，Game Service Kit将playerId作为新的gamePlayerId。 2：玩家选择转移方式，且原APK游戏使用了openId作为玩家标识，Game Service Kit将openId作为新的gamePlayerId。       由于playerId替换为openId的过渡方案，导致部分HarmonyOS游戏的玩家标识类型存在playerId与openId混用的情况，例如A玩家使用openId，B玩家使用playerId。建议开发者选择其一作为转移标识，例如选择openId作为转移标识（gamePlayerId=openId），若能通过gamePlayerId在原系统中找到玩家记录，推断该玩家使用openId作为玩家标识。反之，推测该玩家可能使用playerId作为玩家标识，或该玩家可能为新用户，此时携带gamePlayerId调用转换ID接口获取playerId等信息。若playerId能在原系统中找到玩家记录，表明该玩家是使用playerId作为玩家标识的老用户，否则该玩家为新用户，在原系统中无历史游戏进度。 若HarmonyOS游戏使用unionId作为玩家标识，建议开发者选择openId作为转移标识（gamePlayerId=openId），此时携带gamePlayerId调用转换ID接口获取unionId等信息，若unionId未在原系统中找到玩家记录，推断该玩家为新用户。 开发者必须在HarmonyOS NEXT游戏上架前完成转移功能的自验证。自验证转移功能需前往AGC控制台配置APP ID映射关系。    
+绑定游戏官方账号流程
+ 玩家下载并登录HarmonyOS NEXT游戏。 游戏参照正常流程发起联合登录，具体流程请参见游戏登录。 Game Service Kit将向玩家展示联合登录弹框。 玩家选择“没有，开始游戏”。 Game Service Kit将生成teamPlayerId作为玩家标识，并与游戏官方账号进行绑定。           华为的teamPlayerId是团队玩家标识（同一个开发者账号下的不同游戏中同一玩家的teamPlayerId相同），因此，与华为的teamPlayerId绑定的游戏官方账号也需要是开发者级别。   游戏客户端进行登录处理。 

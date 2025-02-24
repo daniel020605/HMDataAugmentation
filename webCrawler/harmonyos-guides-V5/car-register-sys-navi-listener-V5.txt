@@ -1,0 +1,10 @@
+注册监听系统导航信息和指令
+注册监听系统导航信息和指令。
+接口说明
+接口无返回值，但是入参需要实现系统导航监听。
+接口名
+描述
+registerSystemNavigationListener(listener: SystemNavigationListener): void
+注册监听系统导航信息和指令。
+开发步骤
+ 导入Car Kit模块。import { navigationInfoMgr } from '@kit.CarKit';  获取NavigationController实例。let navInfoController: navigationInfoMgr.NavigationController = navigationInfoMgr.getNavigationController();  注册监听系统导航信息和指令。//实现SystemNavigationListener接口\nclass Listener implements navigationInfoMgr.SystemNavigationListener {\n  //实现onQueryNavigationInfo方法\n  onQueryNavigationInfo(query: navigationInfoMgr.QueryType, args: Record<string, Object>): Promise<navigationInfoMgr.ResultData> {\n    return new Promise(resolve => {\n      let ret: navigationInfoMgr.ResultData = {\n        code: 1001,\n        message: 'message test1',\n        data: args\n      }\n      resolve(ret);\n    })\n  }\n\n  //实现onReceiveNavigationCmd方法\n  onReceiveNavigationCmd(command: navigationInfoMgr.CommandType, args: Record<string, Object>): Promise<navigationInfoMgr.ResultData> {\n    return new Promise(resolve => {\n      let ret: navigationInfoMgr.ResultData = {\n        code: 1002,\n        message: 'message test2',\n        data: args\n      }\n      resolve(ret);\n    })\n  }\n}\n\nnavInfoController.registerSystemNavigationListener(new Listener());  

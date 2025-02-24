@@ -1,0 +1,7 @@
+extension调试
+开发者可通过两种方式对Extension Ability生命周期函数进行调试。
+应用已安装到设备上后通过等待调试能力进行调试。通过修改运行调试配置项指定当前运行或调试的Ability为Extension Ability。
+等待调试方式
+参考等待调试对当前调试工程进行调试。 在Extension Ability生命周期内设置断点。 等待Extension Ability生命周期函数代码调用从而命中断点。 
+修改运行配置方式
+在运行调试窗口，运行配置项Launch Options选择Specified Ability。 选择需要进行调试的Extension Ability。 点击OK保存配置后，点击调试按钮，启动调试即可命中 Extension Ability 中的生命周期函数断点。 

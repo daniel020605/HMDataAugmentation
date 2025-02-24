@@ -1,0 +1,13 @@
+@typescript-eslint/no-restricted-syntax
+不允许使用指定的（即用户在规则中定义的）语法。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n      \"@typescript-eslint/no-restricted-syntax\": [\n         \"error\",\n         {\n             \"selector\": \"FunctionExpression\",\n             \"message\": \"Function expressions are not allowed.\"\n         },\n         {\n             \"selector\": \"CallExpression[callee.name='setTimeout'][arguments.length!=2]\",\n             \"message\": \"setTimeout must always be invoked with two arguments.\"\n         }\n     ]\n  }\n}
+选项
+详情请参考@typescript-eslint/no-restricted-syntax选项。
+正例
+/* eslint no-restricted-syntax: [\"error\", \"ClassDeclaration\"] */\nexport function doSomething() {\n  console.info('doSomething');\n}
+反例
+/* eslint no-restricted-syntax: [\"error\", \"ClassDeclaration\"] */\nexport class CC {\n  public name: string;\n\n  public constructor(name: string) {\n    this.name = name;\n  }\n}
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

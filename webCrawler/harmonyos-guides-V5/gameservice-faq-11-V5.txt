@@ -1,0 +1,2 @@
+原系统游戏登录使用的openId，转移到HarmonyOS NEXT游戏时，HarmonyOS NEXT游戏保存的用户标识是gamePlayerId，如何进行绑定？
+前往AppGallery Connect，配置HarmonyOS游戏与HarmonyOS NEXT游戏APP ID的映射关系，并使用华为渠道原先使用的玩家标识ID即可。配置映射关系的具体操作请参见配置APP ID映射关系。

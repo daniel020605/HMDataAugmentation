@@ -1,0 +1,7 @@
+单点部署
+安装ohpm-repo工具
+解压ohpm-repo工具包。 进入 bin 目录，执行安装脚本 setup.bat(windows) 或者 setup.sh(linux/macos)。安装完成后，检查是否安装成功。ohpm-repo -v    //显示版本号，安装成功 
+若您想在其他目录使用 ohpm-repo，请将 bin 目录路径配置到系统环境变量 path 中。
+启动ohpm-repo
+进入 conf 目录，修改配置文件 config.yaml 。数据存储 db 模块选择 ohpm-repo-plugin-filedb，文件存储 store模块选择 ohpm-repo-plugin-fs。设置数据存储 db 模块。 db:\n  plugin_name: ohpm-repo-plugin-filedb\n  plugin_config:\n    path: ./db 设置文件存储 store 模块。 store:\n  plugin_name: ohpm-repo-plugin-fs\n  plugin_config:\n    path: ./storage\n    server: http://localhost:8088  
+执行 start 命令启动ohpm-repo 1.0.1 版本和 1.1.0 版本启动ohpm-repo存在不同，其中 1.1.0 版本支持指定ohpm-repo部署根目录  1.0.1 版本执行以下命令，其中 config： 指定启动时使用的配置文件。 ohpm-repo start --config “D:\\config.yaml” 结果示例：   1.1.0 版本执行以下命令： ohpm-repo start --deploy_root D:\\ohpm-repo-local --config D:\\configlocal.yaml  --deploy_root： 指定部署根目录，用于存储ohpm-repo启动时生成的文件。--config： 指定启动时使用的配置文件。  结果示例：   

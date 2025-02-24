@@ -1,0 +1,14 @@
+@typescript-eslint/no-floating-promises
+要求正确处理Promise表达式。
+floating-promise是指在创建Promise时，没有使用任何代码来处理它可能引发的错误，这是一种不正确的使用方式。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/no-floating-promises\": \"error\"\n  }\n}
+选项
+详情请参考@typescript-eslint/no-floating-promises选项。
+正例
+export async function bar() {\n  const promise = new Promise<string>(resolve => {\n    resolve('value');\n    return 'finish';\n  });\n  await promise;\n\n  Promise.reject('value').catch(() => {\n    console.error('error');\n  });\n\n  await Promise.reject('value').finally(() => {\n    console.info('finally');\n  });\n\n  await Promise.all(['1', '2', '3'].map(x => x + '1'));\n}
+反例
+export async function bar() {\n  const promise = new Promise<string>(resolve => {\n    resolve('value');\n    return 'finish';\n  });\n  promise;\n\n  Promise.reject('value').catch();\n\n  await Promise.reject('value').finally();\n\n  ['1', '2', '3'].map(async x => x + '1');\n}
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

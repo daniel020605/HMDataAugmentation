@@ -1,0 +1,6 @@
+worker/taskpool调试
+开发者可通过在worker或taskpool代码上设置断点，对worker/taskpool进行断点调试。
+worker 调试
+右键模块的 ets 目录新建一个 worker 文件。 开发者写完代码后，在 worker 文件中设置断点。 启动调试，当断点命中时，调试窗口会新启动一个调试会话，显示 worker 线程的堆栈信息。 
+taskpool 调试
+编写一个 taskpool 代码，在代码中设置断点。 启动调试，当代码中断点命中时，调试窗口会新启动一个调试会话，显示 taskpool 线程的堆栈信息。 

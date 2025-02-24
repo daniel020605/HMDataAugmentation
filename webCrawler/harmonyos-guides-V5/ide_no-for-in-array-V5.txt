@@ -1,0 +1,14 @@
+@typescript-eslint/no-for-in-array
+禁止使用 for-in 循环来遍历数组元素。
+该规则仅支持对.js/.ts文件进行检查。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/no-for-in-array\": \"error\"\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+declare const array: string[];\n\nfor (const value of array) {\n  console.log(value);\n}\n\narray.forEach((value) => {\n  console.log(value);\n});
+反例
+declare const array: string[];\n\nfor (const i in array) {\n  console.log(array[i]);\n}\n\nfor (const i in array) {\n  console.log(i, array[i]);\n}
+规则集
+plugin:@typescript-eslint/recommended\nplugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

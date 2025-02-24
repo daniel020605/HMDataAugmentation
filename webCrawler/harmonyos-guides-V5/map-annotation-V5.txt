@@ -1,0 +1,33 @@
+点注释
+场景介绍
+本章节将向您介绍如何在地图的指定位置添加点注释以标识位置、商家、建筑等，并可以通过信息窗口展示详细信息。
+点注释支持功能：
+ 支持设置图标、文字、碰撞规则等。 支持添加点击事件。 
+PointAnnotation有默认风格，同时也支持自定义。由于内容丰富，以下只展示一些基础功能的使用，详细内容可分参见接口文档。
+接口说明
+添加点注释功能主要由PointAnnotationParams、addPointAnnotation、PointAnnotation、on、off提供，更多接口及使用方法请参见接口文档。
+接口名
+描述
+PointAnnotationParams
+点注释参数。
+addPointAnnotation(params: mapCommon.PointAnnotationParams): Promise<PointAnnotation>
+在地图上添加点注释。
+PointAnnotation
+点注释，支持更新和查询相关属性。
+on(type: 'pointAnnotationClick', callback: Callback<PointAnnotation>): void
+设置点注释点击事件监听器。
+off(type: 'pointAnnotationClick', callback: Callback<PointAnnotation>): void
+取消监听点注释点击事件。
+开发步骤
+[h2]添加点注释
+ 导入相关模块。import { MapComponent, mapCommon, map } from '@kit.MapKit';\nimport { AsyncCallback } from '@kit.BasicServicesKit'; 添加点注释，在Callback方法中创建初始化参数并新建点注释。@Entry\n@Component\nstruct PointAnnotationDemo {\n  private mapOptions?: mapCommon.MapOptions;\n  private mapController?: map.MapComponentController;\n  private callback?: AsyncCallback<map.MapComponentController>;\n  private pointAnnotation?: map.PointAnnotation;\n\n  aboutToAppear(): void {\n    this.mapOptions = {\n      position: {\n        target: {\n            latitude: 32.020750,\n            longitude: 118.788765\n        },\n        zoom: 14\n      }\n    };\n\n    this.callback = async (err, mapController) => {\n      if (!err) {\n        this.mapController = mapController;\n          let pointAnnotationOptions: mapCommon.PointAnnotationParams = {\n            // 定义点注释图标锚点\n            position: {\n              latitude: 32.020750,\n              longitude: 118.788765\n            },\n            // 定义点注释名称与地图poi名称相同时，是否支持去重\n            repeatable: true,\n            // 定义点注释的碰撞规则\n            collisionRule: mapCommon.CollisionRule.NAME,\n            // 定义点注释的标题，数组长度最小为1，最大为3\n            titles: [{\n              // 定义标题内容\n              content: \"南京夫子庙\",\n              // 定义标题字体颜色\n              color: 0xFF000000,\n              // 定义标题字体大小\n              fontSize: 15,\n              // 定义标题描边颜色\n              strokeColor: 0xFFFFFFFF,\n              // 定义标题描边宽度\n              strokeWidth: 2,\n              // 定义标题字体样式\n              fontStyle: mapCommon.FontStyle.ITALIC\n            }\n            ],\n            // 定义点注释的图标，图标存放在resources/rawfile\n            icon: \"\",\n            // 定义点注释是否展示图标\n            showIcon: true,\n            // 定义点注释的锚点在水平方向上的位置\n            anchorU: 0.5,\n            // 定义点注释的锚点在垂直方向上的位置\n            anchorV: 1,\n            // 定义点注释的显示属性，为true时，在被碰撞后仍能显示\n            forceVisible: false,\n            // 定义碰撞优先级，数值越大，优先级越低\n            priority: 3,\n            // 定义点注释展示的最小层级\n            minZoom: 2,\n            // 定义点注释展示的最大层级\n            maxZoom: 20,\n            // 定义点注释是否可见\n            visible: true,\n            // 定义点注释叠加层级属性\n            zIndex: 10\n          }\n        this.pointAnnotation = await this.mapController.addPointAnnotation(pointAnnotationOptions);\n      }\n    };\n  }\n  build() {\n    Stack() {\n      Column() {\n        MapComponent({ mapOptions: this.mapOptions, mapCallback: this.callback });\n      }.width('100%')\n    }.height('100%')\n  }\n}  在添加点注释之后，修改已经设置的点注释属性。// 设置点注释的显示层级为3~14级\nthis.pointAnnotation.setZoom(3,14);\n// 设置点注释的碰撞优先级为10\nthis.pointAnnotation.setPriority(10); 
+[h2]设置监听点注释点击事件
+let callback = (pointAnnotation: map.PointAnnotation) => {\n  console.info(\"pointAnnotationClick\", `pointAnnotationClick: ${pointAnnotation.getId()}`);\n};\nthis.mapEventManager.on(\"pointAnnotationClick\", callback);
+[h2]点注释动画
+PointAnnotation调用setAnimation(animation: Animation)设置动画。
+PointAnnotation调用startAnimation启动动画。
+let animation: map.ScaleAnimation = new map.ScaleAnimation(1, 3, 1, 3);\n// 设置动画单次的时长\nanimation.setDuration(3000);\n// 设置动画开始监听\nlet callbackStart = () => {\n  console.info(\"animationStart\", `callback`);\n};\nanimation.on(\"animationStart\", callbackStart);\n// 设置动画结束监听\nlet callbackEnd = () => {\n  console.info(\"animationEnd\", `callback`);\n};\nanimation.on(\"animationEnd\", callbackEnd);\n// 设置动画执行完成的状态\nanimation.setFillMode(map.AnimationFillMode.BACKWARDS);\n// 设置动画重复的方式\nanimation.setRepeatMode(map.AnimationRepeatMode.REVERSE);\n// 设置动画插值器\nanimation.setInterpolator(Curve.Linear);\n// 设置动画的重复次数\nanimation.setRepeatCount(100);\nthis.pointAnnotation.setAnimation(animation);\nthis.pointAnnotation.startAnimation();
+[h2]点注释标题动画
+PointAnnotation调用setTitleAnimation(animation:FontSizeAnimation )设置标题动画。
+PointAnnotation调用startTitleAnimation启动标题动画。
+let animation: map.FontSizeAnimation = new map.FontSizeAnimation(15, 45);\n// 设置动画单次的时长\nanimation.setDuration(3000);\n// 设置动画开始监听\nlet callbackStart = () => {\n  console.info(\"animationStart\", `callback`);\n};\nanimation.on(\"animationStart\", callbackStart);\n// 设置动画结束监听\nlet callbackEnd = () => {\n  console.info(\"animationEnd\", `callback`);\n};\nanimation.on(\"animationEnd\", callbackEnd);\n// 设置动画执行完成的状态\nanimation.setFillMode(map.AnimationFillMode.FORWARDS);\n// 设置动画重复的方式\nanimation.setRepeatMode(map.AnimationRepeatMode.REVERSE);\n// 设置动画插值器\nanimation.setInterpolator(Curve.Linear);\n// 设置动画的重复次数\nanimation.setRepeatCount(100);\nthis.pointAnnotation.setTitleAnimation(animation);\nthis.pointAnnotation.startTitleAnimation();

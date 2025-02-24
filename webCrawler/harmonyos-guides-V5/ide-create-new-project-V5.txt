@@ -1,0 +1,10 @@
+创建一个新的工程
+当您开始开发一个应用/元服务时，首先需要根据工程创建向导，创建一个新的工程，工具会自动生成对应的代码和资源模板。
+在运行DevEco Studio工程时，建议每一个运行窗口有2GB以上的可用内存空间。
+创建和配置新工程
+DevEco Studio提供了基础的工程模板资源，不同模板支持的设备类型、API Version可能不同，在创建新工程前，请提前了解各模板的相关信息，具体请参考工程模板介绍。
+[h2]创建HarmonyOS工程
+通过如下两种方式，打开工程创建向导界面。如果当前未打开任何工程，可以在DevEco Studio的欢迎页，选择Create Project开始创建一个新工程。如果已经打开了工程，可以在菜单栏选择File > New > Create Project来创建一个新工程。 根据工程创建向导，选择创建Application或Atomic Service。再选择需要的Ability工程模板，然后单击Next。 从API 11版本开始支持Atomic Service元服务工程开发。Atomic Service元服务工程暂不支持Native开发。   在工程配置页面，需要根据向导配置工程的基本信息。Project name：工程的名称，可以自定义，由大小写字母、数字和下划线组成。Bundle name：标识应用的包名，用于标识应用的唯一性。 应用包名要求： 必须为以点号（.）分隔的字符串，且至少包含三段，每段中仅允许使用英文字母、数字、下划线（_），如“com.example.myapplication ”。首段以英文字母开头，非首段以数字或英文字母开头，每一段以数字或者英文字母结尾，如“com.01example.myapplication”。不允许多个点号（.）连续出现，如“com.example..myapplication ”。长度为7~128个字符。  Save location：工程文件本地存储路径，由大小写字母、数字和下划线等组成，不能包含中文字符。Compatible SDK：兼容的最低API Version。Module name： 模块的名称。Device type：该工程模板支持的设备类型。  单击Finish，工具会自动生成示例代码和相关资源，等待工程创建完成。
+[h2]创建OpenHarmony工程
+在完成创建HarmonyOS工程后，根据如下操作修改工程级build-profile.json5文件中相关字段：在工程级build-profile.json5文件添加compileSdkVersion字段。将compatibleSdkVersion和compileSdkVersion字段赋值为整数类型10，11或12。将runtimeOS从\"HarmonyOS\"修改为\"OpenHarmony\"。 \"products\": [\n  {\n    \"name\": \"default\",\n    \"signingConfig\": \"default\", \n    \"compileSdkVersion\": 11,    //指定OpenHarmony应用/元服务编译时的版本\n    \"compatibleSdkVersion\": 11, //指定OpenHarmony应用/元服务兼容的最低版本\n    \"runtimeOS\": \"OpenHarmony\",\n  }\n],  单击Sync Now进行同步。在Sync Check弹窗中点击Yes，同意将module.json5/config.json文件中的phone切换为OpenHarmony支持的default类型，并删除在OpenHarmony不适用的其他设备类型，同步成功无其他报错则工程创建完成。 
+若选择Native C++模板创建OpenHarmony应用，且应用需要在RK开发板上运行，则需在对应Native模块的build-profile.json5文件buildOption/externalNativeOptions字段下，新增abiFilters字段并赋值为\"armeabi-v7a\"。

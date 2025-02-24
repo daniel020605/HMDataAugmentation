@@ -1,0 +1,21 @@
+动态调整预览帧率(ArkTS)
+动态调整帧率是直播、视频等场景下控制预览效果的重要能力之一。应用可通过此能力，显性地控制流输出帧率，以适应不同帧率下的业务目标。
+某些场景下降低帧率可在相机设备启用时降低功耗。
+约束与限制
+支持的帧率范围及帧率的设置依赖于硬件能力的实现，不同的硬件平台可能拥有不同的默认帧率。
+开发流程
+相机使用预览功能前，均需要创建相机会话。完成会话配置后，应用提交和开启会话，才可以开始调用相机相关功能。
+流程图如下所示：
+与普通的预览流程相比，动态调整预览帧率的注意点如图上标识：
+调用createSession创建会话（Session）时，需要指定模式为NORMAL_PHOTO或NORMAL_VIDEO。仅当Session处于NORMAL_PHOTO或NORMAL_VIDEO模式时，支持调整预览流帧率。调整帧率的创建会话方式见创建Session会话并指定模式。 动态调整帧率的操作，可在启动预览前后任意时刻调用。动态调整帧率在预览里属于可选操作，可以完成：查询当前支持调整的帧率范围设置当前帧率获取当前生效的帧率设置 
+如何配置会话（Session）、释放资源，请参考会话管理 > 预览，或是完整流程示例。
+创建Session会话并指定模式
+相机使用预览等功能前，均需创建相机会话，调用CameraManager的createSession创建一个会话。
+创建会话时需指定SceneMode为NORMAL_PHOTO或NORMAL_VIDEO，创建出的Session处于拍照或录像模式。
+以创建Session会话并指定为NORMAL_PHOTO模式为例：
+function createPhotoSession(cameraManager: camera.CameraManager): camera.Session | undefined {\n  let session: camera.Session | undefined = undefined;\n  try {\n    // 创建Session会话并指定为NORMAL_PHOTO模式\n    session = cameraManager.createSession(camera.SceneMode.NORMAL_PHOTO) as camera.PhotoSession;\n  } catch (error) {\n    let err = error as BusinessError;\n    console.error(`Failed to create the session instance. error: ${JSON.stringify(err)}`);\n  }\n  return session;\n}
+调整帧率
+调用PreviewOutput的getSupportedFrameRates，查询当前支持的帧率范围。 需要在Session调用commitConfig完成配流之后调用。  function getSupportedFrameRange(previewOutput: camera.PreviewOutput): Array<camera.FrameRateRange> {\n// 获取支持的帧率范围，不同的硬件平台可能提供不同的帧率范围\n  return previewOutput.getSupportedFrameRates();\n} 根据实际开发需求，调用PreviewOutput类提供的setFrameRate接口对帧率进行动态调整。  需要在Session调用commitConfig完成配流之后调用。可在Session调用start启动预览前后任意时刻调用。  function setFrameRate(previewOutput: camera.PreviewOutput, minFps: number, maxFps: number): void {\n  try {\n    previewOutput.setFrameRate(minFps, maxFps);\n  } catch (error) {\n    let err = error as BusinessError;\n    console.error(`Failed to setFrameRate for previewOutput. error: ${JSON.stringify(err)}`);\n  }\n} （可选）通过PreviewOutput类提供的getActiveFrameRate接口查询已设置过并生效的帧率。 仅通过setFrameRate接口显性设置过帧率才可查询当前生效帧率信息。function getActiveFrameRange(previewOutput: camera.PreviewOutput): camera.FrameRateRange {\n  return previewOutput.getActiveFrameRate();\n}  
+完整流程
+根据上述开发流程，完整的session配流及previewOutput在session.start前后调整帧率示例代码如下。
+async function sessionConfig(cameraManager: camera.CameraManager, cameraInput: camera.CameraInput,\n  previewOutput: camera.PreviewOutput): Promise<void> {\n  try {\n    let session: camera.Session | undefined = undefined;\n    // 创建CaptureSession实例\n    session = createPhotoSession(cameraManager);\n    if (session === undefined) {\n      return;\n    }\n    // 开始配置会话\n    session.beginConfig();\n    // 把CameraInput加入到会话\n    session.addInput(cameraInput);\n    // 把previewOutput加入到会话\n    session.addOutput(previewOutput);\n    // 提交配置信息\n    await session.commitConfig();\n    // 获取当前支持的帧率范围\n    let supportFrameRateArray: Array<camera.FrameRateRange> = getSupportedFrameRange(previewOutput);\n\n    console.info(`frame rate supported by previewOutput: ${JSON.stringify(supportFrameRateArray)}`);\n    // 可在start前对帧率进行设置\n    if (supportFrameRateArray.length !== 0) {\n      // 将帧率设置为第一组帧率范围的最大值\n      setFrameRate(previewOutput, supportFrameRateArray[0].max, supportFrameRateArray[0].max);\n    }\n    // 获取当前生效的帧率设置\n    let activeFrameRateArray: camera.FrameRateRange = getActiveFrameRange(previewOutput);\n    console.info(`current effective frame rate for this previewOutput: ${JSON.stringify(activeFrameRateArray)}`);\n    // 开始会话工作并启动预览\n    await session.start();\n    // 可在start后对帧率进行设置\n    if (supportFrameRateArray.length !== 0) {\n      // 可将帧率设置为最大值的一半（能否设置成功取决于平台是否支持）\n      setFrameRate(previewOutput, supportFrameRateArray[0].max / 2, supportFrameRateArray[0].max / 2);\n    }\n    // 获取当前生效的帧率设置\n    activeFrameRateArray = getActiveFrameRange(previewOutput);\n    console.info(`current effective frame rate for this previewOutput: ${JSON.stringify(activeFrameRateArray)}`);\n  } catch (error) {\n    let err = error as BusinessError;\n    console.info(`sessionConfig fail : ${JSON.stringify(err)}`);\n  }\n}

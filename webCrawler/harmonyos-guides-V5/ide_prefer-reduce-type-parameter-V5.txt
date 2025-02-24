@@ -1,0 +1,13 @@
+@typescript-eslint/prefer-reduce-type-parameter
+调用“Array#reduce”时推荐使用类型参数而不是强制转换类型。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/prefer-reduce-type-parameter\": \"error\"\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+['1', '2', '3'].reduce<readonly string[]>((arr, text) => {\n  const newArr = [...arr];\n  newArr.push(text);\n  return newArr;\n}, []);
+反例
+['1', '2', '3'].reduce((arr, text) => {\n  const newArr = [...arr];\n  newArr.push(text);\n  return newArr;\n}, [] as readonly string[]);
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

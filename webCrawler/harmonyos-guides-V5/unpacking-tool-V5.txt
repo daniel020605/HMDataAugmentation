@@ -1,0 +1,77 @@
+拆包工具
+拆包工具是HarmonyOS提供的一种调测工具，支持通过命令行方式将HAP、HSP、App等文件解压成文件夹，并且提供Java接口对HAP、HSP、App等文件进行解析。
+拆包所用的app_unpacking_tool.jar，可以在本地下载的HarmonyOS的SDK库中找到。
+约束与限制
+拆包工具需要运行在Java8及其以上环境。
+拆包指令说明
+[h2]HAP包模式拆包指令
+开发者可以使用拆包工具的jar包对应用进行拆包，通过传入拆包选项、文件路径，将HAP包解压出来。
+示例
+java -jar app_unpacking_tool.jar --mode hap --hap-path <path> --out-path <path> [--force true]
+参数含义及规范
+[h2]App包模式拆包指令
+开发者可以使用拆包工具的jar包对应用进行拆包，通过传入拆包选项、文件路径，将App包解压出来。
+示例
+java -jar app_unpacking_tool.jar --mode app --app-path <path> --out-path <path> [--force true]
+参数含义及规范
+[h2]从HAP包中获取rpcid文件
+开发者可以使用拆包工具的jar包对应用进行拆包，通过传入拆包选项、文件路径，获取应用的rpcid。
+示例
+java -jar app_unpacking_tool.jar --mode hap --rpcid true --hap-path <path> --out-path <path> [--force true]
+参数含义及规范
+[h2]HSP包模式拆包指令
+开发者可以使用拆包工具的jar包对应用进行拆包，通过传入拆包选项、文件路径，将HSP包解压出来。
+示例
+java -jar app_unpacking_tool.jar --mode hsp --hsp-path <path> --out-path <path> [--force true]
+参数含义及规范
+[h2]APPQF模式拆包指令
+开发者可以使用拆包工具的jar包对应用进行拆包，通过传入拆包选项、文件路径，将APPQF包解压出来。
+示例
+java -jar app_unpacking_tool.jar --mode appqf --appqf-path <path> --out-path <path> [--force true]
+参数含义及规范
+包解析接口
+包解析接口仅用于应用市场对打好的HAP、HSP、App等包进行解析，获取其中配置文件等信息。
+[h2]接口目录
+拆包工具信息字段
+[h2]UncompressResult（Bundle信息）结构体信息
+[h2]PackInfo结构体信息
+[h2]ProfileInfo结构体信息
+[h2]AppInfo结构体信息
+标识bundle的类型，取值：
+- app：应用
+- atomicService：元服务 
+- shared：应用间共享库
+[h2]HapInfo结构体信息
+标识应用的框架模型
+- FA：FA模型
+- STAGE：Stage模型
+[h2]AbilityInfo结构体信息
+[h2]Distro结构体信息
+[h2]MetaData结构体信息
+[h2]MetaDataInfo结构体信息
+[h2]CustomizeData结构体信息
+[h2]ReqPermission结构体信息
+[h2]UsedScene结构体信息
+[h2]Shortcut结构体信息
+[h2]IntentInfo结构体信息
+[h2]DistroFilter结构体信息
+[h2]ApiVersion结构体信息
+[h2]ScreenShape结构体信息
+[h2]ScreenDensity结构体信息
+[h2]ScreenWindow结构体信息
+[h2]CountryCode结构体信息
+[h2]ExtensionAbilityInfo结构体信息
+[h2]SkillInfo结构体信息
+[h2]UriInfo结构体信息
+[h2]AbilityFormInfo结构体信息
+[h2]CommonEvent结构体信息
+[h2]DependencyItem结构体信息
+[h2]ModuleAtomicService结构体信息
+[h2]PreloadItem结构体信息
+[h2]DeviceConfig结构体信息
+[h2]DefPermission结构体信息
+[h2]DefinePermission结构体信息
+[h2]DefPermissionsGroups结构体信息
+[h2]FormInfo结构体信息
+[h2]ModuleMetadataInfo结构体信息
+[h2]ModuleWindowInfo结构体信息

@@ -1,0 +1,6 @@
+开发准备
+请先参考“应用开发准备”完成基本准备工作及公钥指纹配置，再继续进行以下开发活动。
+配置Client ID
+登录AppGallery Connect平台，在“我的项目”中选择目标应用，获取“项目设置 > 常规 > 应用”的Client ID。 需要获取应用的Client ID，而不是项目的Client ID。   在工程中entry模块的module.json5文件中，新增metadata，配置name为client_id，value为上一步获取的Client ID的值，如下所示：\"module\": {\n  \"name\": \"xxxx\",\n  \"type\": \"entry\",\n  \"description\": \"xxxx\",\n  \"mainElement\": \"xxxx\",\n  \"deviceTypes\": [\n    'phone',\n    'tablet'\n  ],\n  \"pages\": \"xxxx\",\n  \"abilities\": [],\n  \"metadata\": [\n    {\n      \"name\": \"client_id\",\n      \"value\": \"xxxxxx\"  // 配置为获取的Client ID\n    }\n  ]\n} 
+开通地图服务
+登录AppGallery Connect网站，选择“我的项目”。  在项目列表中找到您的项目，在项目下的应用列表中选择需要打开地图服务的应用。  选择API管理，找到地图服务开关，打开开关。 

@@ -1,0 +1,25 @@
+快速开始
+如何安装
+[h2]ohpm-repo
+ ohpm-repo 依赖于 node 运行，支持 node.js 16.x 及以上版本，请提前安装 nodejs，并完成环境变量的配置。Node.js安装请参考Node.js官方网站。 下载 ohpm-repo 工具包，点击链接获取。 解压文件，进入文件 bin 目录下，执行安装脚本 setup.bat(windows) 或者 setup.sh(linux/macos)。  安装完成之后，进入解压文件 bin 目录下，执行如下命令： ohpm-repo -v 终端输出为版本号（如：1.0.1），则表示安装成功。     若想在其他目录使用 ohpm-repo，请将 ohpm-repo工具包解压目录中 bin 目录的路径配置到系统环境变量 path 中。   在启动 ohpm-repo 前还需要先按照如下方式完成配置修改，进入 ohpm-repo 的安装目录下的 conf 目录，打开 config.yaml 配置文件； 检查 listen 配置，当配置为 localhost:8088 时表示仅支持监听本机地址；如果希望局域网内其他机器均可访问，则建议修改 listen 配置为监听所有地址： listen: 0.0.0.0:8088 检查是否配置了 store.plugin_config.server，若没有配置，则在运行时该配置会自动设置成 listen 配置的值；若 listen 配置为监听所有地址 listen: 0.0.0.0:8088，则该值需要配置为详细地址，如： store:\n  plugin_name: ohpm-repo-plugin-fs\n  plugin_config:\n      path: ./storage\n      server: <此处需要根据实际情况进行配置>  如果为ohpm-repo服务配置了反向代理服务器，则该地址需要填写为反向代理服务器的地址。     config.yaml中各项配置的详细描述请见：配置文件   
+如何启动
+完成配置修改后，进入安装 bin 目录下，执行如下命令，启动 ohpm-repo：
+ohpm-repo start
+启动成功，将会出现以下日志信息：
+ohpm-repo 首次启动时，默认创建一个管理员账号，账号名称：admin，密码：12345Qq! 。该账号在首次登录时，需要修改其密码，请您修改密码后，重新登录该账号。
+从ohpm-repo获取三方库
+您可以为所有项目配置该私有仓，例如执行以下命令：
+ohpm config set registry <配置的ohpm-repo服务地址>/repos/ohpm\nohpm install
+或者在命令行中配置参数 --registry 使用，例如以下命令：
+ohpm install @ohos/lottie --registry <配置的ohpm-repo服务地址>/repos/ohpm
+<配置的ohpm-repo服务地址> 为配置文件中的 store.plugin_config.server 地址信息，此处需要完整的地址格式，例如：http://127.0.0.1:8088，故 registry 为：http://127.0.0.1:8088/repos/ohpm
+将三方库发布到ohpm-repo
+[h2]使用命令行工具发布
+ 利用工具 ssh-keygen 生成公、私钥，可执行以下命令：ssh-keygen -m PEM -t RSA -b 4096 -f <your_key_path>      <your_key_path>： 配置公钥和私钥的名称和存放路径，仅包含名称时，以当前命令行工作路径为存储目录。 OHPM 包管理器只支持加密密钥认证，请在生成公私钥时输入密码。    示例： ssh-keygen -m PEM -t RSA -b 4096 -f D:\\path\\my_key_path     公钥和私钥存储在 D 盘 的path 目录下，公钥和私钥名称分别为 my_key_path.pub和my_key_path。   
+ 登录 ohpm-repo 私仓服务地址，单击主页右上角的个人中心，新增公钥，将公钥文件（your_publicKey.pub）的内容粘贴到公钥输入框中。 打开命令行工具，执行如下命令设置私钥路径。ohpm config set key_path your_key_path 
+ 登录 ohpm-repo 私仓服务地址，单击主页右上角的个人中心，复制发布码。 
+ 将发布码配置到 .ohpmrc 文件中，可执行如下命令：ohpm config set publish_id <your_publish_id> 
+ 您可以为所有三方库的发布配置该ohpm-repo，并执行ohpm publish <HAR路径>命令发布HAR，<HAR路径>指向的文件后缀需为 .har文件的具体路径。例如执行以下命令：ohpm config set publish_registry <配置的ohpm-repo服务地址>/repos/ohpm\nohpm publish demo.har 或在命令行中配置参数 --publish_registry 使用，例如以下命令： ohpm publish demo.har --publish_registry <配置的ohpm-repo服务地址>/repos/ohpm 
+命令行工具支持发布 HAR 包和 由 HSP 模块打包出来的 TGZ 包，TGZ 包的发布流程与 HAR 包一致。更多详细内容请参考：开发及引用共享包。
+[h2]使用Web页面发布
+在Web页面用管理员账号登录ohpm-repo，在个人中心 > 仓库管理中，点击管理三方包 > 上传三方包。

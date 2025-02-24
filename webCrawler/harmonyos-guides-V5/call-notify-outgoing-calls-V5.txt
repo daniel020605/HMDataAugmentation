@@ -1,0 +1,13 @@
+向系统通知去电消息
+基本概念
+向系统通知去电消息是Call Kit提供的能力之一，用于收到网络音视频去电消息之后，开发者可以通过调用对应接口以便系统正确展示去电横幅通知。
+场景介绍
+应用在收到网络音视频去电消息后，应用内部建立需通话连接，建立成功后需调用此接口通知voipCall模块去电以便系统展示横幅，携带通话信息，详情见VoipCallAttribute。为保证用户头像可以正常显示，头像图片大小需控制在100Kb以内。为了保证用户头像显示清晰，请传入的头像像素固定为32vp。
+接口说明
+通知去电消息，使用Promise异步回调，具体API说明详见接口文档。
+接口名
+描述
+reportOutgoingCall(voipCallAttribute: VoipCallAttribute): Promise<ErrorReason>
+向系统通知去电，需携带详细信息。
+开发示例
+import { image } from '@kit.ImageKit';\nimport { voipCall } from '@kit.CallKit';\nimport { resourceManager } from '@kit.LocalizationKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';\nimport { UIAbility } from '@kit.AbilityKit';\nimport { pushService } from '@kit.PushKit';\n\ninterface Content {\n  data: string;\n  callId: string;\n}\n\nexport default class VoipExtAbility extends UIAbility {\n  onCreate(): void {\n    hilog.info(0x0000, 'testTag', 'VoipExtAbility onCreate.');\n    pushService.receiveMessage('VoIP', this, async (data) => {\n      let content: Content = JSON.parse(data.data);\n      let callId: string = content.callId;\n\n      hilog.info(0x0000, 'testTag', 'Get voip message successfully: %{public}s', callId);\n\n      // 此处为用户头像，需要创建PixelMap类型\n      const resourceMgr : resourceManager.ResourceManager = this.context.resourceManager;\n      const fileData : Uint8Array = await resourceMgr.getRawFileContent('example.png');\n      const buffer = fileData.buffer;\n      const imageSource : image.ImageSource = image.createImageSource(buffer);\n      const pixelMap : image.PixelMap = await imageSource.createPixelMap();\n      if (pixelMap) {\n        pixelMap.getImageInfo((err, imageInfo) => {\n          if (imageInfo) {\n            hilog.info(0x0000, 'testTag', `DemoPushMessageAbility imageInfo: ${imageInfo.size.width} * ${imageInfo.size.height}.`);\n          }\n        });\n      }\n\n      // 构建通话详细信息的对象\n      let callInfo: voipCall.VoipCallAttribute = {\n        callId: callId,\n        voipCallType: voipCall.VoipCallType.VOIP_CALL_VOICE,\n        userName: \"name\",\n        userProfile: pixelMap,\n        abilityName: 'ability',\n        voipCallState: voipCall.VoipCallState.VOIP_CALL_STATE_DIALING\n      };\n\n      // 通知去电消息\n      let error = await voipCall.reportOutgoingCall(callInfo);\n      if (error != voipCall.ErrorReason.ERROR_NONE) {\n        hilog.error(0x0000, 'testTag', 'Failed to report outgoing call: %{public}d', error);\n        return;\n      }\n      hilog.info(0x0000, 'testTag', 'Get voip message end.');\n    });\n    hilog.info(0x0000, 'testTag', 'Succeeded in registering VoIP.');\n  }\n}

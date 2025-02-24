@@ -1,0 +1,13 @@
+@typescript-eslint/func-call-spacing
+禁止或者要求函数名与函数名后面的括号之间加空格。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/func-call-spacing\": \"error\"\n  }\n}
+选项
+详情请参考@typescript-eslint/func-call-spacing选项。
+正例
+function fn() {\n  console.log('hello');\n}\n\n// 默认不允许函数名称和左括号之间有空格。\nfn();
+反例
+function fn() {\n  console.log('hello');\n}\n\n// 默认不允许函数名称和左括号之间有空格。\nfn ();\n\nfn\n();
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

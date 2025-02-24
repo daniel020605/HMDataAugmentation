@@ -1,0 +1,5 @@
+断点续传
+场景介绍
+在多任务并发情况或网络中断需要接续上次任务的情况，用户可定义TransferRange的from和to属性，截取下载内容，并拼接到文件。
+开发步骤；
+ 导入模块。import { rcp } from '@kit.RemoteCommunicationKit';\nimport { BusinessError } from '@kit.BasicServicesKit';  发起请求。\"http://www.example.com\"请根据实际情况替换为想要请求的URL地址。const session = rcp.createSession();\nlet kHttpServerAddress = \"http://www.example.com/fetch\";\nconst request = new rcp.Request(kHttpServerAddress, \"GET\");\nrequest.transferRange = { from: 20, to: 100 };\n//发起请求\nsession.fetch(request).then(\n  (rep: rcp.Response) => {\n    console.info(`Response succeeded: ${rep}`);\n  }\n).catch((err: BusinessError) => {\n  console.error(`Response err: Code is ${err.code}, message is ${err.message}`);\n}\n);\n//处理响应\nconst resp = session.fetch(request);\nlet content: rcp.RequestContent;\ncontent = `${kHttpServerAddress} Successfully resumed transfer from breakpoint: ${resp}`;\nconsole.info(`${content }`);  

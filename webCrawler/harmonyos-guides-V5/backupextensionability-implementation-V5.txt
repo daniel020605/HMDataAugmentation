@@ -1,0 +1,25 @@
+BackupExtensionAbility的实现
+开发者可以在BackupExtension.ts文件中自定义类继承BackupExtensionAbility，通过重写其中的onBackup和onRestore方法，自定义应用数据的转换和迁移。终端设备从HarmonyOS升级到HarmonyOS NEXT数据迁移场景中，onRestore回调接口中的参数bundleVersion.name的前缀为“0.0.0.0”。
+onRestore 接口是同步接口，其内部所有的异步操作请进行同步等待。
+以下步骤以空工程为例，介绍如何实现BackupExtensionAbility：
+在entry/src/main/ets/目录下，点击 New > Directory 创建backupExtension目录。 点击entry/src/main/ets/backupExtension/目录，点击 New > File 创建BackupExtension.ets文件。  参考示例代码实现BackupExtensionAbility，应用的数据转换和迁移逻辑，请在指定位置填充实现。 import { BackupExtensionAbility, BundleVersion } from '@kit.CoreFileKit';\n\nconst TAG = `BackupExtensionAbility`;\n\n/**\n * serviceExt进程入口\n */\nexport default class BackupExtension extends  BackupExtensionAbility {\n  onBackup () {\n    console.log(TAG,`onBackup ok`);\n  }\n\n  /**\n   * 数据恢复处理接口。接口是同步接口，其内部所有的异步操作请进行同步等待。\n   *\n   * @param bundleVersion 版本信息\n   */\n  async onRestore (bundleVersion : BundleVersion): Promise<void> {\n    console.log(TAG, `onRestore ok ${JSON.stringify(bundleVersion)}`);\n    if (bundleVersion.name.startsWith(\"0.0.0.0\")){\n      // 在此处实现终端设备从HarmonyOS 4.0升级到HarmonyOS NEXT后，应用数据的转换和迁移\n      // 涉及异步操作请进行同步等待\n      console.log(TAG, `HarmonyOS to HarmonyOS NEXT scenario`);\n    } else {\n      // 在此处实现从HarmonyOS NEXT设备迁移到HarmonyOS NEXT设备后，应用数据的处理。无特殊要求，可以空实现\n      // 涉及异步操作请进行同步等待\n      console.log(TAG, `Other scenario`);\n    }\n  }\n}  单个应用设定的最长数据迁移时间为十五分钟，超过十五分钟还未完成应用数据迁移的应用，应用数据迁移会失败。  
+APK应用沙箱目录与备份恢复目录映射关系见下表中所示：
+APK应用沙箱目录
+备份恢复目录
+备份恢复目录获取方式
+/data/user_de/{userId}/{APK包名}/
+/data/storage/el1/base/.backup/restore/{APK包名}/de/
+this.context.area = contextConstant.AreaMode.EL1;
+let deSourcePath = this.context.backupDir + \"restore/{APK包名}/de/\"
+/data/user/{userId}/{APK包名}/
+/data/storage/el2/base/.backup/restore/{APK包名}/ce/
+this.context.area = contextConstant.AreaMode.EL2;
+let ceSourcePath = this.context.backupDir + \"restore/{APK包名}/ce/\"
+/data/media/{userId}/Android/data/{APK包名}/
+/data/storage/el2/base/.backup/restore/{APK包名}/A/data/
+this.context.area = contextConstant.AreaMode.EL2;
+let dataSourcePath = this.context.backupDir + \"restore/{APK包名}/A/data/\"
+/data/media/{userId}/Android/obb/{APK包名}/
+/data/storage/el2/base/.backup/restore/{APK包名}/A/obb/
+this.context.area = contextConstant.AreaMode.EL2;
+let obbSourcePath = this.context.backupDir + \"restore/{APK包名}/A/obb/\"

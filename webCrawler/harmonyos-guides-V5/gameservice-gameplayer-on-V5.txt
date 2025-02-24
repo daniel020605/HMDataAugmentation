@@ -1,0 +1,7 @@
+注册事件监听
+为及时感知游戏过程中的游戏账号信息变化，您需要注册事件监听接口，可以监听玩家在欢迎横幅切换/删除游戏账号事件、或玩家在游戏内切换游戏账号事件。若监听到事件，则应重新执行unionLogin登录逻辑。如果游戏有session或其他用户缓存，则需在重新执行unionLogin登录逻辑前清除本地缓存信息。
+前提条件
+已实现初始化。
+开发步骤
+调用on接口注册playerChanged事件监听。
+private onPlayerChangedEventCallback(result: gamePlayer.PlayerChangedResult) {\n  if (result.event === gamePlayer.PlayerChangedEvent.SWITCH_GAME_ACCOUNT) {\n     // ...\n    // 游戏号已切换，完成本地缓存清理工作后，再次调用unionLogin接口等\n  }\n}\n// ...\n// 调用on接口注册playerChanged事件监听\ntry {\n  gamePlayer.on('playerChanged', this.onPlayerChangedEventCallback);\n  hilog.info(0x0000, 'testTag', `Succeeded in registering.`);\n} catch (error) {\n  let err = error as BusinessError;\n  hilog.error(0x0000, 'testTag', `Failed to register. Code: ${err.code}, message: ${err.message}`);\n}

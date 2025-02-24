@@ -1,0 +1,14 @@
+开发准备
+请先参考“应用开发准备”完成基本准备工作及指纹配置，再继续进行以下开发活动。
+创建游戏应用时，“应用分类”请选择“游戏”类型。
+获取游戏密钥
+游戏创建后会为游戏分配游戏公钥和游戏私钥。
+ 登录AppGallery Connect网站，选择“我的项目”，在项目列表选择要查询信息的项目及项目下的游戏。 选择“构建 > 游戏服务”，记录下游戏私钥和游戏公钥。 
+配置APP ID和Client ID
+ 登录AppGallery Connect平台，在“我的项目”中选择目标应用，获取“项目设置 > 常规 > 应用”的APP ID和Client ID。 在工程的entry模块module.json5文件中，新增metadata并配置client_id和app_id，同时新增requestPermissions并配置网络权限。如下所示：\"module\": {\n  \"name\": \"entry\",\n  \"type\": \"xxx\",\n  \"description\": \"xxxx\",\n  \"mainElement\": \"xxxx\",\n  \"deviceTypes\": [],\n  \"pages\": \"xxxx\",\n  \"abilities\": [],\n  \"metadata\": [ // 配置如下信息\n    {\n      \"name\": \"client_id\",\n      \"value\": \"xxxxxx\"  // 配置为前面步骤中获取的Client ID\n    },\n    {\n      \"name\": \"app_id\",\n      \"value\": \"xxxxxx\"  // 配置为前面步骤中获取的APP ID\n    }\n  ],\n  \"requestPermissions\": [   // 配置网络权限\n    {\n        \"name\": \"ohos.permission.INTERNET\"\n    }\n  ]\n} 
+配置APP ID映射关系
+单机游戏必须配置APP ID映射关系，在调用unionLogin后，可将返回的teamPlayerId作为玩家标识。
+若HarmonyOS NEXT游戏想要实现转移功能，且HarmonyOS NEXT游戏未上架、HarmonyOS游戏已上架，开发者需在AGC控制台配置APP ID的映射关系。
+ 登录AppGallery Connect平台，在“我的项目”中选择待配置的项目及项目下的应用，左侧菜单选择“构建 > 游戏服务”，在右侧点击“新增配置”。 在弹出的“新增配置信息”窗口中填写真实有效的APP ID信息，并选择待转移的玩家标识，完成后点击“确定”。      由于playerId替换为openId的过渡方案，导致部分HarmonyOS游戏的玩家标识类型存在playerId与openId混用的情况，例如A玩家使用openId，B玩家使用playerId。建议开发者选择其一作为转移标识，例如选择openId作为转移标识（gamePlayerId=openId），若能通过gamePlayerId在原系统中找到玩家记录，推断该玩家使用openId作为玩家标识。反之，推测该玩家可能使用playerId作为玩家标识，或该玩家可能为新用户，此时携带gamePlayerId调用转换ID接口获取playerId等信息。若playerId能在原系统中找到玩家记录，表明该玩家是使用playerId作为玩家标识的老用户，否则该玩家为新用户，在原系统中无历史游戏进度。 若HarmonyOS游戏使用unionId作为玩家标识，建议开发者选择openId作为转移标识（gamePlayerId=openId），此时携带gamePlayerId调用转换ID接口获取unionId等信息，若unionId未在原系统中找到玩家记录，推断该玩家为新用户。    请确保游戏APP ID映射关系配置正确，并在上架HarmonyOS NEXT游戏前完成转移功能的自验证。 
+实名认证
+发布地为中国境内（不包含中国香港、中国澳门、中国台湾）的游戏必须要进行用户账号实名认证。按照国家新闻出版署规定，所有网络游戏必须接入国家新闻出版署网络游戏防沉迷实名认证系统。Game Service Kit提供了华为账号登录时的实名认证功能，您只需向当地的新闻出版局申请接入网络游戏防沉迷实名认证系统，并获取“bizID（游戏备案识别码）”，再将bizID配置到AGC控制台，华为将为您的游戏自动对接国家新闻出版署的实名认证系统并开启强制实名认证，无需您进行额外的开发。具体操作请参见版署实名认证申请。

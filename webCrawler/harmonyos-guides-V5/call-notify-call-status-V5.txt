@@ -1,0 +1,14 @@
+向系统通知通话状态变化
+基本概念
+向系统通知通话状态变化是Call Kit提供的能力之一，用于应用通话状态改变时，向系统通知对应状态变化，系统根据收到的状态变化作出响应处理。
+场景介绍
+您的应用需要在通话接听成功后上报VOIP_CALL_STATE_ACTIVE状态，同时系统会创建一个全屏界面用于显示您应用的被叫接听界面。您需要在通话结束后上报VOIP_CALL_STATE_DISCONNECTED状态，系统收到通话断开状态后才会销毁全屏界面。
+如果用户长时间未接听，也需要上报VOIP_CALL_STATE_DISCONNECTED状态，系统收到通话断开状态后才会取消横幅通知展示。
+接口说明
+通知VoIP通话状态变化，使用Promise异步回调，具体API说明详见接口文档。
+接口名
+描述
+reportCallStateChange(callId: string, callState: VoipCallState): Promise<void>
+向系统通知通话状态变化。
+开发示例
+import { voipCall } from '@kit.CallKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';\n\nvoipCall.reportCallStateChange(\"callId123\", voipCall.VoipCallState.VOIP_CALL_STATE_ACTIVE).then(() => {\n  hilog.info(0x0000, 'testTag', `Succeeded in reporting call state change.`);\n});

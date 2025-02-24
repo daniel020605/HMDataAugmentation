@@ -1,0 +1,16 @@
+开发准备
+环境准备
+使用Ubuntu 64位运行Tools下载中tools_omg模型转换工具。推荐使用Ubuntu 16.04及以上版本、MacOS 10.14及以上版本、Window 10及以上版本安装应用开发环境DevEco Studio。准备训练好的tools_omg模型转换工具生成的离线模型或者从Model Zoo中选择合适的模型。
+下载Tools
+Tools名称
+Tools说明
+Tools下载
+SHA256校验码
+轻量化工具
+包名：tools_dopt
+对原始模型进行轻量化，以减少模型体积及加快模型推理速度。
+DDK_tools_5.0.1.0 next
+3a7190aa56cff27f1135c4892ee57cfac955a820d150924a8a3fa9333dc85a18
+OMG工具
+包名：tools_omg
+模型转换工具。

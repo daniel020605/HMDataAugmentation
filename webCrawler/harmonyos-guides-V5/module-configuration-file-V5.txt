@@ -1,0 +1,338 @@
+module.json5配置文件
+配置文件示例
+先通过一个示例，整体认识一下module.json5配置文件。
+{\n  \"module\": {\n    \"name\": \"entry\",\n    \"type\": \"entry\",\n    \"description\": \"$string:module_desc\",\n    \"mainElement\": \"EntryAbility\",\n    \"deviceTypes\": [\n      \"tv\",\n      \"tablet\"\n    ],\n    \"deliveryWithInstall\": true,\n    \"installationFree\": false,\n    \"pages\": \"$profile:main_pages\",\n    \"virtualMachine\": \"ark\",\n    \"metadata\": [\n      {\n        \"name\": \"string\",\n        \"value\": \"string\",\n        \"resource\": \"$profile:distributionFilter_config\"\n      }\n    ],\n    \"abilities\": [\n      {\n        \"name\": \"EntryAbility\",\n        \"srcEntry\": \"./ets/entryability/EntryAbility.ts\",\n        \"description\": \"$string:EntryAbility_desc\",\n        \"icon\": \"$media:layered_image\",\n        \"label\": \"$string:EntryAbility_label\",\n        \"startWindowIcon\": \"$media:icon\",\n        \"startWindowBackground\": \"$color:start_window_background\",\n        \"exported\": true,\n        \"skills\": [\n          {\n            \"entities\": [\n              \"entity.system.home\"\n            ],\n            \"actions\": [\n              \"ohos.want.action.home\"\n            ]\n          }\n        ]\n      }\n    ],\n    \"requestPermissions\": [\n      {\n        \"name\": \"ohos.abilitydemo.permission.PROVIDER\",\n        \"reason\": \"$string:reason\",\n        \"usedScene\": {\n          \"abilities\": [\n            \"FormAbility\"\n          ],\n          \"when\": \"inuse\"\n        }\n      }\n    ]\n  },\n  \"targetModuleName\": \"feature\",\n  \"targetPriority\": 50,\n  \"isolationMode\": \"nonisolationFirst\"\n}
+配置文件标签
+module.json5配置文件包含以下标签。
+表1 module.json5配置文件标签说明
+标识当前Module的名称，确保该名称在整个应用中唯一。命名规则如下 ：
+- 由字母、数字和下划线组成，且必须以字母开头。
+- 最大长度31字节。
+应用升级时允许修改该名称，但需要应用适配Module相关数据目录的迁移，详见文件管理接口。
+标识当前Module的类型。支持的取值如下：
+- entry：应用的主模块。
+- feature：应用的动态特性模块。
+- har：静态共享包模块。
+- shared：动态共享包模块。
+标识当前Module可以运行在哪类设备上。
+说明：
+当存在多个模块时，各模块中的配置可以不一致，但必须包含所需的设备类型以确保正常运行。
+标识当前Module是否在用户主动安装的时候安装，即该Module对应的HAP是否跟随应用一起安装。
+- true：主动安装时安装。
+- false：主动安装时不安装。
+标识当前Module是否支持免安装特性。
+- true：表示支持免安装特性，且符合免安装约束。
+- false：表示不支持免安装特性。
+说明：
+当bundleType为元服务时，该字段需要配置为true。反之，该字段需要配置为false。
+标识当前Module的多进程配置项。支持的取值如下：
+- nonisolationFirst：优先在非独立进程中运行。
+- isolationFirst：优先在独立进程中运行。
+- isolationOnly：只在独立进程中运行。
+- nonisolationOnly：只在非独立进程中运行。
+标识当前HAP/HSP是否由打包工具生成哈希值。当配置为true时，如果系统OTA升级时应用versionCode保持不变，可根据哈希值判断应用是否需要升级。
+该字段仅在app.json5文件中的generateBuildHash字段为false时使能。
+说明：
+该字段仅对预置应用生效。
+标识libs库是否以压缩存储的方式打包到HAP。
+- true：libs库以压缩方式存储。
+- false：libs库以不压缩方式存储。
+用于区分同应用不同HAP下的.so文件，以防止.so冲突。
+- true：当前HAP的.so文件会储存在libs目录中以Module名命名的路径下。
+- false：当前HAP的.so文件会直接储存在libs目录中。
+deviceTypes标签
+表2 deviceTypes标签说明
+deviceTypes示例：
+{\n  \"module\": {\n    \"name\": \"myHapName\",\n    \"type\": \"feature\",\n    \"deviceTypes\" : [\n       \"tablet\"\n    ]\n  }\n}
+pages标签
+该标签是一个profile文件资源，用于指定描述页面信息的配置文件。
+{\n  \"module\": {\n    // ...\n    \"pages\": \"$profile:main_pages\", // 通过profile下的资源文件配置\n  }\n}
+在开发视图的resources/base/profile下面定义配置文件main_pages.json，其中文件名\"main_pages\"可自定义，需要和pages标签指定的信息对应。配置文件中列举了当前应用组件中的页面信息，包含页面的路由信息和显示窗口相关的配置。
+表3 pages标签说明
+表4 window标签说明
+{\n  \"src\": [\n    \"pages/index/mainPage\",\n    \"pages/second/payment\",\n    \"pages/third/shopping_cart\",\n    \"pages/four/owner\"\n  ],\n  \"window\": {\n    \"designWidth\": 720,\n    \"autoDesignWidth\": false\n  }\n}
+metadata标签
+该标签标识HAP的自定义元信息，标签值为数组类型，包含name、value、resource三个子标签。
+表5 metadata标签说明
+resource属性值使用“$profile:文件名”的方式指定文件所在位置，$profile表示资源的路径为工程中的/resources/base/profile目录下。例如$profile:shortcuts_config指定了/resources/base/profile/shortcuts_config.json文件。
+{\n  \"module\": {\n    \"metadata\": [{\n      \"name\": \"module_metadata\",\n      \"value\": \"a test demo for module metadata\",\n      \"resource\": \"$profile:shortcuts_config\"\n    }],\n\n    \"abilities\": [{\n      \"metadata\": [{\n        \"name\": \"ability_metadata\",\n        \"value\": \"a test demo for ability\",\n        \"resource\": \"$profile:config_file\"\n      },\n      {\n        \"name\": \"ability_metadata_2\",\n        \"value\": \"a string test\",\n        \"resource\": \"$profile:config_file\"\n      }],\n    }],\n\n    \"extensionAbilities\": [{\n      \"metadata\": [{\n        \"name\": \"extensionAbility_metadata\",\n        \"value\": \"a test for extensionAbility\",\n        \"resource\": \"$profile:config_file\"\n      },\n      {\n        \"name\": \"extensionAbility_metadata_2\",\n        \"value\": \"a string test\",\n        \"resource\": \"$profile:config_file\"\n      }],\n    }]\n  }\n}
+abilities标签
+abilities标签描述UIAbility组件的配置信息，标签值为数组类型，该标签下的配置只对当前UIAbility生效。
+表6 abilities标签说明
+标识当前UIAbility组件的启动模式，支持的取值如下：
+- multiton：多实例模式，每次启动创建一个新实例。
+- singleton：单实例模式，仅第一次启动创建新实例。
+- specified：指定实例模式，运行时由开发者决定是否创建新实例。
+- standard：multiton的曾用名，效果与多实例模式一致。
+标识当前UIAbility组件自定义的权限信息。当其他应用访问该UIAbility时，需要申请相应的权限信息。
+一个数组元素为一个权限名称。通常采用反向域名格式（不超过255字节），取值为系统预定义的权限。
+标识当前UIAbility组件是否可以被其他应用调用。
+- true：表示可以被其他应用调用。
+- false：表示不可以被其他应用调用，包括无法被aa工具命令拉起应用。
+标识当前UIAbility组件是否支持跨端迁移。
+- true：表示支持迁移。
+- false：表示不支持迁移。
+标识当前UIAbility组件或ExtensionAbility组件能够接收的Want特征集，为数组格式。
+配置规则：
+- 对于Entry类型的HAP，应用可以配置多个具有入口能力的skills标签（即配置了ohos.want.action.home和entity.system.home）。
+- 对于Feature类型的HAP，只有应用可以配置具有入口能力的skills标签，服务不允许配置。
+标识当前UIAbility组件的长时任务集合，指定用于满足特定类型的长时任务。
+长时任务类型有如下：
+- dataTransfer：通过网络/对端设备进行数据下载、备份、分享、传输等。
+- audioPlayback：音频播放。
+- audioRecording：录音。
+- location：定位、导航。
+- bluetoothInteraction：蓝牙扫描、连接、传输（穿戴）。
+- multiDeviceConnection：多设备互联。
+- taskKeeping：计算。
+标识当前UIAbility组件启动页面背景颜色资源文件的索引，取值为长度不超过255字节的字符串。
+取值示例：$color:red。
+标识当前UIAbility组件销毁后，是否从任务列表中移除任务。
+- true表示销毁后移除任务。
+- false表示销毁后不移除任务。
+标识当前UIAbility组件启动时的方向。支持的取值如下：
+- unspecified：未指定方向，由系统自动判断显示方向。
+- landscape：横屏。
+- portrait：竖屏。
+- follow_recent：跟随背景窗口的旋转模式。
+- landscape_inverted：反向横屏。
+- portrait_inverted：反向竖屏。
+- auto_rotation：随传感器旋转。
+- auto_rotation_landscape：传感器横屏旋转，包括横屏和反向横屏。
+- auto_rotation_portrait：传感器竖屏旋转，包括竖屏和反向竖屏。
+- auto_rotation_restricted：传感器开关打开，方向可随传感器旋转。
+- auto_rotation_landscape_restricted：传感器开关打开，方向可随传感器旋转为横屏， 包括横屏和反向横屏。
+- auto_rotation_portrait_restricted：传感器开关打开，方向随可传感器旋转为竖屏， 包括竖屏和反向竖屏。
+- locked：传感器开关关闭，方向锁定。
+- auto_rotation_unspecified：受开关控制和由系统判定的自动旋转模式。
+- follow_desktop：跟随桌面的旋转模式。
+标识当前UIAbility组件所支持的窗口模式。支持的取值如下：
+- fullscreen：全屏模式。
+- split：分屏模式。
+- floating：悬浮窗模式。
+该标签可缺省，缺省值为
+[\"fullscreen\", \"split\", \"floating\"]。
+标识当前UIAbility组件支持的最大的窗口宽度，宽度单位为vp。
+最小取值为minWindowWidth，最大取值为平台支持的最大窗口宽度。窗口尺寸可以参考窗口大小限制。
+标识当前UIAbility组件支持的最小的窗口宽度， 宽度单位为vp。
+最小取值为平台支持的最小窗口宽度，最大取值为maxWindowWidth。窗口尺寸可以参考窗口大小限制。
+标识当前UIAbility组件支持的最大的窗口高度， 高度单位为vp。
+最小取值为minWindowHeight，最大取值为平台支持的最大窗口高度。 窗口尺寸可以参考窗口大小限制。
+标识当前UIAbility组件支持的最小的窗口高度， 高度单位为vp。
+最小取值为平台支持的最小窗口高度，最大取值为maxWindowHeight。窗口尺寸可以参考窗口大小限制。
+标识当前UIAbility组件是否支持在检测到应用故障后，恢复到应用原界面。
+- true：支持检测到出现故障后，恢复到原界面。
+- false：不支持检测到出现故障后，恢复到原界面。
+标识组件能否运行在独立的进程中。
+- true：表示能运行在独立的进程中。
+- false：表示不能运行在独立的进程中。
+标识当前UIAbility组件是否支持从dock区域隐藏图标。
+- true：表示在dock区域隐藏。
+- false：表示不能在dock区域隐藏。
+标识当前UIAbility组件多窗布局方向：
+- default：缺省值，参数不配置默认值，建议其他应用类配置。
+- portrait：多窗布局方向为竖向，建议竖向游戏类应用配置。
+- landscape：多窗布局方向为横向，配置后支持横屏悬浮窗和上下分屏，建议横向游戏类应用配置。
+- landscape_auto：多窗布局动态可变为横向，需要配合API enableLandScapeMultiWindow/disableLandScapeMultiWindow使用，建议视频类应用配置。
+abilities示例：
+{\n  \"abilities\": [{\n    \"name\": \"EntryAbility\",\n    \"srcEntry\": \"./ets/entryability/EntryAbility.ets\",\n    \"launchType\":\"singleton\",\n    \"description\": \"$string:description_main_ability\",\n    \"icon\": \"$media:layered_image\",\n    \"label\": \"Login\",\n    \"permissions\": [],\n    \"metadata\": [],\n    \"exported\": true,\n    \"continuable\": true,\n    \"skills\": [{\n      \"actions\": [\"ohos.want.action.home\"],\n      \"entities\": [\"entity.system.home\"],\n      \"uris\": []\n    }],\n    \"backgroundModes\": [\n      \"dataTransfer\",\n      \"audioPlayback\",\n      \"audioRecording\",\n      \"location\",\n      \"bluetoothInteraction\",\n      \"multiDeviceConnection\",\n      \"wifiInteraction\",\n      \"voip\",\n      \"taskKeeping\"\n    ],\n    \"startWindowIcon\": \"$media:icon\",\n    \"startWindowBackground\": \"$color:red\",\n    \"removeMissionAfterTerminate\": true,\n    \"orientation\": \"$string:orientation\",\n    \"supportWindowMode\": [\"fullscreen\", \"split\", \"floating\"],\n    \"maxWindowRatio\": 3.5,\n    \"minWindowRatio\": 0.5,\n    \"maxWindowWidth\": 2560,\n    \"minWindowWidth\": 1400,\n    \"maxWindowHeight\": 300,\n    \"minWindowHeight\": 200,\n    \"excludeFromDock\": false,\n    \"preferMultiWindowOrientation\": \"default\",\n    \"isolationProcess\": false,\n    \"continueType\": [\n      \"continueType1\",\n      \"continueType2\"\n    ],\n    \"continueBundleName\": [\n      \"com.example.myapplication1\",\n      \"com.example.myapplication2\"\n    ],\n    \"process\": \":processTag\"\n  }]\n}
+skills标签
+该标签标识UIAbility组件或者ExtensionAbility组件能够接收的Want的特征。
+表7 skills标签说明
+标识能够接收的Action值集合，取值通常为系统预定义的action值，也允许自定义。
+一个skill中不建议配置多个action，否则可能导致无法匹配预期场景。
+标识能够接收的Entity值的集合。
+一个skill中不建议配置多个entity，否则可能导致无法匹配预期场景。
+标识当前UIAbility组件自定义的权限信息。当其他应用访问该UIAbility时，需要申请相应的权限信息。
+一个数组元素为一个权限名称。通常采用反向域名格式（不超过255字节），取值为系统预定义的权限。
+表8 uris标签说明
+标识URI的主机地址部分，该字段在scheme存在时才有意义。常见的方式：
+- 域名方式，如example.com。
+- IP地址方式，如10.10.10.1。
+skills示例：
+{\n  \"abilities\": [\n    {\n      \"skills\": [\n        {\n          \"actions\": [\n            \"ohos.want.action.home\"\n          ],\n          \"entities\": [\n            \"entity.system.home\"\n          ],\n          \"uris\": [\n            {\n              \"scheme\":\"http\",\n              \"host\":\"example.com\",\n              \"port\":\"80\",\n              \"path\":\"path\",\n              \"type\": \"text/*\",\n              \"linkFeature\": \"Login\"\n            }\n          ],\n          \"permissions\": [],\n          \"domainVerify\": false\n        }\n      ]\n    }\n  ]\n}
+extensionAbilities标签
+描述extensionAbilities的配置信息，标签值为数组类型，该标签下的配置只对当前extensionAbilities生效。
+表9 extensionAbilities标签说明
+标识当前ExtensionAbility组件的类型，支持的取值如下：
+- form：卡片的ExtensionAbility。
+- workScheduler：延时任务的ExtensionAbility。
+- inputMethod：输入法的ExtensionAbility。
+- accessibility：辅助能力的ExtensionAbility。
+- staticSubscriber：静态广播的ExtensionAbility。
+- wallpaper：壁纸的ExtensionAbility。
+- backup：数据备份的ExtensionAbility。
+- window：该ExtensionAbility会在启动过程中创建一个window，为开发者提供界面开发。开发者开发出来的界面将通过UIExtensionComponent控件组合到其他应用的窗口中。
+- thumbnail：获取文件缩略图的ExtensionAbility，开发者可以对自定义文件类型的文件提供缩略。
+- preview：该ExtensionAbility会将文件解析后在一个窗口中显示，开发者可以通过将此窗口组合到其他应用窗口中。
+- print：打印框架的ExtensionAbility。
+- push：推送的ExtensionAbility。
+- driver：驱动框架的ExtensionAbility。
+- remoteNotification：远程通知的ExtensionAbility。
+- remoteLocation：远程定位的ExtensionAbility。
+- voip：网络音视频通话的ExtensionAbility。
+- action：自定义操作业务模板的ExtensionAbility，为开发者提供基于UIExtension的自定义操作业务模板。
+- embeddedUI：嵌入式UI扩展能力，提供跨进程界面嵌入的能力。
+- insightIntentUI：为开发者提供能被小艺意图调用，以窗口形态呈现内容的扩展能力。
+- ads：广告业务的ExtensionAbility，与AdComponent控件组合使用，将广告页面展示到其他应用中。仅支持设备厂商使用。
+- photoEditor：图片编辑业务的ExtensionAbility，为开发者提供基于UIExtension的图片编辑业务模版。
+- appAccountAuthorization：应用账号授权扩展能力的ExtensionAbility，用于处理账号授权请求，比如账号登录授权。
+- autoFill/password：用于账号和密码自动填充业务的ExtensionAbility，支持数据的保存、填充能力。
+- hms/account：应用账号管理能力的ExtensionAbility。
+- autoFill/smart：用于情景化场景自动填充业务的ExtensionAbility，支持数据的保存、填充能力。
+- uiService：弹窗服务组件，在启动过程中会创建window，并支持双向通信。
+- recentPhoto：最近照片推荐的ExtensionAbility。
+标识当前ExtensionAbility组件自定义的权限信息。当其他应用访问该ExtensionAbility时，需要申请相应的权限信息。
+一个数组元素为一个权限名称。通常采用反向域名格式（最大255字节），取值为系统预定义的权限。
+标识当前ExtensionAbility组件提供的数据URI，取值为长度不超过255字节的字符数组，用反向域名的格式表示。
+说明：
+该标签在type为dataShare类型的ExtensionAbility时，不可缺省。
+标识当前ExtensionAbility组件能够接收的Want的特征集。
+配置规则：entry包可以配置多个具有入口能力的skills标签（配置了ohos.want.action.home和entity.system.home）的ExtensionAbility，其中第一个配置了skills标签的ExtensionAbility中的label和icon作为服务或应用的label和icon。
+说明：
+服务的Feature包不能配置具有入口能力的skills标签。
+应用的Feature包可以配置具有入口能力的skills标签。
+标识当前ExtensionAbility组件的元信息。
+说明：
+该标签在type为form时，不可缺省，且必须存在一个name为ohos.extension.form的对象值，其对应的resource值不能缺省，为卡片的二级资源引用。
+标识当前ExtensionAbility组件是否可以被其他应用调用。
+- true：表示可以被其他应用调用。
+- false：表示不可以被其他应用调用，包括无法被aa工具命令拉起应用。
+标识当前ExtensionAbility组件的多进程实例模型,当前只对UIExtensionAbility以及从UIExtensionAbility扩展的ExtensionAbility生效。
+- instance：表示该ExtensionAbility每个实例一个进程。
+- type：表示该ExtensionAbility实例都运行在同一个进程里，与其他ExtensionAbility分离进程。
+- bundle：表示该ExtensionAbility实例都运行在应用统一进程里，与其他配置了bundle模型的ExtensionAbility共进程。
+extensionAbilities示例：
+{\n  \"extensionAbilities\": [\n    {\n      \"name\": \"FormName\",\n      \"srcEntry\": \"./form/MyForm.ts\",\n      \"icon\": \"$media:icon\",\n      \"label\" : \"$string:extension_name\",\n      \"description\": \"$string:form_description\",\n      \"type\": \"form\",\n      \"permissions\": [\"ohos.abilitydemo.permission.PROVIDER\"],\n      \"readPermission\": \"\",\n      \"writePermission\": \"\",\n      \"exported\": true,\n      \"uri\":\"scheme://authority/path/query\",\n      \"skills\": [{\n        \"actions\": [],\n        \"entities\": [],\n        \"uris\": [],\n        \"permissions\": []\n      }],\n      \"metadata\": [\n        {\n          \"name\": \"ohos.extension.form\",\n          \"resource\": \"$profile:form_config\",\n        }\n      ],\n      \"extensionProcessMode\": \"instance\",\n      \"dataGroupIds\": [\n        \"testGroupId1\"\n      ]\n    }\n  ]\n}
+shortcuts标签
+shortcuts标识应用的快捷方式信息。标签值为数组，包含四个子标签shortcutId、label、icon、wants。
+metadata中指定shortcut信息，其中：
+ name：指定shortcuts的名称，使用ohos.ability.shortcuts作为shortcuts信息的标识。 resource：指定shortcuts信息的资源位置。 
+表11 shortcuts标签说明
+ 在/resources/base/profile/目录下配置shortcuts_config.json配置文件。 {\n  \"shortcuts\": [\n    {\n      \"shortcutId\": \"id_test1\",\n      \"label\": \"$string:shortcut\",\n      \"icon\": \"$media:aa_icon\",\n      \"wants\": [\n        {\n          \"bundleName\": \"com.ohos.hello\",\n          \"moduleName\": \"entry\",\n          \"abilityName\": \"EntryAbility\",\n          \"parameters\": {\n            \"testKey\": \"testValue\"\n          }\n        }\n      ]\n    }\n  ]\n} 在module.json5配置文件的abilities标签中，针对需要添加快捷方式的UIAbility进行配置metadata标签，使shortcut配置文件对该UIAbility生效。 {\n  \"module\": {\n    // ...\n    \"abilities\": [\n      {\n        \"name\": \"EntryAbility\",\n        \"srcEntry\": \"./ets/entryability/EntryAbility.ets\",\n        // ...\n        \"skills\": [\n          {\n            \"entities\": [\n              \"entity.system.home\"\n            ],\n            \"actions\": [\n              \"ohos.want.action.home\"\n            ]\n          }\n        ],\n        \"metadata\": [\n          {\n            \"name\": \"ohos.ability.shortcuts\",\n            \"resource\": \"$profile:shortcuts_config\"\n          }\n        ]\n      }\n    ]\n  }\n} 
+[h2]wants标签
+此标签用于标识快捷方式内定义的目标wants信息集合。
+表11-1 wants标签说明
+data标签示例：
+{\n  \"wants\": [\n    {\n      \"bundleName\": \"com.ohos.hello\",\n      \"moduleName\": \"entry\",\n      \"abilityName\": \"EntryAbility\",\n      \"parameters\": {\n        \"testKey\": \"testValue\"\n      }\n    }\n  ]\n}
+distributionFilter标签
+该标签用于定义HAP对应的细分设备规格的分发策略，以便在应用市场进行云端分发应用包时做精准匹配。
+该标签从API10及以后版本开始生效，API9及以前版本使用distroFilter标签。
+ 适用场景： 当一个工程中存在多个Entry，且多个Entry配置的deviceTypes存在交集时，则需要通过该标签进行区分。比如下面的两个Entry都支持tablet类型，就需要通过该标签进行区分。 // entry1支持的设备类型\n{\n  \"module\": {\n    \"name\": \"entry1\",\n    \"type\": \"entry\",\n    \"deviceTypes\" : [\n      \"tv\",\n      \"tablet\"\n    ]\n  }\n} // entry2支持的设备类型\n{\n  \"module\": {\n    \"name\": \"entry2\",\n    \"type\": \"entry\",\n    \"deviceTypes\" : [\n      \"car\",\n      \"tablet\"\n    ]\n  }\n} 配置规则： 该标签支持配置四个属性，包括屏幕形状(screenShape)、窗口分辨率(screenWindow)、屏幕像素密度(screenDensity )、设备所在国家与地区(countryCode)，详见下表。 在分发应用包时，通过deviceTypes与这四个属性的匹配关系，唯一确定一个用于分发到设备的HAP。  如果需要配置该标签，则至少包含一个属性。 如果一个Entry中配置了任意一个或多个属性，则其他Entry也必须包含相同的属性。 screenShape和screenWindow属性仅用于轻量级智能穿戴设备。  配置方式： 该标签需要配置在/resources/base/profile资源目录下，并在metadata的resource字段中引用。 
+表12 distributionFilter标签配置说明
+[h2]screenShape标签
+表13 screenShape标签说明
+标识条件属性的过滤规则。
+- exclude：表示需要排除的value属性。
+- include：表示需要包含的value属性。
+[h2]screenWindow标签
+表14 screenWindow标签说明
+标识条件属性的过滤规则。当前取值仅支持“include”。
+- include：表示需要包含的value属性。
+[h2]screenDensity标签
+表15 screenDensity标签说明
+标识条件属性的过滤规则。
+- exclude：表示需要排除的value属性。
+- include：表示需要包含的value属性。
+标识屏幕的像素密度（dpi :Dot Per Inch）。支持的取值如下：
+- sdpi：表示小规模的屏幕密度（Small-scale Dots per Inch），适用于dpi取值为(0,120]的设备。
+- mdpi：表示中规模的屏幕密度（Medium-scale Dots Per Inch），适用于dpi取值为(120,160]的设备。
+- ldpi：表示大规模的屏幕密度（Large-scale Dots Per Inch），适用于dpi取值为(160,240]的设备。
+- xldpi：表示大规模的屏幕密度（Extra Large-scale Dots Per Inch），适用于dpi取值为(240,320]的设备。
+- xxldpi：表示大规模的屏幕密度（Extra Extra Large-scale Dots Per Inch），适用于dpi取值为(320，480]的设备。
+- xxxldpi：表示大规模的屏幕密度（Extra Extra Extra Large-scale Dots Per Inch），适用于dpi取值为(480, 640]的设备。
+[h2]countryCode标签
+表16 countryCode标签说明
+标识条件属性的过滤规则。
+- exclude：表示需要排除的value属性。
+- include：表示需要包含的value属性。
+示例如下：
+ 在开发视图的resources/base/profile下面定义配置文件distributionFilter_config.json，文件名可以自定义。 {\n  \"distributionFilter\": {\n    \"screenShape\": {\n      \"policy\": \"include\",\n      \"value\": [\n        \"circle\",\n        \"rect\"\n      ]\n    },\n    \"screenWindow\": {\n      \"policy\": \"include\",\n      \"value\": [\n        \"454*454\",\n        \"466*466\"\n      ]\n    },\n    \"screenDensity\": {\n      \"policy\": \"exclude\",\n      \"value\": [\n        \"ldpi\",\n        \"xldpi\"\n      ]\n    },\n    \"countryCode\": { // 支持在中国分发\n      \"policy\": \"include\",\n      \"value\": [\n        \"CN\"\n      ]\n    }\n  }\n} 在module.json5配置文件的module标签中定义metadata信息。 {\n  \"module\": {\n    // ...\n    \"metadata\": [\n      {\n        \"name\": \"ohos.module.distribution\",\n        \"resource\": \"$profile:distributionFilter_config\",\n      }\n    ]\n  }\n} 
+testRunner标签
+此标签用于支持对测试框架的配置。
+表17 testRunner标签说明
+testRunner标签示例：
+{\n  \"module\": {\n    // ...\n    \"testRunner\": {\n      \"name\": \"myTestRunnerName\",\n      \"srcPath\": \"etc/test/TestRunner.ts\"\n    }\n  }\n}
+atomicService标签
+此标签用于支持对元服务的配置。此标签仅在app.json中bundleType指定为atomicService时使能。
+表18 atomicService标签说明
+表19 preloads标签说明
+atomicService标签示例：
+{\n  \"module\": {\n    \"atomicService\": {\n      \"preloads\":[\n        {\n          \"moduleName\":\"feature\"\n        }\n      ]\n    }\n  }\n}
+dependencies标签
+此标签标识模块运行时依赖的共享库列表。
+表20 dependencies标签说明
+dependencies标签示例：
+{\n  \"module\": {\n    \"dependencies\": [\n      {\n        \"bundleName\":\"com.share.library\",\n        \"moduleName\": \"library\",\n        \"versionCode\": 10001\n      }\n    ]\n  }\n}
+proxyData标签
+此标签标识模块提供的数据代理列表，仅限entry和feature配置。
+表21 proxyData标签说明
+proxyData标签示例：
+{\n  \"module\": {\n    \"proxyData\": [\n      {\n        \"uri\":\"datashareproxy://com.ohos.datashare/event/Meeting\",\n        \"requiredReadPermission\": \"ohos.permission.GET_BUNDLE_INFO\",\n        \"requiredWritePermission\": \"ohos.permission.GET_BUNDLE_INFO\",\n        \"metadata\": {\n          \"name\": \"datashare_metadata\",\n          \"resource\": \"$profile:datashare\"\n        }\n      }\n    ]\n  }\n}
+routerMap标签
+此标签标识模块配置的路由表的路径。
+routerMap配置文件描述模块的路由表信息，routerMap标签值为数组类型。
+表22 routerMap标签说明
+示例如下：
+ 在开发视图的resources/base/profile下面定义配置文件，文件名可以自定义，例如：router_map.json。 {\n  \"routerMap\": [\n    {\n      \"name\": \"DynamicPage1\",\n      \"pageSourceFile\": \"src/main/ets/pages/pageOne.ets\",\n      \"buildFunction\": \"myFunction\",\n      \"customData\": {\n        \"stringKey\": \"data1\",\n        \"numberKey\": 123,\n        \"booleanKey\": true,\n        \"objectKey\": {\n          \"name\": \"test\"\n        },\n        \"arrayKey\": [\n          {\n            \"id\": 123\n          }\n        ]\n      }\n    },\n    {\n      \"name\": \"DynamicPage2\",\n      \"pageSourceFile\": \"src/main/ets/pages/pageTwo.ets\",\n      \"buildFunction\": \"myBuilder\",\n      \"data\": {\n        \"key1\": \"data1\",\n        \"key2\": \"data2\"\n      }\n    }\n  ]\n} 在module.json5配置文件的module标签中定义routerMap字段，指向定义的路由表配置文件，例如：\"routerMap\": \"$profile:router_map\"。 
+[h2]data标签
+此标签用于支持在路由表中配置自定义的字符串数据。
+data标签示例：
+{\n  \"routerMap\": [\n    {\n      \"name\": \"DynamicPage\",\n      \"pageSourceFile\": \"src/main/ets/pages/pageOne.ets\",\n      \"buildFunction\": \"myBuilder\",\n      \"data\": {\n        \"key1\": \"data1\",\n        \"key2\": \"data2\"\n      }\n    }\n  ]\n}
+[h2]customData标签
+此标签用于支持在路由表中配置自定义数据。
+customData对象内部，可以填入任意类型的自定义数据。
+customData标签示例：
+{\n  \"routerMap\": [\n    {\n      \"name\": \"DynamicPage\",\n      \"pageSourceFile\": \"src/main/ets/pages/pageOne.ets\",\n      \"buildFunction\": \"myBuilder\",\n      \"customData\": {\n        \"stringKey\": \"data1\",\n        \"numberKey\": 123,\n        \"booleanKey\": true,\n        \"objectKey\": {\n          \"name\": \"test\"\n        },\n        \"arrayKey\": [\n          {\n            \"id\": 123\n          }\n        ]\n      }\n    }\n  ]\n}
+appEnvironments标签
+此标签标识模块配置的应用环境变量。
+表23 appEnvironments标签说明
+appEnvironments标签示例：
+{\n  \"module\": {\n    \"appEnvironments\": [\n      {\n        \"name\":\"name1\",\n        \"value\": \"value1\"\n      }\n    ]\n  }\n}
+definePermissions标签
+该标签仅支持系统资源hap定义权限，不支持应用自定义权限。权限定义方式参见系统资源权限定义。
+表24 definePermissions标签说明
+标识权限的授予方式，支持如下两种授予模式如下：
+- system_grant：安装后系统自动授予该权限。
+- user_grant：使用时动态申请，用户授权后才可使用。
+标识权限限制类别，可选值如下：
+- system_core：系统核心权限。
+- system_basic：系统基础权限。
+- normal：普通权限。所有应用允许申请的权限。
+definePermissions标签示例：
+{\n  \"module\" : {\n    \"definePermissions\": [\n      {\n        \"name\": \"ohos.abilitydemo.permission.PROVIDER\",\n        \"grantMode\": \"system_grant\",\n        \"availableLevel\": \"system_core\",\n        \"provisionEnable\": true,\n        \"distributedSceneEnable\": false,\n        \"label\": \"$string:EntryAbility_label\"\n      }\n    ]\n  }\n}
+hnpPackages标签
+该标签标识应用包含的Native软件包信息。
+表25 hnpPackages标签说明
+标识Native软件包类型。支持的取值如下：
+- public：公有类型。
+- private：私有类型。
+hnpPackages示例：
+{\n  \"module\" : {\n    \"hnpPackages\": [\n      {\n        \"package\": \"hnpsample.hnp\",\n        \"type\": \"public\"\n      }\n    ]\n  }\n}
+fileContextMenu标签
+该标签用来标识当前HAP的右键菜单配置项，是一个profile文件资源，用于指定描述应用注册右键菜单配置文件。
+fileContextMenu标签示例
+{\n  \"module\": {\n    // ...\n    \"fileContextMenu\": \"$profile:menu\" // 通过profile下的资源文件配置\n  }\n}
+在开发视图的resources/base/profile下面定义配置文件menu.json，其中文件名“menu.json”可自定义，需要和fileContextMenu标签指定的信息对应。配置文件中描述了当前应用注册的右键菜单的项目和响应行为。
+配置文件根节点名称为fileContextMenu，为对象数组，标识当前module注册右键菜单的数量。（单模块和单应用注册数量不能超过5个，配置超过数量当前只解析随机5个）
+表26 fileContextMenu标签配置说明
+表27 menuContext标签配置说明
+表示单击如下类型时会触发右键菜单。取值范围如下：
+- 0：空白处
+- 1：文件
+- 2：文件夹
+- 3：文件和文件夹
+表示采用什么方式选择文件或文件夹时，会触发右键菜单。取值范围如下：
+- single：单选
+- multi：多选
+- both：单选或多选
+表示当选中的文件列表里包含指定的文件类型时，显示右键菜单。
+当该字段取值为[\"*\"]时，将会读取fileNotSupportType字段。
+当该字段取值为[]时，将不做任何处理。
+表示当选中的文件列表里包含这些文件类型时，不显示该右键菜单。
+仅当menuKind为1、且fileSupportType为[\"*\"]时，才会读取该字段。
+resources/base/profile路径下的menu.json资源文件示例如下：
+{\n  \"fileContextMenu\": [\n    {\n      \"abilityName\": \"EntryAbility\",\n      \"menuItem\": \"$string:module_desc\",\n      \"menuHandler\": \"openCompress\",\n      \"menuContext\": [\n        {\n          \"menuKind\": 0\n        },\n        {\n          \"menuKind\": 1,\n          \"menuRule\": \"both\",\n          \"fileSupportType\": [\n            \".rar\",\n            \".zip\"\n          ],\n          \"fileNotSupportType\": [\n            \"\"\n          ]\n        },\n        {\n          \"menuKind\": 2,\n          \"menuRule\": \"single\"\n        },\n        {\n          \"menuKind\": 3\n        }\n      ]\n    }\n  ]\n}
+响应行为
+应用进行右键扩展菜单注册后，在文件管理器通过右键操作拉起菜单，该菜单中会有“更多”选项。点击“更多”选项后，会出现注册后的menuItem列表，点击任意一个选项后，文件管理器默认通过startAbility的方式拉起三方应用，除了指定三方应用的包名和ability名之外，want中的parameter中，也会传入如下字段：
+表28 want中parameter字段说明

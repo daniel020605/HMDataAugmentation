@@ -1,0 +1,13 @@
+@previewer/no-unallowed-decorator-on-root-component
+对于@Entry组件，不允许使用@Consume、@Link、@ObjectLink、@Prop注解；对于@Preview组件，建议使用一个定义了完整的、合法的、不依赖运行时的默认值的父组件作为预览该组件的容器。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@previewer/no-unallowed-decorator-on-root-component\": \"warn\"\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+@Entry\n@Component\nstruct LinkSampleContainer {\n  @State message: string = 'Hello World';\n  build() {\n    Row() {\n      LinkSample({message: this.message})\n    }\n  }\n}\n@Component\nstruct LinkSample {\n  @Link message: string;\n  build() {\n    Row() {\n      Text(this.message)\n    }\n  }\n}
+反例
+@Preview\n@Component\nstruct LinkSample {\n  @Link message: string;\n  build() {\n    Row() {\n      Text(this.message)\n    }\n  }\n}
+规则集
+plugin:@previewer/recommended\nplugin:@previewer/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

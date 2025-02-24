@@ -1,0 +1,17 @@
+ohpm-repo pack
+打包ohpm-repo部署根目录文件。
+说明：ohpm-repo 1.1.0 版本开始支持此命令。
+命令格式
+ohpm-repo pack <deploy_root>
+功能描述
+用于打包ohpm-repo<deploy_root>目录下的 conf ，db 和 meta 目录。
+如果数据存储使用的是 ohpm-repo-plugin-mysqlDB，则命令会打包 conf 和 meta 目录。如果数据存储使用的是 ohpm-repo-plugin-filedb，则命令打包conf ，db 和 meta 目录。在命令执行过程中，会先将ohpm-repo服务设置为只读模式，等打包完成以后，再将ohpm-repo服务重置为读写模式。打包产物可通过 ohpm-repo restore 命令自动解压至 <deploy_root> 目录。
+参数
+[h2]<deploy_root>
+类型： String必填参数
+您必须在 pack 命令后面配置 <deploy_root> 参数，指定待打包的ohpm-repo部署根目录。
+启动ohpm-repo成功后，可以通过查看 ohpm-repo 工具中生成的 .deploy_root 文件查看部署根目录。
+示例
+执行以下命令：
+ohpm-repo pack ohpm-repo pack D:\\repo-server\\ohpm-repo-tmp
+结果示例：

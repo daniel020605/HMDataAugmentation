@@ -1,0 +1,9 @@
+调用函数
+设置云函数配置项
+\"requestPermissions\": [\n  {\n    \"name\": \"ohos.permission.INTERNET\"\n  }\n]
+查询函数名和版本
+在函数的触发器页面点击“HTTP触发器”，查看“触发URL”的后缀，获取触发器的标识，格式为“函数名-版本号”。如下图所示，“myhandlerxxxx-$latest”即为HTTP触发器标识，其中“myhandlerxxxx”为函数名，“$latest”为版本号。
+应用中调用函数
+ 在项目中导入cloudFunction组件。import { cloudFunction } from '@kit.CloudFoundationKit';\nimport { BusinessError } from '@kit.BasicServicesKit'; 
+ 调用call()方法设置函数，在方法中传入函数名称，返回调用结果。        （可选）通过设置timeout属性对云函数设置超时时长，单位为毫秒。 （可选）通过设置version属性对云函数设置函数版本号，默认为最新版本'$latest'。 （可选）如果函数有入参，可以将data参数转化为JSON对象或JSON字符串传入，如果没有参数则不传。  cloudFunction.call({\n  name: 'myhandlerxxxx',\n  version: '$latest', // 如果不传入版本号，默认为“$latest”。\n  timeout: 10 * 1000, // 单位为毫秒，默认为70*1000毫秒。\n  data: {\n    param1: 'val1',\n    param2: 'val2'\n  }\n}).then((value: cloudFunction.FunctionResult) => {\n  console.info(`Succeeded in calling the function, result: ${JSON.stringify(value.result)}`);\n}).catch((err: BusinessError) => {\n  console.error(`Failed to call the function, Code: ${err.code}, message: ${err.message}`);\n}) 或者 cloudFunction.call({\n  name: 'myhandlerxxxx',\n  version: '$latest',\n  timeout: 10 * 1000,\n  data: {\n    param1: 'val1',\n    param2: 'val2'\n  }\n}, (err: BusinessError, value: cloudFunction.FunctionResult) => {\n  if (err) {\n    console.error(`Failed to call the function, Code: ${err.code}, message: ${err.message}`);\n    return;\n  }\n  console.info(`Succeeded in calling the function, result: ${JSON.stringify(value.result)}`);\n}) 
+ 如果您需要关注函数的返回值，可调用result属性获取。let returnValue = value.result; value为步骤2中调用call()方法返回的cloudFunction.FunctionResult对象，返回值为云函数body返回的值，以测试函数时返回的结果为例，value.result = {\"simple\":\"example\"}。 

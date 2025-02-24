@@ -1,0 +1,14 @@
+@performance/hp-arkui-remove-redundant-state-var
+建议移除不关联UI组件的状态变量设置。
+通用丢帧场景下，建议优先修改。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@performance/hp-arkui-remove-redundant-state-var\": \"suggestion\",\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+@Entry\n@Component\nstruct MyComponent {\n  @State message: string = \"\";\n\n  appendMsg(newMsg: String) : string {\n    this.message += newMsg;\n    return this.message;\n  }\n\n  build() {\n    Column() {\n      Stack() {\n        Text(this.message)\n      }\n      .backgroundColor(\"black\")\n      .width(200)\n      .height(400)\n      Button(\"move\")\n    }\n  }\n}
+反例
+@Entry\n@Component\nstruct MyComponent {\n  @State message: string = \"\";\n  appendMsg(newMsg: String) : string {\n    this.message += newMsg;\n    return this.message;\n  }\n  build() {\n    Column() {\n      Stack() {\n      }\n      .backgroundColor(\"black\")\n      .width(200)\n      .height(400)\n      Button(\"move\")\n    }\n  }\n}
+规则集
+plugin:@performance/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

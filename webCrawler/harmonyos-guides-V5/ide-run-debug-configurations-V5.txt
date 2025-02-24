@@ -1,0 +1,44 @@
+自定义运行/调试配置
+设置调试代码类型
+点击Run > Edit Configurations > Debugger，选择相应模块，设置Debug type即可。
+调试类型
+调试代码
+Detect Automatically
+新建工程默认调试器选项。根据工程模块及其依赖的模块涉及的编程语言，自动启动对应的调试器。
+ArkTS/JS
+调试ArkTS代码调试JS代码
+Native
+仅调试C/C++代码
+Dual(ArkTS/JS + Native)
+调试C/C++工程的ArkTS/JS和C/C++代码
+设置HAP安装方式
+在调试阶段，HAP在设备上的安装方式有2种，可以根据实际需要进行设置。
+安装方式一：先卸载应用/元服务后，再重新安装，该方式会清除设备上的所有应用/元服务缓存数据。从DevEco Studio 4.1 Canary2版本开始，支持当代码无变化时，不进行推包安装。即根据模块有无变化来判断是否重新推送安装模块包，在运行调试时仅将有变化的模块及依赖它的模块重新推送安装至设备上。如entry依赖了HSP模块，当HSP模块有变化，运行调试时将同时推送安装HSP模块和entry模块。 安装方式二：采用覆盖安装方式，不卸载应用/元服务，该方式会保留应用/元服务的缓存数据。
+设置方法如下：
+单击Run > Edit Configurations，设置指定模块的HAP安装方式，勾选“Keep Application Data”，则表示采用覆盖安装方式，保留应用/元服务缓存数据。
+从DevEco Studio NEXT Developer Beta1开始，默认勾选“Keep Application Data”。
+[h2]配置自定义调试参数
+如果未进行自定义，将按默认配置安装和运行应用。如果开发者需要对应用安装、运行等流程增加参数配置，可在“Installation Options”和“Launch Options”下进行配置。
+Installation OptionsDebugLine Support：勾选Enable DebugLine表示在build产物中系统组件增加debugline属性，用于开启ArkUI Inspector源码跳转功能。Install Flags：输入bm install命令相关的选项，请参见bm install 参数。如可以设置“-w 360”，表示将超时等待时间设置为360秒。 Launch OptionsLaunch：指定在安装应用后启动的Ability。Nothing：只安装不启动任何Ability。Default Ability：默认的EntryAbility。Stage模型：module.json5文件中配置了“skills”属性的第一个ability；若无配置“skills”属性的ability，则取“mainElement”指定的ability（该ability需存在于“abilities”数组内）；若“mainElement”未指定，则取“abilities”数组内的第一个ability。 FA模型：config.json文件中配置了“skills”属性的第一个ability；若无配置“skills”属性的ability，则取“mainAbility”指定的ability（该ability需存在于“abilities”数组内）；若“mainAbility”未指定，则取“abilities”数组内的第一个ability。 Specified Ability：工程中的ExtensionAbility。您可以在工程中添加ExtensionAbility，如需了解开发ExtensionAbility，请参阅ExtensionAbility开发指导。 如果您的工程中包含ExtensionAbility，可以选择Specified Ability，在Ability指定您希望调试的ExtensionAbility进行调试。    Launch Flags：输入aa start命令相关的选项，请参见aa start 参数。 
+[h2]配置环境变量
+如果开发者需要配置和管理应用开发环境，以及控制应用程序的行为，可在“Environment Variables”下配置环境变量。
+点击按钮，新增一行配置项。当前支持以下配置项：
+ASAN_OPTIONS：在运行时配置ASan的行为，包括设置检测级别、输出格式、内存错误报告的详细程度等，具体可配置的value请参见表1。若开发者未配置log_exe_name、abort_on_error，DevEco Studio将自动填充。因NEXT.0.0.68及以上版本的ROM不再需要log_path参数，DevEco Studio 5.0.3.810及以上版本不再自动填充该值，5.0.3.810以下的版本会自动填充。如果需要在NEXT.0.0.68以下版本的ROM中配置ASAN_OPTIONS，请手动配置log_path，否则检测出的内存错误日志无法上报。ASAN_OPTIONS是应用级别的，只在entry和feature模块中配置生效，HAR/HSP模块配置不生效。
+当配置Environment Variables后，“Keep Application Data”覆盖安装不生效。
+环境变量配置完成后，需确保环境变量已勾选，勾选后点击Apply才可生效。
+开启异常检测
+如需开启异常检测相关能力，请点击Diagnostics。当前支持Runtime Sanitization，勾选Address Sanitizer表示启用ASan功能，具体请参见ASan检测。
+多模块调试
+[h2]安装多个模块
+如果一个工程中同一个设备存在多个模块（如存在entry和feature模块），且存在模块间的调用时，在调试阶段需要同时安装多个模块的Hap包到设备中。此时，需要在Deploy Multi Hap中选择多个模块，启动调试时，DevEco Studio会将所有的模块都安装到设备上。
+从DevEco Studio V3.1 Release开始支持。
+设置方法如下：
+单击Run > Edit Configurations，在Deploy Multi Hap中，勾选Deploy Multi Hap Packages，选择多个模块。
+[h2]自动安装依赖
+如果一个工程中entry/feature/HSP模块直接依赖其他HAR/HSP模块（如entry模块依赖HSP模块）及间接依赖其他模块（如entry模块依赖HAR模块，HAR又依赖HSP模块）时，在调试阶段需要同时安装模块包及其所有依赖模块的包到设备中。此时，可以设置Auto Dependencies，启动调试时会自动将所有依赖的模块都安装到设备上。
+从DevEco Studio 4.1 Canary1版本开始支持。
+设置方法如下：
+单击Run > Edit Configurations，在General中，勾选Auto Dependencies。
+在Before launch窗格中，您可以点击添加应用启动前的任务。
+也可以点击移除任务。
+在勾选Auto Dependencies后，可以同时勾选Deploy Multi Hap Packages，从而达到推送所有包的效果。

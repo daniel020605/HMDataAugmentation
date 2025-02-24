@@ -1,0 +1,24 @@
+删除关键资产(C/C++)
+接口介绍
+可通过API文档查看删除关键资产的接口OH_Asset_Remove的详细介绍。
+在删除关键资产时，关键资产属性的内容参数如下表所示：
+下表中名称包含“ASSET_TAG_DATA_LABEL”的关键资产属性，用于存储业务自定义信息，其内容不会被加密，请勿存放个人数据。
+关键资产附属信息，内容由业务自定义且有完整性保护。
+说明： API12前长度为1-512字节。
+关键资产附属信息，内容由业务自定义且有完整性保护。
+说明： API12前长度为1-512字节。
+关键资产附属信息，内容由业务自定义且有完整性保护。
+说明： API12前长度为1-512字节。
+关键资产附属信息，内容由业务自定义且有完整性保护。
+说明： API12前长度为1-512字节。
+关键资产附属信息，内容由业务自定义且无完整性保护。
+说明： API12前长度为1-512字节。
+关键资产附属信息，内容由业务自定义且无完整性保护。
+说明： API12前长度为1-512字节。
+关键资产附属信息，内容由业务自定义且无完整性保护。
+说明： API12前长度为1-512字节。
+关键资产附属信息，内容由业务自定义且无完整性保护。
+说明： API12前长度为1-512字节。
+代码示例
+删除别名是demo_alias的关键资产。
+ 在CMake脚本中链接相关动态库 target_link_libraries(entry PUBLIC libasset_ndk.z.so) 参考如下示例代码，进行业务功能开发 #include <string.h>\n\n#include \"asset/asset_api.h\"\n\nvoid RemoveAsset() {\n   static const char *ALIAS = \"demo_alias\";\n   Asset_Blob alias = { (uint32_t)(strlen(ALIAS)), (uint8_t *)ALIAS };\n\n   Asset_Attr attr[] = {\n      { .tag = ASSET_TAG_ALIAS, .value.blob = alias }, // 此处指定别名删除，也可不指定别名删除多条数据\n   };\n\n   int32_t ret = OH_Asset_Remove(attr, sizeof(attr) / sizeof(attr[0]));\n   if (ret == ASSET_SUCCESS) {\n      // Asset removed successfully.\n   } else {\n      // Failed to remove Asset.\n   }\n} 

@@ -1,0 +1,30 @@
+显示我的位置
+场景介绍
+本章节将向您介绍如何开启和展示“我的位置”功能，“我的位置”指的是进入地图后点击“我的位置”显示当前位置点的功能。效果如下：
+接口说明
+“我的位置”功能主要由MapComponentController的方法实现，更多接口及使用方法请参见接口文档。
+方法名
+描述
+setMyLocationEnabled(myLocationEnabled: boolean): void
+“我的位置”图层功能开关，默认使用系统的连续定位能力显示用户位置。开关打开后，“我的位置”按钮默认显示在地图的右下角。点击“我的位置”按钮，将会在屏幕中心显示当前定位，以蓝色圆点的形式呈现。
+setMyLocationControlsEnabled(enabled: boolean): void
+设置是否启用“我的位置”按钮。只显示按钮，在不开启“我的位置”图层功能的情况下，点击按钮没反应。
+setMyLocation(location: geoLocationManager.Location): void
+设置“我的位置”坐标。
+如果不使用Map Kit提供的默认定位行为，可以通过Location Kit获取用户位置后，传给Map Kit。
+setMyLocationStyle(style: mapCommon.MyLocationStyle): Promise<void>
+设置“我的位置”样式。
+on(type: 'myLocationButtonClick', callback: Callback<void>): void
+监听“我的位置”按钮点击事件。
+off(type: 'myLocationButtonClick', callback?: Callback<void>): void
+取消监听“我的位置”按钮点击事件。
+开发步骤
+[h2]开启“我的位置”按钮
+ 启用“我的位置”之前，您需要确保您的应用可以获取用户定位。获取用户定位有两种方式：方式一（推荐）：使用安全控件LocationButton。 方式二：申请ohos.permission.LOCATION和ohos.permission.APPROXIMATELY_LOCATION权限，您需要在module.json5配置文件中声明所需要的权限，具体可参考声明权限。 {\n  \"module\" : {\n    // ...\n    \"requestPermissions\":[\n      {\n        // 允许应用在前台运行时获取位置信息\n        \"name\" : \"ohos.permission.LOCATION\",\n        // reason需要在/resources/base/element/string.json中新建\n        \"reason\": \"$string:location_permission\",\n        \"usedScene\": {\n          \"abilities\": [\n            \"EntryAbility\"\n          ],\n          \"when\":\"inuse\"\n        }\n      },\n      {\n        // 允许应用获取设备模糊位置信息\n        \"name\" : \"ohos.permission.APPROXIMATELY_LOCATION\",\n        // reason需要在/resources/base/element/string.json中新建\n        \"reason\": \"$string:approximately_location_permission\",\n        \"usedScene\": {\n          \"abilities\": [\n            \"EntryAbility\"\n          ],\n          \"when\":\"inuse\"\n        }\n      }\n    ]\n  }\n} 初始化地图并获取MapComponentController地图操作类对象。显示地图章节中有详细讲解。 调用mapController对象的setMyLocationEnabled方法启用“我的位置”功能。1）如果是通过方式一申请用户定位权限，可以在点击安全控件后打开地图，并开启“我的位置”功能。 // 启用我的位置图层\nthis.mapController.setMyLocationEnabled(true);\n// 启用我的位置按钮\nthis.mapController.setMyLocationControlsEnabled(true);         2）如果是通过方式二申请用户定位权限，建议在获得用户授权后开启“我的位置”功能。        import { abilityAccessCtrl, bundleManager, common, PermissionRequestResult, Permissions } from '@kit.AbilityKit';\nimport { BusinessError } from '@kit.BasicServicesKit';\n\n// 校验应用是否被授予定位权限，可以通过调用checkAccessToken()方法来校验当前是否已经授权。\nasync checkPermissions(): Promise<boolean> {\n  const permissions: Array<Permissions> = ['ohos.permission.LOCATION', 'ohos.permission.APPROXIMATELY_LOCATION'];\n  for (let permission of permissions) {\n    let grantStatus: abilityAccessCtrl.GrantStatus = await this.checkAccessToken(permission);\n    if (grantStatus === abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED) {\n      // 启用我的位置图层，mapController为地图操作类对象，获取方式详见显示地图章节\n      this.mapController?.setMyLocationEnabled(true);\n      // 启用我的位置按钮\n      this.mapController?.setMyLocationControlsEnabled(true);\n      return true;\n    }\n  }\n  return false;\n}\n\n// 如果没有被授予定位权限，动态向用户申请授权\nrequestPermissions(): void {\n  let atManager: abilityAccessCtrl.AtManager = abilityAccessCtrl.createAtManager();\n  atManager.requestPermissionsFromUser(getContext() as common.UIAbilityContext, ['ohos.permission.LOCATION', 'ohos.permission.APPROXIMATELY_LOCATION'])\n    .then((data: PermissionRequestResult) => {\n      // 启用我的位置图层\n      this.mapController?.setMyLocationEnabled(true);\n    })\n    .catch((err: BusinessError) => {\n      console.error(`Failed to request permissions from user. Code is ${err.code}, message is ${err.message}`);\n    })\n}\n\nasync checkAccessToken(permission: Permissions): Promise<abilityAccessCtrl.GrantStatus> {\n  let atManager: abilityAccessCtrl.AtManager = abilityAccessCtrl.createAtManager();\n  let grantStatus: abilityAccessCtrl.GrantStatus = abilityAccessCtrl.GrantStatus.PERMISSION_DENIED;\n\n  // 获取应用程序的accessTokenID\n  let tokenId: number = 0;\n  let bundleInfo: bundleManager.BundleInfo = await bundleManager.getBundleInfoForSelf(bundleManager.BundleFlag.GET_BUNDLE_INFO_WITH_APPLICATION);\n  console.info('Succeeded in getting Bundle.');\n  let appInfo: bundleManager.ApplicationInfo = bundleInfo.appInfo;\n  tokenId = appInfo.accessTokenId;\n\n  // 校验应用是否被授予权限\n  grantStatus = await atManager.checkAccessToken(tokenId, permission);\n  console.info('Succeeded in checking access token.');\n  return grantStatus;\n}  检查“我的位置”功能是否成功启用。“我的位置”按钮默认显示在地图的右下角。点击“我的位置”按钮，将会在屏幕中心显示当前定位，以蓝色圆点的形式呈现，效果如下图所示，效果根据获取到的用户位置会有变化。  获取用户位置坐标并设置用户的位置。Map Kit默认使用系统的连续定位能力，如果您希望定制显示频率或者精准度，可以调用geoLocationManager相关接口获取用户位置坐标（WGS84坐标系）。注意访问设备的位置信息必须申请权限，并且获得用户授权，详情见geoLocationManager。  下面的示例仅显示一次定位结果，在获取到用户坐标后，调用mapController对象的setMyLocation(location: geoLocationManager.Location)设置用户的位置。setMyLocation接口使用的是WGS84坐标系，如果用户位置在大陆、香港、澳门，需将WGS84坐标转换成GCJ02坐标系，详见坐标转换。        // 需要引入@kit.LocationKit模块\nimport { geoLocationManager } from '@kit.LocationKit';\n// ...\n\n// 获取用户位置坐标\nlet location = await geoLocationManager.getCurrentLocation();\n\n// 设置用户的位置\nthis.mapController.setMyLocation(location);  
+[h2]监听“我的位置”按钮点击事件
+通过调用on(type: 'myLocationButtonClick')方法，设置'myLocationButtonClick'事件监听。设置监听后“我的位置按钮”点击事件自定义，反之不设置则由Map Kit执行点击后默认事件，即地图移动到当前用户位置。
+let callback = () => {\n  console.info(\"myLocationButtonClick\", `myLocationButtonClick`);\n};\nthis.mapEventManager.on(\"myLocationButtonClick\", callback);
+[h2]隐藏“我的位置”按钮
+this.mapController.setMyLocationControlsEnabled(false);
+[h2]自定义位置图标样式
+let style: mapCommon.MyLocationStyle = {\n  anchorU: 0.5,\n  anchorV: 0.5,\n  radiusFillColor: 0xffff0000,\n  // icon为自定义图标资源，使用时需要替换\n  // 图标存放在resources/rawfile，icon参数传入rawfile文件夹下的相对路径\n  icon: 'test.png'\n};\nawait this.mapController.setMyLocationStyle(style);

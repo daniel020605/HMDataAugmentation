@@ -1,0 +1,114 @@
+焦点事件
+基础概念与规范
+[h2]基础概念
+焦点、焦点链和走焦
+ 焦点：指向当前应用界面上唯一的一个可交互元素，当用户使用键盘、电视遥控器、车机摇杆/旋钮等非指向性输入设备与应用程序进行间接交互时，基于焦点的导航和交互是重要的输入手段。 焦点链：在应用的组件树形结构中，当一个组件获得焦点时，从根节点到该组件节点的整条路径上的所有节点都会被视为处于焦点状态，形成一条连续的焦点链。 走焦：指焦点在应用内的组件之间转移的行为。这一过程对用户是透明的，但开发者可以通过监听onFocus（焦点获取）和onBlur（焦点失去）事件来捕捉这些变化。关于走焦的具体方式和规则，详见走焦规范。 
+焦点态
+用来指向当前获焦组件的样式。
+ 显示规则：默认情况下焦点态不会显示，只有当应用进入激活态后，焦点态才会显示。因此，虽然获得焦点的组件不一定显示焦点态（取决于是否处于激活态），但显示焦点态的组件必然是获得焦点的。大部分组件内置了焦点态样式，开发者同样可以使用样式接口进行自定义，一旦自定义，组件将不再显示内置的焦点态样式。在焦点链中，若多个组件同时拥有焦点态，系统将采用子组件优先的策略，优先显示子组件的焦点态，并且仅显示一个焦点态。 进入激活态：仅使用外接键盘按下TAB键时才会进入焦点的激活态，进入激活态后，才可以使用键盘TAB键/方向键进行走焦。首次用来激活焦点态的TAB键不会触发走焦。 退出激活态：当应用收到点击事件时（包括手指触屏的按下事件和鼠标左键的按下事件），焦点的激活态会退出。 
+层级页面
+层级页面是焦点框架中特定容器组件的统称，涵盖Page、Dialog、SheetPage、ModalPage、Menu、Popup、NavBar、NavDestination等。这些组件通常具有以下关键特性：
+ 视觉层级独立性：从视觉呈现上看，这些组件独立于其他页面内容，并通常位于其上方，形成视觉上的层级差异。 焦点跟随：此类组件在首次创建并展示之后，会立即将应用内焦点抢占。 走焦范围限制：当焦点位于这些组件内部时，用户无法通过键盘按键将焦点转移到组件外部的其他元素上，焦点移动仅限于组件内部。 
+在一个应用程序中，任何时候都至少存在一个层级页面组件，并且该组件会持有当前焦点。当该层级页面关闭或不再可见时，焦点会自动转移到下一个可用的层级页面组件上，确保用户交互的连贯性和一致性。
+Popup组件在focusable属性（组件属性，非通用属性）为false的时候，不会有第2条特性。
+NavBar、NavDestination没有第3条特性，对于它们的走焦范围，是与它们的首个父层级页面相同的。
+根容器
+根容器是层级页面内的概念，当某个层级页面首次创建并展示时，根据层级页面的特性，焦点会立即被该页面抢占。此时，该层级页面所在焦点链的末端节点将成为默认焦点，而这个默认焦点通常位于该层级页面的根容器上。
+在缺省状态下，层级页面的默认焦点位于其根容器上，但开发者可以通过defaultFocus属性来自定义这一行为。
+当焦点位于根容器时，首次按下TAB键不仅会使焦点进入激活状态，还会触发焦点向子组件的传递。如果子组件本身也是一个容器，则焦点会继续向下传递，直至到达叶子节点。传递规则是：优先传递给上一次获得焦点的子节点，如果不存在这样的节点，则默认传递给第一个子节点。
+[h2]走焦规范
+根据走焦的触发方式，可以分为主动走焦和被动走焦。
+主动走焦
+指开发者/用户主观行为导致的焦点移动，包括：使用外接键盘的按键走焦（TAB键/Shift+TAB键/方向键）、使用requestFocus申请焦点、clearFocus清除焦点、focusOnTouch点击申请焦点等接口导致的焦点转移。
+ 按键走焦 
+ 前提：当前应用需处于焦点激活态。 范围限制：按键走焦仅在当前获得焦点的层级页面内进行，具体参见“层级页面”中的“走焦范围限制”部分。 按键类型： TAB键：遵循Z字型遍历逻辑，完成当前范围内所有叶子节点的遍历，到达当前范围内的最后一个组件后，继续按下TAB键，焦点将循环至范围内的第一个可获焦组件，实现循环走焦。 Shift+TAB键：与TAB键具有相反的焦点转移效果。 方向键（上、下、左、右）：遵循十字型移动策略，在单层容器中，焦点的转移由该容器的特定走焦算法决定。若算法判定下一个焦点应落在某个容器组件上，系统将采用中心点距离优先的算法来进一步确定容器内的目标子节点。 走焦算法：每个可获焦的容器组件都有其特定的走焦算法，用于定义焦点转移的规则。 子组件优先：当子组件处理按键走焦事件，父组件将不再介入。 
+ requestFocus 详见主动获焦失焦，可以主动将焦点转移到指定组件上。 不可跨窗口，不可跨ArkUI实例申请焦点，可以跨层级页面申请焦点。 clearFocus 详见clearFocus，会清除当前层级页面中的焦点，最终焦点停留在根容器上。 focusOnTouch 详见focusOnTouch，使绑定组件具备点击后获得焦点的能力。若组件本身不可获焦，则此功能无效。若绑定的是容器组件，点击后优先将焦点转移给上一次获焦的子组件，否则转移给第一个可获焦的子组件。 
+被动走焦
+被动走焦是指组件焦点因系统或其他操作而自动转移，无需开发者直接干预，这是焦点系统的默认行为。
+目前会被动走焦的机制有：
+ 组件删除：当处于焦点状态的组件被删除时，焦点框架首先尝试将焦点转移到相邻的兄弟组件上，遵循先向后再向前的顺序。若所有兄弟组件均不可获焦，则焦点将释放，并通知其父组件进行焦点处理。 属性变更：若将处于焦点状态的组件的focusable或enabled属性设置为false，或者将visibility属性设置为不可见，系统将自动转移焦点至其他可获焦组件，转移方式与1中相同。 层级页面切换：当发生层级页面切换时，如从一个页面跳转到另一个页面，当前页面的焦点将自动释放，新页面可能会根据预设逻辑自动获得焦点。 Web组件初始化：对于Web组件，当其被创建时，若其设计需要立即获得焦点（如某些弹出框或输入框），则可能触发焦点转移至该Web组件，其行为属于组件自身的行为逻辑，不属于焦点框架的规格范围。 
+[h2]走焦算法
+在焦点管理系统中，每个可获焦的容器都配备有特定的走焦算法，这些算法定义了当使用TAB键、Shift+TAB键或方向键时，焦点如何从当前获焦的子组件转移到下一个可获焦的子组件。
+容器采用何种走焦算法取决于其UX（用户体验）规格，并由容器组件进行适配。目前，焦点框架支持三种走焦算法：线性走焦、投影走焦和自定义走焦。
+线性走焦算法
+线性走焦算法是默认的走焦策略，它基于容器中子节点在节点树中的挂载顺序进行走焦，常用于单方向布局的容器，如Row、Column和Flex容器。运行规则如下：
+ 顺序依赖：走焦顺序完全基于子节点在节点树中的挂载顺序，与它们在界面上的实际布局位置无关。 TAB键走焦：使用TAB键时，焦点将按照子节点的挂载顺序依次遍历。 方向键走焦：当使用与容器定义方向垂直的方向键时，容器不接受该方向的走焦请求。例如，在横向的Row容器中，无法使用方向键进行上下移动。 边界处理：当焦点位于容器的首尾子节点时，容器将拒绝与当前焦点方向相反的方向键走焦请求。例如，焦点在一个横向的Row容器的第一个子节点上时，该容器无法处理方向键左的走焦请求。 
+投影走焦算法
+投影走焦算法基于当前获焦组件在走焦方向上的投影，结合子组件与投影的重叠面积和中心点距离进行胜出判定。该算法特别适用于子组件大小不一的容器，目前仅有配置了wrap属性的Flex组件。运行规则如下：
+ 方向键走焦时，判断投影与子组件区域的重叠面积，在所有面积不为0的子组件中，计算它们与当前获焦组件的中心点直线距离，距离最短的胜出，若存在多个备选，则节点树上更靠前的胜出。若无任何子组件与投影由重叠，说明该容器已经无法处理该方向键的走焦请求。 TAB键走焦时，先使用规格1，按照方向键右进行判定，若找到则成功退出，若无法找到，则将当前获焦子组件的位置模拟往下移动该获焦子组件的高度，然后再按照方向键左进行投影判定，有投影重叠且中心点直线距离最远的子组件胜出，若无投影重叠的子组件，则表示该容器无法处理本次TAB键走焦请求。 Shift+TAB键走焦时，先使用规格1，按照方向键左进行判定，找到则成功退出。若无法找到，则将当前获焦子组件的位置模拟向上移动该获焦子组件的高度，然后再按照方向键右进行投影判定，有投影重叠且中心点直线距离最远的子组件胜出，若无投影重叠的子组件，则表示该容器无法处理本次的Shift+TAB键走焦请求。 
+自定义走焦算法
+由组件自定义的走焦算法，规格由组件定义。
+获焦/失焦事件
+onFocus(event: () => void)
+获焦事件回调，绑定该接口的组件获焦时，回调响应。
+onBlur(event:() => void)
+失焦事件回调，绑定该接口的组件失焦时，回调响应。
+onFocus和onBlur两个接口通常成对使用，来监听组件的焦点变化。
+// xxx.ets\n@Entry\n@Component\nstruct FocusEventExample {\n  @State oneButtonColor: Color = Color.Gray;\n  @State twoButtonColor: Color = Color.Gray;\n  @State threeButtonColor: Color = Color.Gray;\n\n  build() {\n    Column({ space: 20 }) {\n      // 通过外接键盘的上下键可以让焦点在三个按钮间移动，按钮获焦时颜色变化，失焦时变回原背景色\n      Button('First Button')\n        .width(260)\n        .height(70)\n        .backgroundColor(this.oneButtonColor)\n        .fontColor(Color.Black)\n          // 监听第一个组件的获焦事件，获焦后改变颜色\n        .onFocus(() => {\n          this.oneButtonColor = Color.Green;\n        })\n          // 监听第一个组件的失焦事件，失焦后改变颜色\n        .onBlur(() => {\n          this.oneButtonColor = Color.Gray;\n        })\n\n      Button('Second Button')\n        .width(260)\n        .height(70)\n        .backgroundColor(this.twoButtonColor)\n        .fontColor(Color.Black)\n          // 监听第二个组件的获焦事件，获焦后改变颜色\n        .onFocus(() => {\n          this.twoButtonColor = Color.Green;\n        })\n          // 监听第二个组件的失焦事件，失焦后改变颜色\n        .onBlur(() => {\n          this.twoButtonColor = Color.Grey;\n        })\n\n      Button('Third Button')\n        .width(260)\n        .height(70)\n        .backgroundColor(this.threeButtonColor)\n        .fontColor(Color.Black)\n          // 监听第三个组件的获焦事件，获焦后改变颜色\n        .onFocus(() => {\n          this.threeButtonColor = Color.Green;\n        })\n          // 监听第三个组件的失焦事件，失焦后改变颜色\n        .onBlur(() => {\n          this.threeButtonColor = Color.Gray ;\n        })\n    }.width('100%').margin({ top: 20 })\n  }\n}
+上述示例包含以下3步：
+ 应用打开，按下TAB键激活走焦，“First Button”显示焦点态样式：组件外围有一个蓝色的闭合框，onFocus回调响应，背景色变成绿色。 按下TAB键，触发走焦，“Second Button”获焦，onFocus回调响应，背景色变成绿色；“First Button”失焦，onBlur回调响应，背景色变回灰色。 按下TAB键，触发走焦，“Third Button”获焦，onFocus回调响应，背景色变成绿色；“Second Button”失焦，onBlur回调响应，背景色变回灰色。 
+设置组件是否可获焦
+focusable(value: boolean)
+设置组件是否可获焦。
+按照组件的获焦能力可大致分为三类：
+ 默认可获焦的组件，通常是有交互行为的组件，例如Button、Checkbox、TextInput组件，此类组件无需设置任何属性，默认即可获焦。 有获焦能力，但默认不可获焦的组件，典型的是Text、Image组件，此类组件缺省情况下无法获焦，若需要使其获焦，可使用通用属性focusable(true)使能。对于没有配置focusable属性，有获焦能力但默认不可获焦的组件，为其配置onClick或是单指单击的Tap手势，该组件会隐式地成为可获焦组件。如果其focusable属性被设置为false，即使配置了上述事件，该组件依然不可获焦。 无获焦能力的组件，通常是无任何交互行为的展示类组件，例如Blank、Circle组件，此类组件即使使用focusable属性也无法使其可获焦。 
+enabled(value: boolean)
+设置组件可交互性属性enabled为false，则组件不可交互，无法获焦。
+visibility(value: Visibility)
+设置组件可见性属性visibility为Visibility.None或Visibility.Hidden，则组件不可见，无法获焦。
+focusOnTouch(value: boolean)
+设置当前组件是否支持点击获焦能力。
+当某组件处于获焦状态时，将其的focusable属性或enabled属性设置为false，会自动使该组件失焦，然后焦点按照走焦规范将焦点转移给其他组件。
+// xxx.ets\n@Entry\n@Component\nstruct FocusableExample {\n  @State textFocusable: boolean = true;\n  @State textEnabled: boolean = true;\n  @State color1: Color = Color.Yellow;\n  @State color2: Color = Color.Yellow;\n  @State color3: Color = Color.Yellow;\n\n  build() {\n    Column({ space: 5 }) {\n      Text('Default Text')    // 第一个Text组件未设置focusable属性，默认不可获焦\n        .borderColor(this.color1)\n        .borderWidth(2)\n        .width(300)\n        .height(70)\n        .onFocus(() => {\n          this.color1 = Color.Blue;\n        })\n        .onBlur(() => {\n          this.color1 = Color.Yellow;\n        })\n      Divider()\n\n      Text('focusable: ' + this.textFocusable)    // 第二个Text设置了focusable初始为true，focusableOnTouch为true\n        .borderColor(this.color2)\n        .borderWidth(2)\n        .width(300)\n        .height(70)\n        .focusable(this.textFocusable)\n        .focusOnTouch(true)\n        .onFocus(() => {\n          this.color2 = Color.Blue;\n        })\n        .onBlur(() => {\n          this.color2 = Color.Yellow;\n        })\n\n      Text('enabled: ' + this.textEnabled)    // 第三个Text设置了focusable为true，enabled初始为true\n        .borderColor(this.color3)\n        .borderWidth(2)\n        .width(300)\n        .height(70)\n        .focusable(true)\n        .enabled(this.textEnabled)\n        .focusOnTouch(true)\n        .onFocus(() => {\n          this.color3 = Color.Blue;\n        })\n        .onBlur(() => {\n          this.color3 = Color.Yellow;\n        })\n\n      Divider()\n\n      Row() {\n        Button('Button1')\n          .width(140).height(70)\n        Button('Button2')\n          .width(160).height(70)\n      }\n\n      Divider()\n      Button('Button3')\n        .width(300).height(70)\n\n      Divider()\n    }.width('100%').justifyContent(FlexAlign.Center)\n    .onKeyEvent((e) => {\n      // 绑定onKeyEvent，在该Column组件获焦时，按下'F'键，可将第二个Text的focusable置反\n      if (e.keyCode === 2022 && e.type === KeyType.Down) {\n        this.textFocusable = !this.textFocusable;\n      }\n      // 绑定onKeyEvent，在该Column组件获焦时，按下'G'键，可将第三个Text的enabled置反\n      if (e.keyCode === 2023 && e.type === KeyType.Down) {\n        this.textEnabled = !this.textEnabled;\n      }\n    })\n  }\n}
+运行效果：
+上述示例包含以下3步：
+ 第一个Text组件没有设置focusable(true)属性，该Text组件无法获焦。 点击第二个Text组件，由于设置了focusOnTouch(true)，第二个组件获焦。按下TAB键，触发走焦，仍然是第二个Text组件获焦。按键盘F键，触发onKeyEvent，focusable置为false，第二个Text组件变成不可获焦，焦点自动转移，会自动从Text组件寻找下一个可获焦组件，焦点转移到第三个Text组件上。 按键盘G键，触发onKeyEvent，enabled置为false，第三个Text组件变成不可获焦，焦点自动转移，使焦点转移到Row容器上，容器中使用的是默认配置，会转移到Button1上。 
+默认焦点
+[h2]页面的默认焦点
+defaultFocus(value: boolean)
+设置当前组件是否为当前页面上的默认焦点。
+// xxx.ets\n@Entry\n@Component\nstruct morenjiaodian {\n  @State oneButtonColor: Color = Color.Gray;\n  @State twoButtonColor: Color = Color.Gray;\n  @State threeButtonColor: Color = Color.Gray;\n\n  build() {\n    Column({ space: 20 }) {\n      // 通过外接键盘的上下键可以让焦点在三个按钮间移动，按钮获焦时颜色变化，失焦时变回原背景色\n      Button('First Button')\n        .width(260)\n        .height(70)\n        .backgroundColor(this.oneButtonColor)\n        .fontColor(Color.Black)\n          // 监听第一个组件的获焦事件，获焦后改变颜色\n        .onFocus(() => {\n          this.oneButtonColor = Color.Green;\n        })\n          // 监听第一个组件的失焦事件，失焦后改变颜色\n        .onBlur(() => {\n          this.oneButtonColor = Color.Gray;\n        })\n\n      Button('Second Button')\n        .width(260)\n        .height(70)\n        .backgroundColor(this.twoButtonColor)\n        .fontColor(Color.Black)\n          // 监听第二个组件的获焦事件，获焦后改变颜色\n        .onFocus(() => {\n          this.twoButtonColor = Color.Green;\n        })\n          // 监听第二个组件的失焦事件，失焦后改变颜色\n        .onBlur(() => {\n          this.twoButtonColor = Color.Grey;\n        })\n\n      Button('Third Button')\n        .width(260)\n        .height(70)\n        .backgroundColor(this.threeButtonColor)\n        .fontColor(Color.Black)\n          // 设置默认焦点\n        .defaultFocus(true)\n          // 监听第三个组件的获焦事件，获焦后改变颜色\n        .onFocus(() => {\n          this.threeButtonColor = Color.Green;\n        })\n          // 监听第三个组件的失焦事件，失焦后改变颜色\n        .onBlur(() => {\n          this.threeButtonColor = Color.Gray ;\n        })\n    }.width('100%').margin({ top: 20 })\n  }\n}
+上述示例包含以下2步：
+ 在第三个Button组件上设置了defaultFocus(true)，进入页面后第三个Button默认获焦，显示为绿色。 按下TAB键，触发走焦，第三个Button正处于获焦状态，会出现焦点框。 
+[h2]容器的默认焦点
+容器的默认焦点受到获焦优先级的影响。
+defaultFocus与FocusPriority的区别
+defaultFocus是用于指定页面首次展示时的默认获焦节点，FocusPriority是用于指定某个容器首次获焦时其子节点的获焦优先级。上述两个属性在某些场景同时配置时行为未定义，例如下面的场景，页面首次展示无法同时满足defaultFocus获焦和高优先级组件获焦。
+示例
+@Entry\n@Component\nstruct Index {\n  build() {\n    Row() {\n      Button('Button1')\n        .defaultFocus(true)\n      Button('Button2')\n        .focusScopePriority('RowScope', FocusPriority.PREVIOUS)\n    }.focusScopeId('RowScope')\n  }\n}
+[h2]页面/容器整体获焦时的焦点链
+整体获焦与非整体获焦
+ 整体获焦是页面/容器自身作为焦点链的叶节点获焦，获焦后再把焦点链叶节点转移到子孙组件。例如，页面切换、Navigation组件中的路由切换、焦点组走焦、容器组件主动调用requestFocusById等。 非整体获焦是某个组件作为焦点链叶节点获焦，导致其祖先节点跟着获焦。例如TextInput组件主动获取焦点、Tab键在非焦点组场景下走焦等。 
+整体获焦的焦点链形成
+1.页面首次获焦：
+ 焦点链叶节点为配置了defaultFocus的节点。 未配置defaultFocus时，焦点停留在页面的根容器上。 
+2.页面非首次获焦：由上次获焦的节点获焦。
+3.获焦链上存在配置了获焦优先级的组件和容器：
+ 容器内存在优先级大于PREVIOUS的组件，由优先级最高的组件获焦。 容器内不存在优先级大于PREVIOUS的组件，由上次获焦的节点获焦。例如，窗口失焦后重新获焦。 
+焦点样式
+focusBox(style: FocusBoxStyle)
+设置当前组件系统焦点框样式。
+import { ColorMetrics, LengthMetrics } from '@kit.ArkUI'\n\n@Entry\n@Component\nstruct RequestFocusExample {\n  build() {\n    Column({ space: 30 }) {\n      Button(\"small black focus box\")\n        .focusBox({\n          margin: new LengthMetrics(0),\n          strokeColor: ColorMetrics.rgba(0, 0, 0),\n        })\n      Button(\"large red focus box\")\n        .focusBox({\n          margin: LengthMetrics.px(20),\n          strokeColor: ColorMetrics.rgba(255, 0, 0),\n          strokeWidth: LengthMetrics.px(10)\n        })\n    }\n    .alignItems(HorizontalAlign.Center)\n    .width('100%')\n  }\n}
+上述示例包含以下2步：
+ 进入页面，按下TAB触发走焦，第一个Button获焦，焦点框样式为紧贴边缘的蓝色细框。 按下TAB键，走焦到第二个Button，焦点框样式为远离边缘的红色粗框。 
+主动获焦/失焦
+ 使用FocusController中的方法 更推荐使用FocusController中的requestFocus主动获取焦点。优势如下：  当前帧生效，避免被下一帧组件树变化影响。 有异常值返回，便于排查主动获取焦点失败的原因。 避免多实例场景中取到错误实例。  需先使用UIContext中的getFocusController()方法获取实例，再通过此实例调用对应方法。 requestFocus(key: string): void 通过组件的id将焦点转移到组件树对应的实体节点，生效时间为当帧生效。 clearFocus(): void 清除焦点，将焦点强制转移到页面根容器节点，焦点链路上其他节点失焦。 使用focusControl中的方法 requestFocus(value: string): boolean 调用此接口可以主动让焦点转移至参数指定的组件上，焦点转移生效时间为下一个帧信号。 
+// focusTest.ets\n@Entry\n@Component\nstruct RequestExample {\n  @State btColor: string = '#ff2787d9'\n  @State btColor2: string = '#ff2787d9'\n\n  build() {\n    Column({ space: 20 }) {\n      Column({ space: 5 }) {\n        Button('Button')\n          .width(200)\n          .height(70)\n          .fontColor(Color.White)\n          .focusOnTouch(true)\n          .backgroundColor(this.btColor)\n          .onFocus(() => {\n            this.btColor = '#ffd5d5d5'\n          })\n          .onBlur(() => {\n            this.btColor = '#ff2787d9'\n          })\n          .id(\"testButton\")\n\n        Button('Button')\n          .width(200)\n          .height(70)\n          .fontColor(Color.White)\n          .focusOnTouch(true)\n          .backgroundColor(this.btColor2)\n          .onFocus(() => {\n            this.btColor2 = '#ffd5d5d5'\n          })\n          .onBlur(() => {\n            this.btColor2 = '#ff2787d9'\n          })\n          .id(\"testButton2\")\n\n        Divider()\n          .vertical(false)\n          .width(\"80%\")\n          .backgroundColor('#ff707070')\n          .height(10)\n\n        Button('FocusController.requestFocus')\n          .width(200).height(70).fontColor(Color.White)\n          .onClick(() => {\n            this.getUIContext().getFocusController().requestFocus(\"testButton\")\n          })\n          .backgroundColor('#ff2787d9')\n\n        Button(\"focusControl.requestFocus\")\n          .width(200).height(70).fontColor(Color.White)\n          .onClick(() => {\n            focusControl.requestFocus(\"testButton2\")\n          })\n          .backgroundColor('#ff2787d9')\n\n        Button(\"clearFocus\")\n          .width(200).height(70).fontColor(Color.White)\n          .onClick(() => {\n            this.getUIContext().getFocusController().clearFocus()\n          })\n          .backgroundColor('#ff2787d9')\n      }\n    }\n    .width('100%')\n    .height('100%')\n  }\n}
+上述示例包含以下3步：
+ 点击FocusController.requestFocus按钮，第一个Button获焦。 点击focusControl.requestFocus按钮，第二个Button获焦。 点击clearFocus按钮，第二个Button失焦。 
+焦点组与获焦优先级
+focusScopePriority(scopeId: string, priority?: FocusPriority)
+设置当前组件在指定容器内获焦的优先级。需要配合focusScopeId一起使用。
+focusScopeId(id: string, isGroup?: boolean)
+设置当前容器组件的id标识，设置当前容器组件是否为焦点组。焦点组与tabIndex不能混用。
+// focusTest.ets\n@Entry\n@Component\nstruct FocusableExample {\n  @State inputValue: string = ''\n\n  build() {\n    Scroll() {\n      Row({ space: 20 }) {\n        Column({ space: 20 }) {  // 标记为Column1\n          Column({ space: 5 }) {\n            Button('Group1')\n              .width(165)\n              .height(40)\n              .fontColor(Color.White)\n            Row({ space: 5 }) {\n              Button()\n                .width(80)\n                .height(40)\n                .fontColor(Color.White)\n              Button()\n                .width(80)\n                .height(40)\n                .fontColor(Color.White)\n            }\n            Row({ space: 5 }) {\n              Button()\n                .width(80)\n                .height(40)\n                .fontColor(Color.White)\n              Button()\n                .width(80)\n                .height(40)\n                .fontColor(Color.White)\n            }\n          }.borderWidth(2).borderColor(Color.Red).borderStyle(BorderStyle.Dashed)\n          Column({ space: 5 }) {\n            Button('Group2')\n              .width(165)\n              .height(40)\n              .fontColor(Color.White)\n            Row({ space: 5 }) {\n              Button()\n                .width(80)\n                .height(40)\n                .fontColor(Color.White)\n              Button()\n                .width(80)\n                .height(40)\n                .fontColor(Color.White)\n                .focusScopePriority('ColumnScope1', FocusPriority.PRIOR)  // Column1首次获焦时获焦\n            }\n            Row({ space: 5 }) {\n              Button()\n                .width(80)\n                .height(40)\n                .fontColor(Color.White)\n              Button()\n                .width(80)\n                .height(40)\n                .fontColor(Color.White)\n            }\n          }.borderWidth(2).borderColor(Color.Green).borderStyle(BorderStyle.Dashed)\n        }\n        .focusScopeId('ColumnScope1')\n        Column({ space: 5 }) {  // 标记为Column2\n          TextInput({placeholder: 'input', text: this.inputValue})\n            .onChange((value: string) => {\n              this.inputValue = value\n            })\n            .width(156)\n          Button('Group3')\n            .width(165)\n            .height(40)\n            .fontColor(Color.White)\n          Row({ space: 5 }) {\n            Button()\n              .width(80)\n              .height(40)\n              .fontColor(Color.White)\n            Button()\n              .width(80)\n              .height(40)\n              .fontColor(Color.White)\n          }\n          Button()\n            .width(165)\n            .height(40)\n            .fontColor(Color.White)\n            .focusScopePriority('ColumnScope2', FocusPriority.PREVIOUS)  // Column2获焦时获焦\n          Row({ space: 5 }) {\n            Button()\n              .width(80)\n              .height(40)\n              .fontColor(Color.White)\n            Button()\n              .width(80)\n              .height(40)\n              .fontColor(Color.White)\n          }\n          Button()\n            .width(165)\n            .height(40)\n            .fontColor(Color.White)\n          Row({ space: 5 }) {\n            Button()\n              .width(80)\n              .height(40)\n              .fontColor(Color.White)\n            Button()\n              .width(80)\n              .height(40)\n              .fontColor(Color.White)\n          }\n        }.borderWidth(2).borderColor(Color.Orange).borderStyle(BorderStyle.Dashed)\n        .focusScopeId('ColumnScope2', true)  // Column2为焦点组\n      }.alignItems(VerticalAlign.Top)\n    }\n  }\n}
+上述示例包含以下2步：
+ input方框内设置了焦点组，因此按下TAB键后焦点会快速从input中走出去，而按下方向键后可以在input内走焦。 左上角的Column没有设置焦点组，因此只能通过Tab键一个一个地走焦。 
+焦点与按键事件
+当组件获焦且存在点击事件（onClick）或单指单击事件（TapGesture）时，回车和空格会触发对应的事件回调。
+ 点击事件（onClick）或单指单击事件（TapGesture）在回车、空格触发对应事件回调时，默认不冒泡传递，即父组件对应按键事件不会被同步触发。 按键事件（onKeyEvent）默认冒泡传递，即同时会触发父组件的按键事件回调。 组件同时存在点击事件（onClick）和按键事件（onKeyEvent），在回车、空格触发时，两者都会响应。 获焦组件响应点击事件（onClick），与焦点激活态无关。 
+@Entry\n@Component\nstruct FocusOnclickExample {\n  @State count: number = 0\n  @State name: string = 'Button'\n\n  build() {\n    Column() {\n      Button(this.name)\n        .fontSize(30)\n        .onClick(() => {\n          this.count++\n          if (this.count <= 0) {\n            this.name = \"count is negative number\"\n          } else if (this.count % 2 === 0) {\n            this.name = \"count is even number\"\n          } else {\n            this.name = \"count is odd number\"\n          }\n        }).height(60)\n    }.height('100%').width('100%').justifyContent(FlexAlign.Center)\n  }\n}
+组件获焦能力说明
+表1 基础组件获焦能力
+表2 容器组件获焦能力
+表3 媒体组件获焦能力

@@ -1,0 +1,14 @@
+@performance/hp-arkui-remove-redundant-nest-container
+避免冗余的嵌套。
+通用丢帧场景下，建议优先修改。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@performance/hp-arkui-remove-redundant-nest-container\": \"suggestion\",\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+@Entry  \n@Component  \nstruct MyComponent {  \n  @State children: Number[] = Array.from(Array<number>(900), (v, k) => k);  \n  \n  build() {  \n    Scroll() {  \n      Grid() {  \n        ForEach(this.children, (item: Number[]) => {  \n          GridItem() {  \n            Text(item.toString())  \n          }.backgroundColor(Color.Yellow)  \n        }, (item: string) => item)  \n      }  \n      .columnsTemplate('1fr 1fr 1fr 1fr')  \n      .columnsGap(0)  \n      .rowsGap(0)  \n      .size({ width: \"100%\", height: \"100%\" })  \n    }  \n  }  \n}
+反例
+@Entry\n@Component\nstruct MyComponent {\n    @State children: Number[] = Array.from(Array<number>(900), (v, k) => k);\n    \n    build() {\n      Scroll() {\n      Grid() {\n        ForEach(this.children, (item: Number[]) => {\n          GridItem() {\n            // 冗余Stack\n            Stack() {  \n              Stack() {  \n                Stack() {  \n                  Text(item.toString())  \n                }.size({ width: \"100%\"})  \n              }.backgroundColor(Color.Yellow)  \n            }.backgroundColor(Color.Pink)  \n          }  \n        }, (item: string) => item)  \n      }  \n      .columnsTemplate('1fr 1fr 1fr 1fr')  \n      .columnsGap(0)  \n      .rowsGap(0)  \n      .size({ width: \"100%\", height: \"100%\" })  \n    }  \n  }  \n}
+规则集
+plugin:@performance/recommended
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

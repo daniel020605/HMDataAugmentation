@@ -1,0 +1,14 @@
+@performance/hp-arkui-image-async-load
+建议大图片使用异步加载。
+通用丢帧场景下，建议优先修改。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@performance/hp-arkui-image-async-load\": \"suggestion\",\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+@Entry\n@Component\nstruct MyComponent {\n  build() {\n    Row() {\n      // 本地图片4k.png\n      Image($r('app.media.4k'))\n        .border({ width: 1 })\n        .borderStyle(BorderStyle.Dashed)\n        .height(100)\n        .width(100)\n    }\n  }\n}
+反例
+@Entry\n@Component\nstruct MyComponent {\n  build() {\n    Row() {\n      // 本地图片4k.png\n      Image($r('app.media.4k'))\n        .border({ width: 1 })\n        .borderStyle(BorderStyle.Dashed)\n        .height(100)\n        .width(100)\n        .syncLoad(true)\n    }\n  }\n}
+规则集
+plugin:@performance/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

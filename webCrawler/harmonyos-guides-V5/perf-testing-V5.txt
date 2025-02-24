@@ -1,0 +1,142 @@
+性能测试
+DevEco Testing性能功耗测试服务模拟真实业务场景，实时检测性能功耗数据，帮您找到应用的性能瓶颈。
+测试服务
+简介
+场景化性能测试
+根据应用性能建议，支持通过编写脚本来自定义操作场景对应用性能进行评估
+性能指标监控测试
+在特定场景下（支持用户定制），应用的帧率、内存、CPU等性能指标及评估
+场景化性能测试
+服务说明
+场景化性能测试服务，是依据应用性能测试标准，提供的一套含自动化脚本执行和性能指标分析的应用性能测试解决方案。包含：
+应用自定义场景脚本编写指导自动化测试执行框架hypium-perf步骤级视频、perfdata等维测数据的采集多维度性能指标的检测能力
+本服务提供的性能指标检测能力如下：
+指标类型
+指标项
+时延类
+应用启动响应时延
+点击响应时延
+滑动响应时延
+应用启动完成时延（含冷启、热启）
+应用启动加载时延（含冷启、热启）
+页面切换完成时延
+帧率类（注：仅60HZ下表现）
+动效卡顿、动效最大丢帧数
+非动效卡顿、非动效最大丢帧数
+卡顿率（ms/s）
+内容显示异常类
+应用启动白屏时延
+滑动占位符加载时长
+滑动占位符完整率
+环境搭建
+1.系统要求
+Windows
+操作系统：Windows 10/11 64 位内存：推荐使用16GB及以上（可用内存大于8G）处理器：i7-10700@2.9GHz或者同等性能的型号硬盘：可用硬盘空间100GB
+Mac
+操作系统：macOs 13及以上内存：推荐使用16GB及以上（可用内存大于8G）处理器：i7-10700@2.9GHz及以上或Apple silicon M系列硬盘：可用硬盘空间100GB以上
+2.安装Python及Hypium
+性能测试框架基于Python环境，依赖Hypium环境搭建，Python推荐3.10版本，其他版本可能出现兼容性问题。相关环境搭建与基本AW使用，请参考指导：https://developer.huawei.com/consumer/cn/doc/harmonyos-guides-V5/hypium-python-guidelines-V5
+3.安装hypium_perf
+Ⅰ. 进入DevEco Testing客户端-场景化性能测试，选择自定义场景测试，点击获取安装包。随后会跳转至华为开发者联盟官网。
+Ⅱ.请下载DevEco Testing Hypium 最新版本安装包。注：以下图片版本仅供示例，具体最新版本号请参照实际情况。
+Ⅲ.下载解压完成后，由于存在依赖关系，请先安装hypium、xdevice等库，再安装hypium_perf、perf_analyzer等库。
+注意：您需要将hypium及xdevice系列库与hypium_perf系列库安装到同一个python环境，且python版本为3.10
+一键安装：从安装包所在目录打开终端窗口，Windows环境下运行 install.bat 脚本，或Mac环境下运行install.sh脚本，跟随提示确认安装。Ⅳ.安装完成后，将提示所有包安装成功，环境安装成功。
+Ⅳ.安装完成后，将提示所有包安装成功，环境安装成功。注：以下版本仅供示例，具体版本号请参照实际下载版本。
+如脚本执行失败，可使尝试手动安装。确保用python3.10版本，在在终端窗口输入 python -m pip install --upgrade pip 更新pip后，进入对应的路径，手动安装依赖包。注：以下版本仅供示例，具体版本号请参照实际下载版本。
+pip install xdevice-5.0.5.100.tar.gz\npip install xdevice-devicetest-5.0.5.100.tar.gz\npip install xdevice-ohos-5.0.5.100.tar.gz\npip install hypium-5.0.5.100.tar.gz\npip install hypium_perf-5.0.5.100-py3-none-any.whl\npip install perf_collector-4.2.1b0-py3-none-any.whl perf_analyzer-4.2.1b0-py3-none-any.whl perf_common-4.2.1b0-py3-none-any.whl  perf_resource-4.2.1b0-py3-none-any.whl
+安装完成后，可前往查看PyCharm-设置-项目-Python解释器中的软件包与已安装版本是否一致。
+脚本写作&调试
+1.下载脚本模板
+Ⅰ.进入DevEco Testing 场景化性能测试，选择自定义场景测试，点击创建工程模板。
+Ⅱ.填写工程项目名称，选择工程存放路径，点击开始生成。
+Ⅲ.在指定的文件夹路径下，将自动生成用例模板。
+Ⅳ.脚本模板工程解读：
+config：存放配置文件models：存放原子用例testcases：存放场景用例main.py：本地调试入口
+*已下载的脚本工程模板，可在PyCharm中可直接调试验证，调试验证成功后，即可在DevEco Testing上运行脚本做性能测试。详情可查看 本地脚本调试及测试执行章节。
+也可基于已下载的工程模板，参考后续章节，根据应用实际测试场景，进行脚本写作及调试。
+2.场景用例和原子用例使用说明
+（1）测试步骤
+我们把用户一次操作定义为一个测试步骤。
+（2）原子用例
+多个测试步骤组合，完成一套操作，我们称为原子用例，存放于models目录，对应脚本中一个model(模型)，有独立的原子用例编号。
+原子用例可以被重用，是最小的用例单元。
+（3）场景用例
+我们把用户完成一件事情定义为一个场景。比如：用户在小红书浏览后去淘宝搜索购物。
+一个场景对应一条场景用例，场景用例编号与用例文件名一致，存放在testcase目录下，场景用例是测试执行的入口，一个场景用例可以由多个原子用例组成，比如上述场景：用户在小红书浏览后去淘宝搜索购物，可由两个原子用例组成：1）用户浏览小红书 2）用户在淘宝搜索并购物。这两个原子用例独立且可被重用。假设有另一个场景用例：用户在小红书浏览后去京东购物，那么用户浏览小红书这个原子用例即可被重用。
+工程执行的入口、结果的反馈，都是以一个个场景用例为单位。
+注意事项：
+1个性能场景用例由1-N个原子用例(models)组成，1个原子用例对应1-N个测试步骤。每个场景用例都需要一个配对的json配置文件。场景用例所含的步骤数，不宜太多，建议在30个步骤以下。步骤数超多可能会导致执行异常，建议进行用例拆分。原子用例可以放在在models目录下，推荐按照app进行区分。
+3.场景用例写作指导
+Testcase编写规范：
+Testcase对应的是测试场景中的一系列相关的原子用例操作序列，在脚本编写时对应一个testcase。
+（1）命名规范：
+一个testcase是一个独立的python文件，testcase文件命名为可区分的场景编号名称，例：OH_PerfDemoTest.py。
+（2）继承规范：
+testcase必须继承PerfBaseCase类，PerfBaseCase会负责用例开始时的初始化流程，进行一些设备环境检查操作。
+（3）注释规范：
+将场景用例的场景描述放置在用例最上方，方便审视测试场景所包含的原子用例执行步骤对应关系。
+场景用例模板：
+class OH_PerfDemoTest(PerfBaseCase):  # 继承PerfBaseCase\n\n    def __init__(self, controllers):  # 初始化操作\n        self.TAG = self.__class__.__name__\n        self.tests = [\n            \"test_step\"\n        ]\n        self.case_id = os.path.splitext(os.path.basename(__file__))[0]  # 文件名, 类名, case_id 三者保持一致\n        case_pkg = 'com.huawei.hmos.settings' # 指定被测试应用，用于采集应用资源使用信息，默认不采\n        PerfBaseCase.__init__(self, controllers, case_pkg)  # 调用父类初始化方法\n        self.log.info(\"Case id is %s\" % self.case_id)\n\n    def setup(self):\n        # 场景用例前置化操作，在test_step前执行一些操作\n        self.log.info(\"预置工作:初始化设备开始.................\" + self.devices[0].device_sn)\n\n    def test_step(self):\n        # 组装需要调用的原子用例，使用原子化用例构建场景步骤，可以一个场景用例可添加多个原子用例\n        steps = [\n            # 原子用例需要传入driver，case_id\n            SettingInterfaceBrowering(self.driver, self.case_id)\n        ]\n        # 按顺序执行原子用例\n        for item in steps:\n            item.execute()\n\n    def teardown(self):\n        # 获取用例测试结果\n        result = self.get_case_result()\n\n        # 场景用例结束后执行该teardown操作\n        self.log.info(\"收尾工作................., result is {}\".format(result))\n\n        # 此处为用例结尾时执行的PerfBaseCase的teardown方法，处理一些结束操作\n        PerfBaseCase.teardown(self)
+OH_PerfDemoTest.json 配置文件模板
+{\n    \"description\": \"Config for OpenHarmony devicetest test cases\",\n    \"environment\": [\n        {\n            \"type\": \"device\"\n        }\n    ],\n    \"driver\": {\n        \"type\": \"DeviceTest\",\n        \"py_file\": [\"OH_PerfDemoTest.py\"]\n    }\n}
+注：{... ,\"py_file\" : [\"OH_PerfDemoTest.py\"]}，此处文件路径是testcases的相对路径。
+4.原子用例写作指导
+Model编写规范：
+Model对应的是原子用例操作中的一组操作序列，在脚本编写时对应一个model。
+（1）命名规范：
+一个model是一个独立的python文件，model文件命名为有一定业务含义的名称，例如：设置界面浏览-> setting_interface_browsing.py。
+（2）继承规范：
+model必须继承基类ModelBase，ModelBase会负责与采集器的交互，并且处理model模型中如果执行出错出现的异常场景。
+（3）注释规范：
+将原子用例操作步骤放置在用例最上方，方便审视模型步骤和用例执行步骤对应关系。
+原子用例模板：
+'''\n@原子用例\n设置界面浏览\n@预置条件\n无\n@用例步骤\n1.冷启动设置\n2.上滑1次浏览界面\n3.下滑1次浏览界面\n4.点击蓝牙\n5.侧滑返回\n6.再次点击蓝牙\n7.侧滑返回\n8.点击显示和亮度\n9.侧滑返回\n10.上滑返回桌面\n'''\nAPP_NAME = \"设置\"\nclass SettingInterfaceBrowering(ModelBase):  # 原子用例统一继承ModelBase\n\n    def __init__(self, uidriver: IDriverPerf, case_id):  # 进行初始化操作\n        ModelBase.__init__(self, uidriver, case_id)  # 调用父类初始化方法\n        self.scene_no = \"SettingInterfaceBrowering\"  # 原子用例id\n        self.scene_name = \"设置界面浏览\"  # 原子用例名字\n        self.scene_type = \"系统设置场景\"  # 原子用例类型\n        self.scene_path = \"日常高频操作-基础操作场景-系统通用操作场景-系统设置场景\"  # 原子用例所属路径\n        self.set_model_pkg(\"com.huawei.hmos.settings\") # 设置当前原子用例测试应用的包名\n        self.driver = uidriver\n\n    def setup(self):  # 原子用例预置动作\n        # 停止指定的应用\n        self.driver.stop_app('com.huawei.hmos.settings')\n        # 返回手机桌面主页\n        self.driver.go_home()\n\n    @ModelBase.scene_recover   # 此修饰器为必带\n    def execute(self):\n        # 1.冷启动设置\n        # find_app_in_launcher 从主页开始滑动查找对应APP名的应用，应用需要在桌面上可见，返回的是（x，y）坐标值元组\n        icon_pos = self.driver.find_app_in_launcher(APP_NAME)\n\n        # 创建性能场景Tag, 使用继承ModelBase的方法create_tag，设置step_name步骤描述，step_type对应性能tag类型\n        Tag = self.create_tag(step_name=\"冷启动设置\", scene_type=SceneType.COLD_START)\n\n        # touch_perf 模拟手指点击\n        self.driver.touch_perf(icon_pos, tag=Tag)\n\n        # 等待指定时间，等待界面稳定，再进行下一步操作\n        self.driver.wait(1)\n\n        # 2.上滑1次浏览界面\n        # swipe_perf 在屏幕上或者指定区域area中执行朝向指定方向direction的滑动操作\n        self.driver.swipe_perf(UiParam.UP,\n                               tag=self.create_tag(\"上滑1次浏览界面\", SceneType.NO_PAGE_SWITCH))\n        # 3.下滑1次浏览界面\n        self.driver.swipe_perf(UiParam.DOWN,\n                               tag=self.create_tag(\"下滑1次浏览界面\", SceneType.NO_PAGE_SWITCH))\n\n        # 4.点击蓝牙\n        # 使用find_component查找控件，返回的是一个UiComponent类型的值（控件文本为蓝牙）\n        com = self.driver.find_component(BY.text('蓝牙'))\n        # 可将UiComponent类型传入touch_perf，会自动识别并转换为坐标点击\n        self.driver.touch_perf(com, tag=self.create_tag(\"点击蓝牙\", SceneType.WITH_PAGE_SWITCH))\n\n        # 5.侧滑返回\n        # swipe_to_back_perf 滑动屏幕右侧返回\n        self.driver.swipe_to_back_perf(tag=self.create_tag(\"侧滑返回\", SceneType.WITH_PAGE_SWITCH))\n\n        # 6.再次点击蓝牙\n        # 返回所有符合条件的控件，返回值是多个UiComponent类型的值组成的列表，也可添加参数index=0，返回第一个控件\n        coms = self.driver.find_all_components(BY.text('蓝牙'))\n        self.driver.touch_perf(coms[0], tag=self.create_tag(\"再次点击蓝牙\", SceneType.WITH_PAGE_SWITCH))\n\n        # 7.侧滑返回\n        self.driver.swipe_to_back_perf(tag=self.create_tag(\"侧滑返回\", SceneType.WITH_PAGE_SWITCH))\n\n        # 8.点击显示和亮度\n        # 可将BY类型传入touch_perf，会自动查找指定条件的控件，并转换为坐标点击\n        self.driver.touch_perf(BY.text('显示和亮度'),\n                               tag=self.create_tag(\"点击显示和亮度\", SceneType.WITH_PAGE_SWITCH))\n\n        # 9.侧滑返回\n        self.driver.swipe_to_back_perf(tag=self.create_tag(\"侧滑返回\", SceneType.WITH_PAGE_SWITCH))\n\n        # 10.上滑返回桌面\n        # swipe_to_home_perf 从屏幕底部上滑返回桌面\n        self.driver.swipe_to_home_perf(tag=self.create_tag(\"上滑返回桌面\", SceneType.WITH_PAGE_SWITCH))\n\n    def teardown(self):\n        # 原子用例结束清理步骤\n        pass
+性能测试框架api可查询：自定义性能脚本测试（基于python）
+5.本地脚本调试
+Ⅰ. main.py实现
+方法一：在main.py中修改cmd命令，将参数替换为本地调试的场景用例名称。
+main.py示例：
+import time\nfrom xdevice.__main__ import main_process\nif __name__ == \"__main__\":\n    try:\n        pass_dict = dict()\n        pass_dict['task_id'] = time.strftime('%Y%m%d%H%M%S', time.localtime())\n        cmd = 'run -l OH_PerfDemoTest -ta pass_through:' + str(pass_dict)\n        main_process(cmd)\n        time.sleep(10)\n    except Exception as e:\n        print(e)\n    finally:\n        print(\"Task is End\")
+方法二：在main.py同级目录下，新建一个json文件，命名为action_testsuite.json，并在main.py中修改cmd命令。
+action_testsuite.json 示例：
+{\n    \"description\": \"hypium test case\",\n    \"environment\": [\n        {\n            \"type\": \"device\"\n        }\n    ],\n    \"driver\": {\n        \"type\": \"DeviceTest\",\n        \"py_file\": [\n            \"OH_PerfDemoTest.py\"\n        ]\n    },\n    \"kits\": [\n    ]\n}
+Ⅱ. 本地多用例执行方式
+一个测试任务执行多个场景用例，而不必每个场景用例单独执行，任务会按照顺序依次执行指定的场景用例。
+方法一：在main.py 的cmd命令中指定多个case，用';'分割
+方法二：在json文件配置，并在main.py的cmd命令参数中指定json文件
+示例： action_testsuite.json
+{\n    \"description\": \"hypium test case\",\n    \"environment\": [\n        {\n            \"type\": \"device\"\n        }\n    ],\n    \"driver\": {\n        \"type\": \"DeviceTest\",\n        \"py_file\": [\n            \"Open_Perf_Test.py\",\n            \"OH_PerfDemoTest.py\"\n        ]\n    },\n    \"kits\": [\n    ]\n}
+测试执行
+当环境安装成功，且脚本本地调试验证成功后，即可在DevEco Testing上运行脚本做性能测试。测试执行步骤如下：
+步骤1：打开DevEco Testing客户端，在“应用性能功耗测试”菜单中，点击“场景化性能测试”服务卡片。
+步骤2：选择测试设备，选中“自定义场景测试”测试类型，选择本地已调试好的场景用例路径。
+执行轮数：支持设置1-10轮，每个用例将连续重复执行指定次数，报告将展示每轮数据及多轮均值。
+保留全部视频拆帧图像：默认关闭，仅展示异常数据的拆帧图像；开启后，所有数据的拆帧图像均会展示。
+步骤3：点击“创建任务”，自动跳转至任务执行页面，请耐心等待用例执行和分析；任务完成后，会自动生成报告页面
+用例执行中
+用例分析中
+查看报告
+测试完成后，自动生成测试报告。报告包含任务信息、整体评估、用例详情、指标监控数据、资源文件（trace及视频）。
+整体评估未多个用例执行结果汇总。用例详情展示具体步骤级指标数据，每个步骤都可以下载对应的视频和trace。未达标数据为红色，达标数据为黑色。点击指标数据，即可查看数据详情窗口。点击列表中的资源文件，可获取视频及trace，辅助问题定位分析。
+*更多场景化性能测试报告解读及常见问题，请前往DevEco Testing客户端-应用性能功耗测试-场景化性能测试-任务创建页-测试指南中查询。
+*更多应用性能优化建议及问题定位，请查阅：应用性能体验建议 及 最佳实践-性能
+性能指标监控测试
+性能指标监控测试：为用户提供了针对指定业务场景性能测试能力，支持选择设备某个应用进行测试，显示手动操作应用过程的性能数据，最终输出测试过程中帧率、内存、 CPU、GPU 等性能数据。
+任务创建
+安装DevEco Testing后，左边菜单栏选择“应用性能功耗测试”，选择“性能指标监控测试”，点击服务卡片右下角箭头，即进入任务创建界面。
+测试执行
+任务创建后即进入测试执行页面，待测试环境初始化完成，待测应用被启动，任务将自动跳转至监控页面，并启动监控。注意：最长监控时长 60 分钟。点击右上角的开始图标，出现“开始采集”提示，此时数据开始被采集。
+点击添加场景图标，可按照测试需要添加测试场景，支持添加多个测试场景。
+在测试过程中，可随时点击“采集 trace”按钮，采集此后 30 秒的 trace 信息，单次任务只保留最近 10 个 trace 文件。
+测试完成后，点击结束采集，测试任务完成数据采集。点击查看报告查看测试数据。
+查看报告
+数据介绍：
+FPS：1 秒内应用界面真实平均刷新次数，俗称帧率/FPS。
+帧间隔：两帧画面刷新时间的间隔。帧间隔应保持稳定，并与应用帧率负相关。当帧间隔过大时， 设备会出现卡顿现象。
+CPU 频率：各个 CPU 核心的实时频率。
+内存占用：应用内存是被监控的应用的 PSS 值。
+GPU 频率：GPU 核心的实时频率
+GPU 负载：GPU 的当前负载
+温度：设备的壳温，前壳温，后壳温，soc温度。
+*更多应用性能优化建议及问题定位，请查阅：应用性能体验建议 及 最佳实践-性能

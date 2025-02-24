@@ -1,0 +1,22 @@
+无网络环境配置指导
+如果开发者所使用的电脑处于完全无网络的环境中，需要先在一台可访问网络的电脑上准备好以下文件，将这些文件拷贝到无网络电脑中。
+安装hypium
+工程模板的工程级oh-package.json5文件中默认配置了hypium依赖，因此需要安装hypium，如果配置了其他依赖，也可参考以下步骤安装。
+{\n  \"dependencies\": {\n    \"@ohos/hypium\": \"1.0.18\"\n  }\n}
+打开命令行工具，执行 ohpm install 命令，会生成oh_modules文件夹和oh-package-lock.json5文件。
+执行 ohpm install 前，请先完成环境变量配置。
+将oh_modules文件夹和oh-package-lock.json5文件拷贝到无网络电脑的工程根目录下。
+有网环境和无网环境下使用的ohpm版本需保持一致，否则可能导致oh-package-lock.json5文件不生效。
+安装三方库
+ 方式一：使用ohpm-repo搭建私仓，将需要依赖的三方包发布至私仓中，并将.ohpmrc文件中的registry配置项的值替换为该私仓地址，以此从私仓中获取依赖。 方式二：在可访问网络的电脑上创建一个空文件夹（如命名为third_library），在文件夹中创建一个oh-package.json5文件，设置三方包依赖，配置示例如下：{\n  \"dependencies\": {\n    \"@ohos/hypium\": \"1.0.17\",\n    \"@ohos/lottie\": \"^2.0.0\" \n  }\n} 打开命令行工具，执行 ohpm install 命令，会生成oh_modules文件夹和oh-package-lock.json5文件。  将oh_modules文件夹和oh-package-lock.json5文件拷贝到无网络电脑的工程根目录下。     使用方法二时，需要确保可访问网络的电脑与无网络电脑中ohpm版本是一致的，以避免因oh-package-lock.json5文件版本不匹配而导致oh-package-lock.json5文件失效的问题。   
+无网络流水线搭建
+如果开发者使用的电脑处于完全无网络的环境中，可参考本文搭建流水线环境，关于应用的构建、运行等请参考搭建流水线。
+[h2]安装pnpm插件
+ 请在可访问网络的电脑上创建一个空文件夹，在文件夹中创建一个package.json文件，在文件中填写如下内容：{\n  \"dependencies\": {\n    \"pnpm\": \"8.13.1\"\n  }\n} 打开命令行工具，在文件夹下执行 npm install 命令，会生成node_modules文件夹。执行 npm install 前，请先完成环境变量配置。  将node_modules文件夹和package.json文件拷贝到无网络电脑的C:\\Users\\用户名目录\\.hvigor\\wrapper\\tools下（若当前无该目录，请手动创建）。 在无网络电脑上执行如下命令，设置npm离线模式：npm config set offline true 
+[h2]安装npm依赖插件
+ 请在可访问网络的电脑上创建一个空文件夹，在文件夹中创建一个package.json文件，配置npm依赖，示例如下：{\n  \"dependencies\": {\n    \"ajv\": \"latest\"\n  }\n} 打开命令行工具，在文件夹下执行 npm install 命令，会生成node_modules文件夹。 将node_modules文件夹拷贝到无网络电脑的工程根目录下。 
+[h2]安装ohpm依赖插件
+请参考安装三方库。
+[h2]安装libGL1库
+在linux系统的构建场景下，使用纹理压缩功能需要安装libGL1库。
+ 请在可访问网络的电脑上下载libgl1-mesa-dev安装包，不同版本的Ubuntu系统对应的安装包版本如下：        Ubuntu 18.04系统：libgl1-mesa-dev 20.0.8-0ubuntu1~18.04.1 Ubuntu 20.04系统：libgl1-mesa-dev 21.2.6-0ubuntu0.1~20.04.2 Ubuntu 22.04系统：libgl1-mesa-dev 23.2.1-1ubuntu3.1~22.04.2  将安装包拷贝到无网络电脑中，执行以下命令安装，其中{package.dep}替换为实际下载的包名。dpkg -i {package.dep} 

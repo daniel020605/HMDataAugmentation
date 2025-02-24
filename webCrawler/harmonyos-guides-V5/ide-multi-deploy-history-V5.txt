@@ -1,0 +1,42 @@
+多实例部署
+从 1.1.0 开始支持多实例部署。
+环境准备
+1、准备 mysql 数据库服务；
+2、准备至少一个 sftp 存储服务，ohpm-repo 最大支持连接3个 sftp 服务；
+3、安装 node.js 16.x 及以上版本。
+确保 sftp 服务端口能够被外部机器访问。sftp 服务的读写用户应该指定相同的存储根目录。
+安装ohpm-repo工具 1.1.0
+解压ohpm-repo工具包。 进入 bin 目录，执行安装脚本 setup.bat(windows) 或者 setup.sh(linux/macos)。安装完成后，检查是否安装成功。ohpm-repo -v    //显示版本号，安装成功 
+若您想在其他目录使用 ohpm-repo，请将 bin 目录路径配置到系统环境变量 path 中。
+多实例配置
+由于多实例部署模式下，数据存储和文件存储必须使用 mysql 和 sftp，且密码不支持明文配置，故在部署前需要先加密 mysql 和 sftp的密码，并将密文写入到第2步的配置文件中。ohpm-repo encrypt_password --crypto_path D:\\repo-server\\meta  --crypto_path 参数用于指定加密组件，如果您是第一次执行该命令，可以指定一个空目录，在加密后会生成新的加密组件。   
+进入 conf 目录，修改配置文件 config.yaml。数据存储 db 模块必须选择 ohpm-repo-plugin-mysqlDB 插件，文件存储 store 模块必须选择 ohpm-repo-plugin-sftp 插件。设置数据存储 db 模块。 db:\n  plugin_name: ohpm-repo-plugin-mysqlDB\n  plugin_config:\n    host: \"localhost\"      # 数据库主机地址\n    port: 3306             # 数据库端口\n    username: \"root\"       # 数据库的用户名\n    password: \"encrypted_password\"   # 数据库的用户密码（必须是使用 'ohpm-repo encrypt_password' 加密后的密码）\n    database: \"repo\"       # 数据库名 设置文件存储 store 模块，sftp配置最多只能设置3个。 store:\n  plugin_name : ohpm-repo-plugin-sftp\n  plugin_config:\n    location:                                # 必须用yaml数组形式写法\n      -\n        name: test_one_sftp                  # sftp服务名，名字不能与其他sftp配置重复\n        host: \"192.168.1.1\"                  # sftp服务主机地址\n        port: 22                             # sftp服务端口\n        read_username: \"read\"                # 有读权限的用户名\n        read_password: \"encrypted_password\"  # 有读权限的用户密码（必须是使用 'ohpm-repo encrypt_password' 加密后的密码）\n        write_username: \"write\"              # 有写权限的用户名\n        write_password: \"encrypted_password\" # 有写权限的用户密码（必须是使用 'ohpm-repo encrypt_password' 加密后的密码）\n        path: /source22                      # 相对sftp根目录的文件路径\n      -\n        name: test_two_sftp                  # sftp服务名，名字不能与其他sftp配置重复\n        host: \"192.168.1.2\"                  # sftp服务主机地址\n        port: 22                            # sftp服务端口\n        read_username: \"read\"                # 有读权限的用户名\n        read_password: \"encrypted_password\"  # 有读权限的用户密码（必须是使用 'ohpm-repo encrypt_password' 加密后的密码）\n        write_username: \"write\"              # 有写权限的用户名\n        write_password: \"encrypted_password\" # 有写权限的用户密码（必须是使用 'ohpm-repo encrypt_password' 加密后的密码）\n        path: /source24                      # 相对sftp根目录的文件路径\n    server: http://localhost:8088            # 本地仓库下载链接地址的域名， 不配置默认取listen的值   ohpm-repo数据的存储路径为： /sftp服务的存储根目录 + sftp配置的path路径。在进行多实例部署之前需要启动一次ohpm-repo，将 config.yaml 配置和 meta 加密组件写入 <deploy_root> 部署根目录中。  
+部署首个节点
+进入 bin 目录，命令行启动ohpm-repo。
+ohpm-repo start --deploy_root D:\\repo-server\\ohpm-repo-tmp --config D:\\repo-server\\config.yaml --crypto_path D:\\repo-server\\meta
+--deploy_root：指定部署根目录，用于存储ohpm-repo启动时生成的文件。--config：指定启动时使用的配置文件。--crypto_path：指定加密组件，该值必须与多实例配置第1步的参数相同，否则将解密出错。
+启动成功日志信息如下：
+打包和部署
+为帮助您更方便地完成多实例部署，为您提供打包、部署命令。
+[h2]打包
+在完成了多实例配置并首次启动过ohpm-repo服务实例的机器上，执行 ohpm-repo pack <deploy_root>。
+ohpm-repo pack D:\\repo-server\\ohpm-repo-tmp
+该命令用来打包备份ohpm-repo的 <deploy_root>/conf， <deploy_root>/meta 目录，并在命令行工作目录下生成压缩包。
+打包成功日志信息如下：
+[h2]部署
+将 pack 命令的产物拷贝到其他机器中。
+在安装私仓工具后，使用 ohpm-repo deploy <file_path> --deploy_root <deploy_root> 命令部署新的实例；
+ohpm-repo deploy D:\\ohpm-repo\\bin\\pack_1695805599689.zip --deploy_root D:\\new-ohpm-repo\\ohpm-repo-deploy
+<file_path>：指定备份压缩包地址。--deploy_root：必选项，指定部署根目录路径，用于存储ohpm-repo启动时生成的文件。
+部署成功日志信息如下：
+部署成功后可执行 ohpm-repo start 启动ohpm-repo。
+ohpm-repo start
+配置自动重启（可选）
+为ohpm-repo实例配置系统重启时自动重启的功能。
+在进行该配置前需要将 ohpm-repo 工具 bin 目录配置到环境变量path中。
+[h2]Linux
+在ohpm-repo工具的 bin 目录下创建自动运行脚本 run-repo.sh：touch run-repo.sh 写入下面内容，保存并关闭文件： 当 mysql 或 sftp 服务与 ohpm-repo 部署在同一服务器上时，请将 mysql 和 sftp 的启动命令放在 ohpm-repo start 命令之前。  #!/bin/bash\nohpm-repo start 将该脚本设置为可执行文件：chmod +x run-repo.sh 使用 linux 的定时任务工具 crontab 重启自动执行脚本。编辑当前用户的 crontab 配置：crontab -e 当前用户的 crontab 配置写入下面内容，保存并关闭文件：@reboot /bin/sh run-repo.sh >/dev/null 2>&1 其中 run-repo.sh 表示要执行的脚本路径；>/dev/null 2>&1 表示将输出重定向到空设备，即不输出任何信息。 
+现在，每次系统启动时，都会自动执行 run-repo.sh 脚本中的命令。
+[h2]Windows
+新建 run-repo.bat 文件，写入下面内容： 当 mysql 或 sftp 服务与 ohpm-repo 部署在同一服务器上时，请将 mysql 和 sftp 的启动命令放在 ohpm-repo start 命令之前。@echo off\ncall ohpm-repo start\nexit   按下 win+R，输入 shell:startup，回车：弹出启动文件框；将 run-repo.bat 文件剪切到启动文件夹下即可。 
+现在，每次系统启动时，都会自动执行 run-repo.bat 脚本中的命令。

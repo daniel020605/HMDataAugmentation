@@ -1,0 +1,387 @@
+插件上下文
+OhosPluginId
+本组件是hvigor-ohos-plugin插件id常量类。
+[h2]导入模块
+import { OhosPluginId } from '@ohos/hvigor-ohos-plugin';
+常量:
+常量名
+类型
+描述
+OHOS_APP_PLUGIN
+string
+AppPlugin插件ID
+OHOS_HAP_PLUGIN
+string
+HapPlugin插件ID
+OHOS_HSP_PLUGIN
+string
+HspPlugin插件ID
+OHOS_HAR_PLUGIN
+string
+HarPlugin插件ID
+OhosAppContext
+本组件是appTasks插件对外提供的上下文扩展接口，包括工程信息、product信息等。
+[h2]导入模块
+import { OhosAppContext } from '@ohos/hvigor-ohos-plugin';
+[h2]getProjectName
+getProjectName: () => string
+获取工程名称。
+返回值:
+类型
+说明
+string
+工程名称
+[h2]getProjectPath
+getProjectPath: () => string
+获取工程路径。
+返回值:
+类型
+说明
+string
+工程路径
+[h2]getBuildRootPath
+getBuildRootPath: () => string
+获取构建目录根路径。
+返回值:
+类型
+说明
+string
+构建根路径
+[h2]getBuildProductOutputPath
+getBuildProductOutputPath: () => string
+获取当前product构建的打包输出路径。
+返回值:
+类型
+说明
+string
+当前product构建的打包输出路径
+[h2]getCurrentProduct
+getCurrentProduct: () => Product
+获取当前构建指定的product对象。
+返回值:
+类型
+说明
+Product
+当前构建指定的product对象
+[h2]getBuildMode
+getBuildMode: () => string
+获取当前构建指定的BuildMode。
+返回值:
+类型
+说明
+string
+当前构建指定的BuildMode
+[h2]getAppJsonOpt
+getAppJsonOpt: () => any
+获取当前构建的app.json5文件中内容的obj对象。
+返回值:
+类型
+说明
+any
+当前构建的app.json5文件中内容的obj对象
+[h2]setAppJsonOpt
+setAppJsonOpt: (appJsonOpt) => void
+修改当前构建的app.json5文件中内容的obj对象。
+参数:
+参数名
+类型
+必填
+说明
+appJsonOpt
+any
+是
+设置当前构建的app.json5文件解析出来的obj对象
+在工程级hvigorfile.ts中编写示例代码：
+import { appTasks, OhosPluginId, OhosAppContext, AppJson } from '@ohos/hvigor-ohos-plugin';\nimport { hvigor, getNode, HvigorNode  } from '@ohos/hvigor';\n\nhvigor.nodesEvaluated(() => {\n    const node: HvigorNode = getNode(__filename);\n    const appContext = node.getContext(OhosPluginId.OHOS_APP_PLUGIN) as OhosAppContext;\n    console.log('projectName:', appContext.getProjectName());\n    const appJson5: AppJson.AppOptObj = appContext.getAppJsonOpt();\n    if (appContext.getBuildMode() === 'debug') {\n        appJson5.app.versionName = '1.0.0-debug';\n    } else {\n        appJson5.app.versionName = '1.0.0-release';\n    }\n    appContext.setAppJsonOpt(appJson5);\n});\nexport default {\n    system: appTasks,  /* Built-in plugin of Hvigor. It cannot be modified. */\n    plugins:[]         /* Custom plugin to extend the functionality of Hvigor. */\n}
+setAppJsonOpt会进行schema校验，如果传入的对象不符合校验规则则会抛出异常。
+[h2]getBuildProfileOpt
+getBuildProfileOpt: () => any
+获取当前构建的根目录下build-profile.json5文件中内容的obj对象。
+返回值:
+类型
+说明
+any
+当前构建的根目录下build-profile.json5文件中内容的obj对象
+[h2]setBuildProfileOpt
+setBuildProfileOpt: (buildProfileOpt) => any
+设置当前构建的build-profile.json5文件中内容的obj对象。
+参数:
+参数名
+类型
+必填
+说明
+buildProfileOpt
+any
+是
+设置当前构建的根目录下build-profile.json5文件中内容的obj对象
+setBuildProfileOpt会进行schema校验，如果传入的对象不符合校验规则则会抛出异常。
+[h2]getOhpmDependencyInfo5.0.0+
+getOhpmDependencyInfo: () => Record<string, OhpmDependencyInfo> | object
+获取工程下oh-package.json5中配置的依赖信息。
+返回值:
+类型
+说明
+Record<string, OhpmDependencyInfo> | object
+oh-package.json5中配置的依赖信息
+在工程级hvigorfile.ts中编写示例代码：
+import { appTasks } from '@ohos/hvigor-ohos-plugin';\nimport { OhosPluginId } from '@ohos/hvigor-ohos-plugin';\n\n// 自定义插件代码\nexport function customPlugin(): HvigorPlugin {\n    return {\n        pluginId: 'customPlugin',\n        async apply(currentNode: HvigorNode): Promise<void> {\n            const rootNodeContext = currentNode.getContext(OhosPluginId.OHOS_APP_PLUGIN);\n            if (!rootNodeContext) {\n                return;\n            }\n            const ohpmInfo = rootNodeContext.getOhpmDependencyInfo();\n            console.log(ohpmInfo)\n        }\n    };\n}\n\nexport default {\n    system: appTasks,  /* Built-in plugin of Hvigor. It cannot be modified. */\n    plugins:[customPlugin()]         /* Custom plugin to extend the functionality of Hvigor. */\n}
+执行hvigorw --sync输出示例：
+// 工程下oh-package.json5中已配置dependencies依赖\n{\n  har: {\n    name: 'har01',\n    version: '1.0.0',\n    dependencies: {},\n    packagePath: 'D:\\\\project\\\\deveco_project\\\\MyApplication38\\\\har01'\n  }\n}
+[h2]getOhpmRemoteHspDependencyInfo5.6.2+
+getOhpmRemoteHspDependencyInfo: (signed) => Record<string, OhpmDependencyInfo> | object
+获取工程下oh-package.json5中配置的hsp包依赖信息。
+参数值:
+参数名
+类型
+必填
+说明
+signed
+boolean
+否
+是否获取签名的hsp包路径，默认为false
+返回值:
+类型
+说明
+Record<string, OhpmDependencyInfo> | object
+工程下oh-package.json5中配置的hsp包依赖信息
+在工程级hvigorfile.ts中编写示例代码：
+import { hvigor, HvigorNode, HvigorPlugin } from '@ohos/hvigor';\nimport { appTasks, OhosHapContext, OhosAppContext, OhosPluginId, Target } from '@ohos/hvigor-ohos-plugin';\n// 实现自定义插件\nexport function customPlugin(): HvigorPlugin {\n    return {\n        pluginId: 'customPlugin',\n        context() {\n            return {\n                data: 'customPlugin xxx'\n            };\n        },\n        async apply(currentNode: HvigorNode): Promise<void> {\n            hvigor.nodesEvaluated(async () => {\n                // 注册模块级任务\n                hapTask(currentNode);\n            });\n        }\n    };\n}\nfunction hapTask(currentNode: HvigorNode) {\n    // 等待全部节点加载完成之后获取子节点信息\n    currentNode.subNodes((node: HvigorNode) => {\n        // 获取hap模块上下文信息\n        const hapContext = node.getContext(OhosPluginId.OHOS_HAP_PLUGIN) as OhosHapContext;\n        const moduleName = hapContext?.getModuleName();\n        hapContext?.targets((target: Target) => {\n            const targetName = target.getTargetName();\n            node.registerTask({\n                // 任务名称\n                name: `${targetName}@getRemoteHspInfo`,\n                // 任务执行逻辑主体函数\n                run() {\n                    const rootNodeContext = currentNode.getContext(OhosPluginId.OHOS_APP_PLUGIN) as OhosAppContext;\n                    if (!rootNodeContext) {\n                        return;\n                    }\n                    // 获取未签名的远程hsp相关信息\n                    const remoteHspInfo = rootNodeContext.getOhpmRemoteHspDependencyInfo();\n                    console.log(remoteHspInfo)\n                    // 获取已签名的远程hsp相关信息\n                    const signedRemoteHspInfo = rootNodeContext.getOhpmRemoteHspDependencyInfo(true);\n                    console.log(signedRemoteHspInfo)\n                },\n                // 配置前置任务依赖\n                dependencies: [`${targetName}@PackageHap`],\n                // 配置任务的后置任务依赖\n                postDependencies: ['assembleHap']\n            });\n        });\n    });\n}\nexport default {\n    system: appTasks,  /* Built-in plugin of Hvigor. It cannot be modified. */\n    plugins:[customPlugin()]         /* Custom plugin to extend the functionality of Hvigor. */\n};
+执行hvigorw assembleHap输出示例：
+// 工程下oh-package.json5中已配置hsp包依赖\n// 获取无签名的hsp包路径\n{\n  integrated_hsp1_100: {\n    name: 'integrated_hsp1_100',\n    version: '1.0.0',\n    dependencies: {},\n    packagePath: 'D:\\\\code\\\\testproject\\\\dependenices\\\\oh_modules\\\\.ohpm\\\\integrated_hsp1_100@1.0.0\\\\oh_modules\\\\integrated_hsp1_100',\n    remoteHspPath: 'D:\\\\code\\\\testproject\\\\dependenices\\\\build\\\\cache\\\\default\\\\integrated_hsp\\\\integrated_hsp1_100@1.0.0\\\\integrated_hsp1_100.hsp'\n  }\n}\n// 获取已签名的hsp包路径\n{\n  integrated_hsp1_100: {\n    name: 'integrated_hsp1_100',\n    version: '1.0.0',\n    dependencies: {},\n    packagePath: 'D:\\\\code\\\\testproject\\\\dependenices\\\\oh_modules\\\\.ohpm\\\\integrated_hsp1_100@1.0.0\\\\oh_modules\\\\integrated_hsp1_100',\n    signedRemoteHspPath: 'D:\\\\code\\\\testproject\\\\dependenices\\\\build\\\\cache\\\\default\\\\remote_hsp\\\\integrated_hsp1_100@1.0.0\\\\integrated_hsp1_100-signed.hsp'\n  }\n}
+[h2]getDependenciesOpt5.0.10+
+getDependenciesOpt: () => object
+获取工程下oh-package.json5中配置的dependencies依赖。
+返回值:
+类型
+说明
+object
+获取工程级别下oh-package.json5中dependencies信息
+在工程级hvigorfile.ts中编写示例代码：
+import { appTasks } from '@ohos/hvigor-ohos-plugin';\nimport { OhosPluginId } from '@ohos/hvigor-ohos-plugin';\n\n// 自定义插件代码\nexport function customPlugin(): HvigorPlugin {\n    return {\n        pluginId: 'customPlugin',\n        async apply(currentNode: HvigorNode): Promise<void> {\n            const rootNodeContext = currentNode.getContext(OhosPluginId.OHOS_APP_PLUGIN);\n            if (!rootNodeContext) {\n                return;\n            }\n            const DependenciesInfo = rootNodeContext.getDependenciesOpt();\n            console.log(DependenciesInfo)\n        }\n    };\n}\n\nexport default {\n    system: appTasks,  /* Built-in plugin of Hvigor. It cannot be modified. */\n    plugins:[customPlugin()]         /* Custom plugin to extend the functionality of Hvigor. */\n}
+[h2]setDependenciesOpt5.0.10+
+setDependenciesOpt: (:any) => any
+设置工程下oh-package.json5中配置的dependencies依赖。
+参数值:
+参数名
+类型
+必填
+说明
+dependencies
+any
+是
+设置当前工程下oh-package.json5中dependencies依赖
+import { appTasks } from '@ohos/hvigor-ohos-plugin';\nimport { OhosPluginId } from '@ohos/hvigor-ohos-plugin';\n\n// 自定义插件代码\nexport function customPlugin(): HvigorPlugin {\n    return {\n        pluginId: 'customPlugin',\n        async apply(currentNode: HvigorNode): Promise<void> {\n            const rootNodeContext = currentNode.getContext(OhosPluginId.OHOS_APP_PLUGIN);\n            if (!rootNodeContext) {\n                return;\n            }\n            const dependenciesInfo = rootNodeContext.getDependenciesOpt()\n            dependenciesInfo[\"har\"] = \"./har\";\n            rootNodeContext.setDependenciesOpt(dependenciesInfo);   \n      }\n    };\n}\n\nexport default {\n    system: appTasks,  /* Built-in plugin of Hvigor. It cannot be modified. */\n    plugins:[customPlugin()]         /* Custom plugin to extend the functionality of Hvigor. */\n}
+[h2]getDevDependenciesOpt5.0.10+
+getDevDependenciesOpt: () => object
+获取工程下oh-package.json5中配置的devDependencies依赖。
+返回值:
+类型
+说明
+object
+获取工程级别下oh-package.json5中devDependencies信息
+在工程级hvigorfile.ts中编写示例代码：
+import { appTasks } from '@ohos/hvigor-ohos-plugin';\nimport { OhosPluginId } from '@ohos/hvigor-ohos-plugin';\n\n// 自定义插件代码\nexport function customPlugin(): HvigorPlugin {\n    return {\n        pluginId: 'customPlugin',\n        async apply(currentNode: HvigorNode): Promise<void> {\n            const rootNodeContext = currentNode.getContext(OhosPluginId.OHOS_APP_PLUGIN);\n            if (!rootNodeContext) {\n                return;\n            }\n            const devDependenciesInfo = rootNodeContext.getDevDependenciesOpt();\n            console.log(devDependenciesInfo)\n        }\n    };\n}\n\nexport default {\n    system: appTasks,  /* Built-in plugin of Hvigor. It cannot be modified. */\n    plugins:[customPlugin()]         /* Custom plugin to extend the functionality of Hvigor. */\n}
+[h2]setDevDependenciesOpt5.0.10+
+setDevDependenciesOpt: (:any) => any
+设置工程下oh-package.json5中配置的devDependencies依赖。
+参数值:
+参数名
+类型
+必填
+说明
+devDependencies
+any
+是
+设置当前工程下oh-package.json5中devdependencies依赖
+import { appTasks } from '@ohos/hvigor-ohos-plugin';\nimport { OhosPluginId } from '@ohos/hvigor-ohos-plugin';\n\n// 自定义插件代码\nexport function customPlugin(): HvigorPlugin {\n    return {\n        pluginId: 'customPlugin',\n        async apply(currentNode: HvigorNode): Promise<void> {\n            const rootNodeContext = currentNode.getContext(OhosPluginId.OHOS_APP_PLUGIN);\n            if (!rootNodeContext) {\n                return;\n            }\n            const devDependenciesInfo = rootNodeContext.getDevDependenciesOpt()\n            devDependenciesInfo[\"har\"] = \"./har\";\n            rootNodeContext.setDevDependenciesOpt(devDependenciesInfo);   \n      }\n    };\n}\n\nexport default {\n    system: appTasks,  /* Built-in plugin of Hvigor. It cannot be modified. */\n    plugins:[customPlugin()]         /* Custom plugin to extend the functionality of Hvigor. */\n}
+[h2]getDynamicDependenciesOpt5.0.10+
+getDynamicDependenciesOpt: () => object
+获取工程下oh-package.json5中配置的dynamicDependencies依赖。
+返回值:
+类型
+说明
+object
+获取工程级别下oh-package.json5中DynamicDependencies信息
+在工程级hvigorfile.ts中编写示例代码：
+import { appTasks } from '@ohos/hvigor-ohos-plugin';\nimport { OhosPluginId } from '@ohos/hvigor-ohos-plugin';\n\n// 自定义插件代码\nexport function customPlugin(): HvigorPlugin {\n    return {\n        pluginId: 'customPlugin',\n        async apply(currentNode: HvigorNode): Promise<void> {\n            const rootNodeContext = currentNode.getContext(OhosPluginId.OHOS_APP_PLUGIN);\n            if (!rootNodeContext) {\n                return;\n            }\n            const dynamicDependenciesInfo = rootNodeContext.getDynamicDependenciesOpt();\n            console.log(dynamicDependenciesInfo)\n        }\n    };\n}\n\nexport default {\n    system: appTasks,  /* Built-in plugin of Hvigor. It cannot be modified. */\n    plugins:[customPlugin()]         /* Custom plugin to extend the functionality of Hvigor. */\n}
+[h2]setDynamicDependenciesOpt5.0.10+
+setDynamicDependenciesOpt: (:any) => any
+设置工程下oh-package.json5中配置的dynamicDependencies依赖。
+参数值:
+参数名
+类型
+必填
+说明
+dynamicDependencies
+any
+是
+设置当前工程下oh-package.json5中dynamicDependencies依赖
+import { appTasks } from '@ohos/hvigor-ohos-plugin';\nimport { OhosPluginId } from '@ohos/hvigor-ohos-plugin';\n\n// 自定义插件代码\nexport function customPlugin(): HvigorPlugin {\n    return {\n        pluginId: 'customPlugin',\n        async apply(currentNode: HvigorNode): Promise<void> {\n            const rootNodeContext = currentNode.getContext(OhosPluginId.OHOS_APP_PLUGIN);\n            if (!rootNodeContext) {\n                return;\n            }\n            const dynamicDependenciesInfo = rootNodeContext.getDynamicDependenciesOpt()\n            dynamicDependenciesInfo[\"har\"] = \"./har\";\n            rootNodeContext.setDynamicDependenciesOpt(dynamicDependenciesInfo);   \n      }\n    };\n}\n\nexport default {\n    system: appTasks,  /* Built-in plugin of Hvigor. It cannot be modified. */\n    plugins:[customPlugin()]         /* Custom plugin to extend the functionality of Hvigor. */\n}
+OhosHapContext
+hap模块Plugin提供的上下文接口，在hap模块的hvigor节点中可通过getContext方法传入OhosPluginId.OHOS_HAP_PLUGIN_ID获取该接口，接口中主要包含了hap模块中module、target信息。
+[h2]导入模块
+import { OhosHapContext } from '@ohos/hvigor-ohos-plugin';
+示例：获取hap模块上下文接口信息。
+const hapContext = node.getContext(OhosPluginId.OHOS_HAP_PLUGIN) as OhosHapContext;
+[h2]getModuleName
+getModuleName: () => string
+获取模块名称。
+返回值:
+类型
+说明
+string
+模块名称
+[h2]getModulePath
+getModulePath: () => string
+获取模块路径。
+返回值:
+类型
+说明
+string
+模块路径
+[h2]getModuleType
+getModuleType: () => string
+获取模块类型，取值来自模块配置文件module.json5中moduleTyp字段。
+返回值:
+类型
+说明
+string
+模块类型
+[h2]getBuildProductRootPath
+getBuildProductRootPath: () => string
+获取模块基于product构建根路径。
+返回值:
+类型
+说明
+string
+模块基于product构建根路径
+[h2]targets
+targets: (callbackfn: (target: Target) => void) => void
+当前需构建的target对象回调方法
+参数:
+参数名
+类型
+必填
+说明
+callback
+(target: Target) => void
+是
+入参类型为Target，返回类型为void的函数
+[h2]getModuleJsonOpt
+getModuleJsonOpt: () => any
+获取当前模块的module.json5文件中内容的obj对象。
+返回值:
+类型
+说明
+any
+当前模块的module.json5文件中内容的obj对象
+[h2]setModuleJsonOpt
+setModuleJsonOpt: (moduleJsonOpt) => void
+修改当前构建的module.json5文件中内容的obj对象。
+参数:
+参数名
+类型
+必填
+说明
+moduleJsonOpt
+any
+是
+设置当前模块的module.json5文件解析出来的obj对象
+setModuleJsonOpt会进行schema校验，如果传入的对象不符合校验规则则会抛出异常。
+[h2]getBuildProfileOpt
+getBuildProfileOpt: () => any
+获取当前模块的build-profile.json5文件中内容的obj对象。
+返回值:
+类型
+说明
+any
+当前模块的build-profile.json5文件中内容的obj对象
+[h2]setBuildProfileOpt
+setBuildProfileOpt: (buildProfileOpt) => any
+设置当前模块的build-profile.json5文件中内容的obj对象。
+参数:
+参数名
+类型
+必填
+说明
+buildProfileOpt
+any
+是
+设置当前模块的build-profile.json5文件中内容的obj对象
+setBuildProfileOpt会进行schema校验，如果传入的对象不符合校验规则则会抛出异常。
+[h2]getVersion
+getVersion: () => string
+获取模块oh-package.json5中配置的版本号。
+返回值：
+类型
+说明
+string
+模块oh-package.json5中配置的版本号
+在工程级hvigorfile.ts中编写示例代码：
+import { appTasks } from '@ohos/hvigor-ohos-plugin';\nimport { hvigor } from '@ohos/hvigor';\nimport { OhosPluginId } from '@ohos/hvigor-ohos-plugin';\n\n// 实现自定义插件\nexport function customPlugin(): HvigorPlugin {\n    return {\n        pluginId: 'customPlugin',\n        context() {\n            return {\n                data: 'customPlugin xxx'\n            };\n        },\n        async apply(currentNode: HvigorNode): Promise<void> {\n            hvigor.nodesEvaluated(async () => {\n                currentNode.subNodes((node: HvigorNode) => {\n                    // 获取hap模块上下文信息\n                    // 如果是HAR或HSP，使用OHOS_HAR_PLUGIN/OHOS_HSP_PLUGIN\n                    const hapNodeContext = node.getContext(OhosPluginId.OHOS_HAP_PLUGIN) as OhosHapContext;\n                    if (!hapNodeContext) {\n                        return;\n                    }\n                    const moduleVersion = hapNodeContext.getVersion();\n                    console.log(moduleVersion);\n                });\n            });\n        }\n    };\n}\nexport default {\n    system: appTasks,  /* Built-in plugin of Hvigor. It cannot be modified. */\n    plugins:[customPlugin()]         /* Custom plugin to extend the functionality of Hvigor. */\n}
+执行hvigorw --sync输出示例：
+1.1.0
+[h2]setVersion
+setVersion: (version: string) => void
+修改模块oh-package.json5中的版本号。
+参数：
+参数名
+类型
+必填
+说明
+version
+string
+是
+修改模块oh-package.json5中的版本号
+在工程级hvigorfile.ts中编写示例代码：
+import { appTasks } from '@ohos/hvigor-ohos-plugin';\nimport { hvigor } from '@ohos/hvigor';\nimport { OhosPluginId } from '@ohos/hvigor-ohos-plugin';\n\n// 实现自定义插件\nexport function customPlugin(): HvigorPlugin {\n    return {\n        pluginId: 'customPlugin',\n        context() {\n            return {\n                data: 'customPlugin xxx'\n            };\n        },\n        async apply(currentNode: HvigorNode): Promise<void> {\n            hvigor.nodesEvaluated(async () => {\n                currentNode.subNodes((node: HvigorNode) => {\n                    // 获取hap模块上下文信息\n                    // 如果是HAR或HSP，使用OHOS_HAR_PLUGIN/OHOS_HSP_PLUGIN\n                    const hapNodeContext = node.getContext(OhosPluginId.OHOS_HAP_PLUGIN) as OhosHapContext;\n                    if (!hapNodeContext) {\n                        return;\n                    }\n                    hapNodeContext.setVersion('2.0.0');\n                    const moduleVersion = hapNodeContext.getVersion();\n                    console.log(moduleVersion);\n                });\n            });\n        }\n    };\n}\nexport default {\n    system: appTasks,  /* Built-in plugin of Hvigor. It cannot be modified. */\n    plugins:[customPlugin()]         /* Custom plugin to extend the functionality of Hvigor. */\n}
+执行hvigorw --sync输出：
+2.0.0
+[h2]getOhpmDependencyInfo5.0.0+
+getOhpmDependencyInfo: () => Record<string, OhpmDependencyInfo> | object
+获取模块下oh-package.json5中配置的依赖信息。
+返回值:
+类型
+说明
+Record<string, OhpmDependencyInfo> | object
+oh-package.json5中配置的依赖信息
+在工程级hvigorfile.ts中编写示例代码：
+import { appTasks } from '@ohos/hvigor-ohos-plugin';\nimport { hvigor } from '@ohos/hvigor';\nimport { OhosPluginId } from '@ohos/hvigor-ohos-plugin';\n\n// 实现自定义插件\nexport function customPlugin(): HvigorPlugin {\n    return {\n        pluginId: 'customPlugin',\n        context() {\n            return {\n                data: 'customPlugin xxx'\n            };\n        },\n        async apply(currentNode: HvigorNode): Promise<void> {\n            hvigor.nodesEvaluated(async () => {\n                currentNode.subNodes((node: HvigorNode) => {\n                    // 获取hap模块上下文信息\n                    const hapNodeContext = node.getContext(OhosPluginId.OHOS_HAP_PLUGIN) as OhosHapContext;\n                    if (!hapNodeContext) {\n                        return;\n                    }\n                    const ohpmInfo = hapNodeContext.getOhpmDependencyInfo();\n                    console.log(ohpmInfo)\n\n                });\n            });\n        }\n    };\n}\n\nexport default {\n    system: appTasks,  /* Built-in plugin of Hvigor. It cannot be modified. */\n    plugins:[customPlugin()]         /* Custom plugin to extend the functionality of Hvigor. */\n}
+执行hvigorw --sync输出示例：
+// 模块下oh-package.json5中已配置dependencies依赖\n{\n  har: {\n    name: 'har01',\n    version: '1.0.0',\n    dependencies: {},\n    packagePath: 'D:\\\\project\\\\deveco_project\\\\MyApplication38\\\\har01'\n  }\n}
+[h2]getOhpmRemoteHspDependencyInfo5.6.2+
+getOhpmRemoteHspDependencyInfo: (signed) => Record<string, OhpmDependencyInfo> | object
+获取模块下oh-package.json5中配置的hsp包依赖信息。
+参数值:
+参数名
+类型
+必填
+说明
+signed
+boolean
+否
+是否获取签名的hsp包路径，默认为false
+返回值:
+类型
+说明
+Record<string, OhpmDependencyInfo> | object
+模块下oh-package.json5中配置的hsp包依赖信息
+import { appTasks } from '@ohos/hvigor-ohos-plugin';\nimport { hvigor } from '@ohos/hvigor';\nimport { OhosPluginId } from '@ohos/hvigor-ohos-plugin';\n// 实现自定义插件\nexport function customPlugin(): HvigorPlugin {\n    return {\n        pluginId: 'customPlugin',\n        context() {\n            return {\n                data: 'customPlugin xxx'\n            };\n        },\n        async apply(currentNode: HvigorNode): Promise<void> {\n            hvigor.nodesEvaluated(async () => {\n                currentNode.subNodes((node: HvigorNode) => {\n                    // 获取hap模块上下文信息\n                    const hapNodeContext = node.getContext(OhosPluginId.OHOS_HAP_PLUGIN) as OhosHapContext;\n                    hapNodeContext?.targets((target: Target) => {\n                        const targetName = target.getTargetName();\n                        node.registerTask({\n                            // 任务名称\n                            name: `${targetName}@getRemoteHspInfo`,\n                            // 任务执行逻辑主体函数\n                            run() {\n                                // 获取未签名的远程hsp相关信息\n                                const remoteHspInfo = hapNodeContext.getOhpmRemoteHspDependencyInfo();\n                                console.log(remoteHspInfo);\n                                // 获取已签名的远程hsp相关信息\n                                const signedRemoteHspInfo = hapNodeContext.getOhpmRemoteHspDependencyInfo(true);\n                                console.log(signedRemoteHspInfo);\n                            },\n                            // 配置前置任务依赖\n                            dependencies: [`${targetName}@PackageHap`],\n                            // 配置任务的后置任务依赖\n                            postDependencies: ['assembleHap']\n                        });\n                    });\n                });\n            });\n        }\n    };\n}\nexport default {\n    system: appTasks,  /* Built-in plugin of Hvigor. It cannot be modified. */\n    plugins:[customPlugin()]         /* Custom plugin to extend the functionality of Hvigor. */\n}
+执行hvigorw assembleHap输出示例：
+// 模块下oh-package.json5中已配置hsp包依赖\n// 获取无签名的hsp包路径\n{\n  integrated_hsp1_100: {\n    name: 'integrated_hsp1_100',\n    version: '1.0.0',\n    dependencies: {},\n    packagePath: 'D:\\\\code\\\\testproject\\\\dependenices\\\\oh_modules\\\\.ohpm\\\\integrated_hsp1_100@1.0.0\\\\oh_modules\\\\integrated_hsp1_100',\n    remoteHspPath: 'D:\\\\code\\\\testproject\\\\dependenices\\\\build\\\\cache\\\\default\\\\integrated_hsp\\\\integrated_hsp1_100@1.0.0\\\\integrated_hsp1_100.hsp'\n  }\n}\n// 获取已签名的hsp包路径\n{\n  integrated_hsp1_100: {\n    name: 'integrated_hsp1_100',\n    version: '1.0.0',\n    dependencies: {},\n    packagePath: 'D:\\\\code\\\\testproject\\\\dependenices\\\\oh_modules\\\\.ohpm\\\\integrated_hsp1_100@1.0.0\\\\oh_modules\\\\integrated_hsp1_100',\n    signedRemoteHspPath: 'D:\\\\code\\\\testproject\\\\dependenices\\\\build\\\\cache\\\\default\\\\remote_hsp\\\\integrated_hsp1_100@1.0.0\\\\integrated_hsp1_100-signed.hsp'\n  }\n}
+[h2]getDependenciesOpt5.0.10+
+与OhosAppContext中的getDependenciesOpt方法一致，请参考上文中getDependenciesOpt接口描述。
+[h2]setDependenciesOpt5.0.10+
+与OhosAppContext中的setDependenciesOpt方法一致，请参考上文中getDependenciesOpt接口描述。
+[h2]getDevDependenciesOpt5.0.10+
+与OhosAppContext中的getDevDependenciesOpt方法一致，请参考上文中getDependenciesOpt接口描述。
+[h2]setDevDependenciesOpt5.0.10+
+与OhosAppContext中的setDevDependenciesOpt方法一致，请参考上文中getDependenciesOpt接口描述。
+[h2]getDynamicDependenciesOpt5.0.10+
+与OhosAppContext中的getDynamicDependenciesOpt方法一致，请参考上文中getDependenciesOpt接口描述。
+[h2]setDynamicDependenciesOpt5.0.10+
+与OhosAppContext中的setDynamicDependenciesOpt方法一致，请参考上文中getDependenciesOpt接口描述。
+OhosHspContext
+Hsp模块上下文接口信息与OhosHapContext一致，请参考上文中OhosHapContext接口描述。
+OhosHarContext
+Har模块上下文接口信息与OhosHapContext一致，请参考上文中OhosHapContext接口描述。

@@ -1,0 +1,13 @@
+@typescript-eslint/no-invalid-void-type
+禁止在返回类型或者泛型类型之外使用void。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/no-invalid-void-type\": \"error\"\n  }\n}
+选项
+详情请参考@typescript-eslint/no-invalid-void-type选项。
+正例
+export type NoOp = () => void;\nexport function noop(): void {\n  console.info('noop');\n}\nexport const trulyUndefined = void Number.MAX_VALUE;\nexport async function promiseMeSomething(): Promise<void> {\n  return Promise.reject('value').catch(() => {\n    console.error('error');\n  });\n}\nexport type StillVoid = void | never;
+反例
+// 不允许使用void作为类型\nexport type PossibleValues = string | number | void;\n// 不允许使用void作为类型\nexport type MorePossibleValues = string | (string | void);\n\n// 不允许使用void作为类型\nexport function logSomething(thing: void) {\n  return thing;\n}\nexport function printArg<T = void>(arg: T) {\n  return arg;\n}\n\nexport interface Interface {\n  lambda: () => void;\n  // 不允许使用void作为类型\n  prop: void;\n}
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

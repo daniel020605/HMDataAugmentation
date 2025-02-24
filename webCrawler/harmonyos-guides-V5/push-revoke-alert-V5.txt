@@ -1,0 +1,5 @@
+撤回通知消息
+当推送的通知消息内容有误或者存在违规情况时，可能会引起用户投诉或监管部门处罚等不良后果。Push Kit为您提供消息撤回功能，降低此类推送可能造成的影响。
+ 消息撤回仅支持使用token和notifyId撤回。 若要使用消息撤回功能，请确保您在推送消息时设置了notifyId字段。 消息撤回仅支持以下类型：还未下发到端侧的消息，已在终端展示但用户还未点击的消息。 消息撤回不会影响应用的通知角标。 
+开发步骤
+ 参考开发步骤章节进行消息推送，确保应用可正常收到通知消息。 应用服务端调用REST API撤回通知消息，消息详情可参见消息撤回，请求示例如下：// Request URL \nPOST https://push-api.cloud.huawei.com/v1/[clientId]/messages:revoke\n \n// Request Header \nContent-Type:application/json\nAuthorization:Bearer eyJr*****OiIx---****.eyJh*****iJodHR--***.QRod*****4Gp---****\npush-type: 0 \n \n// Request Body \n{\n  \"notifyId\": 1234567,\n  \"token\": [\n    \"pushToken1\",\n    \"pushToken2\",\n    \"pushToken3\"\n  ]\n}  [clientId]：请替换为您应用的Client ID，可参见指导获取。 Authorization：JWT格式字符串，可参见Authorization获取。 push-type：0表示通知消息场景。 notifyId：消息ID，消息的唯一标识，详情请参见notifyId。 token：Push Token，可参见获取Push Token获取。   

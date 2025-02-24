@@ -1,0 +1,16 @@
+弧线
+场景介绍
+本章节将向您介绍如何在地图上绘制弧线，通过MapArcParams类设置弧线的位置、宽度、颜色等参数。
+接口说明
+添加弧线功能主要由MapArcParams、addArc和MapArc提供，更多接口及使用方法请参见接口文档。
+接口名
+描述
+MapArcParams
+弧线参数。
+addArc(params: mapCommon.MapArcParams): MapArc
+添加一条弧线。
+MapArc
+弧线，支持更新和查询相关属性。
+开发步骤
+[h2]添加弧线
+ 导入相关模块。import { map, mapCommon, MapComponent } from '@kit.MapKit';\nimport { AsyncCallback } from '@kit.BasicServicesKit'; 添加弧线，在Callback方法中创建初始化参数并新建MapArc。@Entry\n@Component\nstruct MapArcDemo {\n  private TAG = \"OHMapSDK_MapArcDemo\";\n  private mapOptions?: mapCommon.MapOptions;\n  private mapController?: map.MapComponentController;\n  private callback?: AsyncCallback<map.MapComponentController>;\n\n  aboutToAppear(): void {\n    this.mapOptions = {\n      position: {\n        target: {\n          latitude: 34.757975,\n          longitude: 113.665412\n        },\n        zoom: 6\n      },\n    }\n\n    this.callback = async (err, mapController) => {\n      if (!err) {\n        this.mapController = mapController;\n        if (!this.mapController) {\n          console.info(this.TAG, \"mapController is null1\");\n          return;\n        }\n        // 设置弧线参数\n        let mapArcParams: mapCommon.MapArcParams = {\n          // 弧线起点坐标\n          startPoint: {\n            latitude: 39.913138,\n            longitude: 116.415112\n          },\n          // 弧线终点坐标\n          endPoint: {\n            latitude: 28.239473,\n            longitude: 112.954094\n          },\n          // 弧线中心点坐标\n          centerPoint: {\n            latitude: 33.86970399048567,\n            longitude: 112.08633528544145\n          },\n          width: 10,\n          color: 0xffff0000,\n          visible: true,\n          zIndex: 100\n        };\n        // 添加弧线\n        this.mapController.addArc(mapArcParams);\n      }\n    }\n  }\n\n  build() {\n    Stack() {\n      Column() {\n        MapComponent({\n          mapOptions: this.mapOptions,\n          mapCallback: this.callback,\n        })\n          .width('100%')\n          .height('100%');\n      }.width('100%')\n    }.height('100%')\n  }\n}  

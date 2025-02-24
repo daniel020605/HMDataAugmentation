@@ -1,0 +1,32 @@
+{
+    "entry\\src\\main\\ets\\pages\\Index.ets": [
+        {
+            "function_name": "build",
+            "content": "build() {\n    Navigation(this.navPathStack) {\n\n    }\n    .hideNavBar(true)\n  }"
+        }
+    ],
+    "entry\\src\\main\\ets\\pages\\PageFour.ets": [
+        {
+            "function_name": "build",
+            "content": "build() {\n    NavDestination() {\n      Stack() {\n        Text('This is Page Four')\n          .fontSize(30)\n          .width('100%')\n      }\n      .size({ width: '100%', height: '100%' })\n    }\n    .backgroundColor(Color.White)\n    .hideTitleBar(true)\n    .onReady((context: NavDestinationContext) => {\n      this.pathStack = context.pathStack;\n    })\n  }"
+        }
+    ],
+    "entry\\src\\main\\ets\\pages\\PageOne.ets": [
+        {
+            "function_name": "build",
+            "content": "build() {\n    NavDestination() {\n      Column() {\n        Image($r('app.media.img_1'))\n          .size({ width: '100%'})\n          .objectFit(ImageFit.Auto)\n          .draggable(false)\n\n        Column() {\n          Text('出现和消失的两个节点有位置大小内容的关联')\n            .size({ width: '100%', height: '100%' })\n        }\n        .size({ width: '100%', height: 40 })\n        .padding({ left: 6, right: 6 })\n        .margin({ top: 5 })\n      }\n      .id('test')\n      .backgroundColor(Color.White)\n      .size({ width: 200 })\n      .position({ x: 10, y: 200 })\n      .borderRadius(9)\n      .clip(true)\n      .visibility(this.isVisible)\n      .onClick((event: ClickEvent) => {\n        this.pathStack?.pushPath({ name: 'PageTwo' });\n      })\n    }\n    .title('首页')\n    .onReady((context: NavDestinationContext) => {\n      this.pathStack = context.pathStack;\n    })\n  }"
+        }
+    ],
+    "entry\\src\\main\\ets\\pages\\PageThree.ets": [
+        {
+            "function_name": "build",
+            "content": "build() {\n    NavDestination() {\n      Stack({ alignContent: Alignment.Top }) {\n        Stack() {\n          Image($r('app.media.img_1'))\n            .size({ width:'100%' })\n            .objectFit(ImageFit.Auto)\n        }\n        .size({ width: '100%', height: 700 })\n        .id('PageThree_Id')\n      }\n      .size({ width: '100%', height: '100%' })\n      .backgroundColor(Color.Black)\n      .expandSafeArea([SafeAreaType.SYSTEM])\n      .onClick(() => {\n        this.pathStack.pushPath({ name: 'PageFour' })\n      })\n    }\n    .hideTitleBar(true)\n    .onReady((context: NavDestinationContext) => {\n      this.pathStack = context.pathStack;\n    })\n  }"
+        }
+    ],
+    "entry\\src\\main\\ets\\pages\\PageTwo.ets": [
+        {
+            "function_name": "build",
+            "content": "build() {\n    NavDestination() {\n      Column({ space: 40 }) {\n        Row({ space: 10 }) {\n          Image($r('app.media.ic_public_back'))\n            .width(24)\n            .height(24)\n            .onClick(() => {\n              this.pathStack?.pop();\n            })\n            .margin({ left: 20 })\n\n          Text('详情页')\n            .height(40)\n            .fontSize(25)\n            .fontColor(Color.Black)\n            .width('100%')\n        }\n        .clip(true)\n        .width('100%')\n        .height(px2vp(182))\n        .alignItems(VerticalAlign.Center)\n\n        Image($r('app.media.img_1'))\n          .size({ width: '100%' })\n          .objectFit(ImageFit.Auto)\n          .id('Post_Page_ID')\n          .onClick((event: ClickEvent) => {\n            this.pathStack?.pushPath({ name: 'PageThree'});\n          })\n      }\n      .size({ width: '100%', height: '100%' })\n    }\n    .backgroundColor(Color.White)\n    .hideTitleBar(true)\n    .onReady((context: NavDestinationContext) => {\n      this.pathStack = context.pathStack;\n    })\n  }"
+        }
+    ]
+}

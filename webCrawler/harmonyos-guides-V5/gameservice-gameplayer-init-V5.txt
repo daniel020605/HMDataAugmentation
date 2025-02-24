@@ -1,0 +1,10 @@
+初始化
+在调用其他接口前，必须先完成游戏初始化。
+前提条件
+已实现导入模块。
+注意事项
+ 必须在游戏启动时完成初始化接入，否则可能会导致游戏上架审核被驳回。 初始化后，Game Service Kit会向玩家弹出华为隐私协议弹框要求玩家签署隐私协议。如玩家不签署协议，则会退出当前游戏。 
+开发步骤
+调用init完成初始化。
+调用init接口时严格要求继承UIAbility，并且获取上下文的时机是onWindowStageCreate生命周期中页面加载成功后。
+onWindowStageCreate(windowStage: window.WindowStage) {\n  windowStage.loadContent(\"pages/index\", (err, data) => {\n    try {\n      gamePlayer.init(this.context,()=>{\n        hilog.info(0x0000, 'testTag', `Succeeded in initing.`);\n      });\n    } catch (error) {\n      let err = error as BusinessError;\n      hilog.error(0x0000, 'testTag', `Failed to init. Code: ${err.code}, message: ${err.message}`);\n    }\n  });\n}

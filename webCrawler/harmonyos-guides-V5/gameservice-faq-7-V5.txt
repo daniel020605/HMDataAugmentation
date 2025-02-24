@@ -1,0 +1,2 @@
+把HarmonyOS/EMUI的游戏进度转移到HarmonyOS NEXT游戏的过程中，开发者需要做什么？
+支持HarmonyOS/EMUI系统的游戏进度全部转移到HarmonyOS NEXT游戏中，在转移的过程中，华为账号不会发生变化，也不涉及开发者服务器和数据库层面的变动。转移的本质是华为平台将HarmonyOS/EMUI系统的玩家标识ID值赋给HarmonyOS NEXT系统下的玩家标识ID，同时重置原玩家标识ID的值。

@@ -1,0 +1,5 @@
+在端侧调用云存储
+前提条件
+请确保云存储服务已经开通。使用云存储功能，需要获取用户凭据。请确保您已配置AccessToken。
+操作步骤
+在代码文件中引入Cloud Foundation Kit。import { cloudStorage } from '@kit.CloudFoundationKit';\nimport { BusinessError, request } from '@kit.BasicServicesKit'; 初始化云存储实例。...\nconst bucket: cloudStorage.StorageBucket = cloudStorage.bucket();\n... 调用云存储接口，如uploadFile接口。“src/main/ets/pages/CloudStorage.ets”代码片段节选如下，更完整的接口信息请参考Cloud Foundation Kit API参考-云存储模块。...\nbucket.uploadFile(getContext(this), {\n  localPath: cacheFilePath,\n  cloudPath: cloudPath,\n}).then(task => {\n  // add task event listener\n  this.addEventListener(task, this.onUploadCompleted(cloudPath, cacheFilePath));\n  // start task\n  task.start();\n}).catch((err: BusinessError) => {\n  hilog.error(0x0000, 'CloudStorage', 'uploadFile failed, error code: %{public}d, message: %{public}s',\n    err.code, err.message);\n  this.isUploading = false;\n});\n...  

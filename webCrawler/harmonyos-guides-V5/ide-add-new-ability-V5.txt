@@ -1,0 +1,15 @@
+在模块中添加Ability
+Ability是应用/元服务所具备的能力的抽象，一个Module可以包含一个或多个Ability。应用/元服务先后提供了两种应用模型：
+FA（Feature Ability）模型： API 7开始支持的模型，已经不再主推。Stage模型：HarmonyOS 3.1 Developer Preview版本开始新增的模型，是目前主推且会长期演进的模型。在该模型中，由于提供了AbilityStage、WindowStage等类作为应用组件和Window窗口的“舞台”，因此称这种应用模型为Stage模型。Stage模型包含两种Ability组件类型： UIAbility组件：包含UI界面，提供展示UI的能力，主要用于和用户交互。详细介绍请参见UIAbility组件概述。ExtensionAbility组件：提供特定场景的扩展能力，满足更多的使用场景。详细介绍请参见ExtensionAbility概述。 
+Stage模型添加UIAbility
+[h2]在模块中添加UIAbility
+选中对应的模块，单击鼠标右键，选择New > Ability。
+设置Ability名称，选择是否在设备主屏幕上显示该功能的启动图标，单击Finish完成Ability创建。 
+[h2]在模块中添加Extension Ability
+在工程中选中对应的模块，单击鼠标右键，选择New > Extension Ability，选择不同的场景类型 。当前仅Application工程支持创建Extension Ability。Accessibility：用于提供辅助功能业务的能力。EmbeddedUIExtensionAbility：提供了跨进程界面嵌入的能力。BackupAbility：用于应用接入数据备份恢复的能力。WorkScheduler：用于提供延迟任务回调实现的能力。RemoteNotificationAbility：用于提供获取场景化消息数据和生命周期销毁的回调的通知能力。  设置Ability名称，单击Finish完成Extension Ability创建。 
+FA模型添加Ability
+ArkTS工程与JS工程在FA模型中添加Ability的操作方式一致，本节内容以ArkTS工程为例介绍在模块中添加Ability。
+[h2]创建Particle Ability
+选中对应的模块，单击鼠标右键，选择New > Ability ，然后选择对应的Data Ability/Service Ability模板。 根据选择的Ability模板，设置Ability的基本信息。Ability name：Ability类名称，由大小写字母、数字和下划线组成。Language：该Ability使用的开发语言。 单击Finish完成Ability的创建，可以在工程目录对应的模块中查看和编辑Ability。
+[h2]创建Feature Ability
+选中对应的模块，单击鼠标右键，选择New > Ability ，然后选择对应的Page Ability模板。 根据选择的Ability模板，设置Ability的基本信息。Ability name：Ability类名称，由大小写字母、数字和下划线组成。Launcher ability：表示该Ability在终端桌面上是否有启动图标，一个HAP可以有多个启动图标，来启动不同的FA。Language：该Ability使用的开发语言。 单击Finish完成Ability的创建，可以在工程目录对应的模块中查看和编辑Ability。

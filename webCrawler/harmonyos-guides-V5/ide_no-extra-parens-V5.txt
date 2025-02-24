@@ -1,0 +1,13 @@
+@typescript-eslint/no-extra-parens
+禁止使用不必要的括号。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/no-extra-parens\": \"error\"\n  }\n}
+选项
+详情请参考@typescript-eslint/no-extra-parens选项。
+正例
+// 默认不允许在任何表达式中使用不必要的括号\n(0).toString();\n\nconst result = (() => {\n  console.info('arrow function');\n}) ? '1' : '2';\n\n(/^a$/).test(result);
+反例
+// 默认不允许在任何表达式中使用不必要的括号\nconst b = 10;\nconst c = 20;\nexport const a = (b * c);\n\nexport const d = (a * b) + c;\n\nexport const myType = typeof (a);
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

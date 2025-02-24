@@ -1,0 +1,13 @@
+@typescript-eslint/strict-boolean-expressions
+不允许在布尔表达式中使用非布尔类型。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/strict-boolean-expressions\": \"error\"\n  }\n}
+选项
+详情请参考@typescript-eslint/strict-boolean-expressions选项。
+正例
+// nullable values should be checked explicitly against null or undefined\nfunction getNum(): number | undefined {\n  return undefined;\n}\n\nconst num: number | undefined = getNum();\nif (num !== undefined) {\n  console.log('num is defined');\n}\n\nfunction getStr(): string | null {\n  return 'null';\n}\n\nconst str: string | null = getStr();\nif (str !== null) {\n  console.log('str is not empty');\n}
+反例
+// nullable values should be checked explicitly against null or undefined\nfunction getNum(): number | undefined {\n  return undefined;\n}\n\nconst num: number | undefined = getNum();\nif (num) {\n  console.log('num is defined');\n}\n\nfunction getStr(): string | null {\n  return 'null';\n}\n\nconst str: string | null = getStr();\nif (str) {\n  console.log('str is not empty');\n}
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

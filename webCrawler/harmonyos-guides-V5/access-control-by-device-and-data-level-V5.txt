@@ -1,0 +1,22 @@
+基于设备分类和数据分级的访问控制
+基本概念
+分布式数据管理对数据实施分类分级保护，提供基于数据安全标签以及设备安全等级的访问控制机制。
+数据安全标签和设备安全等级越高，加密措施和访问控制措施越严格，数据安全性越高。
+[h2]数据安全标签
+按照数据分类分级规范要求，可将数据分为S1、S2、S3、S4四个安全等级。
+[h2]设备安全等级
+根据设备安全能力，比如是否有TEE、是否有安全存储芯片等，将设备安全等级分为SL1、SL2、SL3、SL4、SL5五个等级。例如，手表通常为低安全的SL1设备，手机、平板通常为高安全的SL4设备。
+在设备组网时可以通过hidumper -s 3511查看设备安全等级。
+跨设备同步访问控制机制
+数据跨设备同步时，数据管理基于数据安全标签和设备安全等级进行访问控制。规则为，在本设备的数据安全标签不高于对端设备的设备安全等级时，数据才能从本设备同步到对端设备，否则不能同步。具体访问控制矩阵如下：
+例如，手表通常为低安全的SL1设备。若创建数据安全标签为S1的数据库，则此数据库数据可以在这些设备间同步；若创建的数据库标签为S2-S4，则不能在这些设备间同步。
+场景介绍
+分布式数据库的访问控制机制确保了数据存储和同步时的安全能力。在创建数据库时，应当基于数据分类分级规范合理地设置数据库的安全标签，确保数据库内容和数据标签的一致性。
+使用键值型数据库实现数据分级
+键值型数据库，通过securityLevel参数设置数据库的安全等级。此处以创建安全等级为S1的数据库为例。
+具体接口及功能，可见分布式键值数据库。
+import { distributedKVStore } from '@kit.ArkData';\nimport { BusinessError } from '@kit.BasicServicesKit';\n\nlet kvManager: distributedKVStore.KVManager;\nlet kvStore: distributedKVStore.SingleKVStore;\nlet context = getContext(this);\nconst kvManagerConfig: distributedKVStore.KVManagerConfig = {\n  context: context,\n  bundleName: 'com.example.datamanagertest'\n}\ntry {\n  kvManager = distributedKVStore.createKVManager(kvManagerConfig);\n  console.info('Succeeded in creating KVManager.');\n  try {\n    const options: distributedKVStore.Options = {\n      createIfMissing: true,\n      encrypt: true,\n      backup: false,\n      autoSync: false,\n      kvStoreType: distributedKVStore.KVStoreType.SINGLE_VERSION,\n      securityLevel: distributedKVStore.SecurityLevel.S1\n    };\n    kvManager.getKVStore<distributedKVStore.SingleKVStore>('storeId', options, (err, store: distributedKVStore.SingleKVStore) => {\n      if (err) {\n        console.error(`Failed to get KVStore. Code:${err.code},message:${err.message}`);\n        return;\n      }\n      console.info('Succeeded in getting KVStore.');\n      kvStore = store;\n    });\n  } catch (e) {\n    let error = e as BusinessError;\n    console.error(`An unexpected error occurred. Code:${error.code},message:${error.message}`);\n  }\n} catch (e) {\n  let error = e as BusinessError;\n  console.error(`Failed to create KVManager. Code:${error.code},message:${error.message}`);\n}
+使用关系型数据库实现数据分级
+关系型数据库，通过securityLevel参数设置数据库的安全等级。此处以创建安全等级为S1的数据库为例。
+具体接口及功能，可见关系型数据库。
+import { BusinessError } from '@kit.BasicServicesKit';\nimport { relationalStore } from '@kit.ArkData';\n\nlet store: relationalStore.RdbStore;\nlet context = getContext(this);\nconst STORE_CONFIG: relationalStore.StoreConfig = {\n  name: 'RdbTest.db',\n  securityLevel: relationalStore.SecurityLevel.S1\n};\nlet promise = relationalStore.getRdbStore(context, STORE_CONFIG);\npromise.then(async (rdbStore) => {\n  store = rdbStore;\n  console.info('Succeeded in getting RdbStore.')\n}).catch((err: BusinessError) => {\n  console.error(`Failed to get RdbStore. Code:${err.code},message:${err.message}`);\n})

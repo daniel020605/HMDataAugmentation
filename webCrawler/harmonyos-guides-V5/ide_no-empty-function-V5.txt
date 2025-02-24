@@ -1,0 +1,14 @@
+@typescript-eslint/no-empty-function
+不允许使用空函数。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/no-empty-function\": \"error\"\n  }\n}
+选项
+详情请参考@typescript-eslint/no-empty-function选项。
+正例
+该规则旨在消除空函数。如果函数包含注释，则不会将其视为问题。
+/*eslint no-empty-function: \"error\"*/\nfunction foo() {\n  // do nothing.\n}\n\nconst baz = () => {\n  foo();\n};\n\nexport class Bar {\n  public meth1() {\n    // do something\n  }\n\n  public meth2() {\n    baz();\n  }\n}
+反例
+/*eslint no-empty-function: \"error\"*/\nfunction foo() {\n\n}\n\nconst baz = () => {\n\n};\n\nexport class Bar {\n  public meth1() {\n\n  }\n\n  public meth2() {\n\n  }\n}
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

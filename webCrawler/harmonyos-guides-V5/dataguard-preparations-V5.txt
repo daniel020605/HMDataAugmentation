@@ -1,0 +1,9 @@
+开发准备
+环境准备
+仅支持2in1上运行。HarmonyOS系统：HarmonyOS NEXT Developer Beta1及以上。DevEco Studio版本：DevEco Studio NEXT Developer Beta1及以上。HarmonyOS SDK版本：HarmonyOS NEXT Developer Beta1 SDK及以上。
+申请资质
+在开发应用前，需要在AppGallery Connect中配置项目和应用信息。包括：
+注册成为企业开发者。创建项目和创建应用。申请MDM应用的证书和Profile。
+申明接口所需权限
+在申请权限前，请保证符合权限使用的基本原则。然后在工程Module对应的module.json5配置文件中\"requestPermissions\"标签下声明要使用的接口所需的权限。例如：
+\"requestPermissions\": [\n  {\n\t\"name\": \"ohos.permission.FILE_GUARD_MANAGER\"\n  },\n  {\n\t\"name\": \"ohos.permission.SET_FILE_GUARD_POLICY\"\n  }\n]

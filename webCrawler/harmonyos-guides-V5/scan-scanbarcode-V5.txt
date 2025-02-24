@@ -1,0 +1,29 @@
+默认界面扫码
+基本概念
+默认界面扫码能力提供系统级体验一致的扫码界面，包含相机预览流，相册扫码入口，暗光环境闪光灯开启提示。Scan Kit对系统相机权限进行了预授权，调用接口时，无需开发者再次申请相机权限。适用于不同扫码场景的应用开发。
+通过默认界面扫码可以实现应用内的扫码功能，为了应用更好的体验，推荐同时接入“扫码直达”服务，应用可以同时支持系统扫码入口（控制中心扫一扫）和应用内扫码两种方式跳转到指定服务页面。
+场景介绍
+默认界面扫码能力提供了系统级体验一致的扫码界面以及相册扫码入口，支持单码和多码识别，支持多种识码类型，请参见ScanType。无需使用三方库就可帮助开发者的应用快速处理各种扫码场景。
+默认扫码界面UX：
+约束与限制
+ 默认界面扫码能力暂不支持悬浮屏、分屏场景。 相册扫码只支持单码识别。 不支持界面UX添加自定义设置。 
+业务流程
+使用默认界面扫码的主要业务流程如下：
+ 用户向开发者的应用发起扫码请求。 开发者的应用通过调用Scan Kit的startScanForResult接口启动扫码界面。 系统首次使用默认界面扫码功能时，会向用户弹出隐私提醒。 用户需点击确认已了解隐私提醒，才能进行下一步操作。如用户不同意隐私内容，可左滑关闭应用。 Scan Kit通过Callback回调函数或Promise方式返回扫码结果。 用户进行多码扫描时，需点击选择其中一个码图获取扫码结果返回。单码扫描则可直接返回扫码结果。 解析码值结果跳转应用服务页。 
+接口说明
+接口返回值有两种返回形式：Callback和Promise回调。下表中为默认界面扫码Callback和Promise形式接口，Callback和Promise只是返回值方式不一样，功能相同。startScanForResult接口打开的是应用内呈现的扫码界面样式。具体API说明详见接口文档。
+接口名
+描述
+startScanForResult(context: common.Context, options?: ScanOptions): Promise<ScanResult>
+启动默认界面扫码，通过ScanOptions进行扫码参数设置，使用Promise异步回调返回扫码结果。
+startScanForResult(context: common.Context, options: ScanOptions, callback: AsyncCallback<ScanResult>): void
+启动默认界面扫码，通过ScanOptions进行扫码参数设置，使用Callback异步回调返回扫码结果。
+startScanForResult(context: common.Context, callback: AsyncCallback<ScanResult>): void
+启动默认界面扫码，使用Callback异步回调返回扫码结果。
+startScanForResult接口需要在页面和组件的生命周期内调用。若需要设置扫码页面为全屏或沉浸式，请参见开发应用沉浸式效果。
+开发步骤
+Scan Kit提供了默认界面扫码的能力，由扫码接口直接控制相机实现最优的相机放大控制、自适应的曝光调节、自适应对焦调节等操作，保障流畅的扫码体验，减少开发者的工作量。
+以下示例为调用Scan Kit的startScanForResult接口跳转扫码页面。
+ 导入默认界面扫码模块，scanCore提供扫码类型定义，scanBarcode提供拉起默认界面扫码的方法和参数，导入方法如下。import { scanCore, scanBarcode } from '@kit.ScanKit';\n// 导入默认界面需要的日志模块和错误码模块\nimport { hilog } from '@kit.PerformanceAnalysisKit';\nimport { BusinessError } from '@kit.BasicServicesKit'; 调用startScanForResult方法拉起默认扫码界面。        通过Promise方式得到扫码结果。@Entry\n@Component\nstruct ScanBarCodePage {\n  build() {\n    Column() {\n      Row() {\n        Button(\"Promise with options\")\n          .backgroundColor('#0D9FFB')\n          .fontSize(20)\n          .fontColor('#FFFFFF')\n          .fontWeight(FontWeight.Normal)\n          .align(Alignment.Center)\n          .type(ButtonType.Capsule)\n          .width('90%')\n          .height(40)\n          .margin({ top: 5, bottom: 5 })\n          .onClick(() => {\n            // 定义扫码参数options\n            let options: scanBarcode.ScanOptions = {\n              scanTypes: [scanCore.ScanType.ALL],\n              enableMultiMode: true,\n              enableAlbum: true\n            };\n            try {\n              // 可调用getContext接口获取当前页面关联的UIAbilityContext\n              scanBarcode.startScanForResult(getContext(this), options).then((result: scanBarcode.ScanResult) => {\n                // 解析码值结果跳转应用服务页\n                hilog.info(0x0001, '[Scan CPSample]', `Succeeded in getting ScanResult by promise with options, result is ${JSON.stringify(result)}`);\n              }).catch((error: BusinessError) => {\n                hilog.error(0x0001, '[Scan CPSample]',\n                `Failed to get ScanResult by promise with options. Code:${error.code}, message: ${error.message}`);\n              });\n            } catch (error) {\n              hilog.error(0x0001, '[Scan CPSample]',\n                `Failed to start the scanning service. Code:${error.code}, message: ${error.message}`);\n            }\n          })\n      }\n      .height('100%')\n    }\n    .width('100%')\n  }\n} 通过Callback回调函数得到扫码结果。@Entry\n@Component\nstruct ScanBarCodePage {\n  build() {\n    Column() {\n      Row() {\n        Button('Callback with options')\n          .backgroundColor('#0D9FFB')\n          .fontSize(20)\n          .fontColor('#FFFFFF')\n          .fontWeight(FontWeight.Normal)\n          .align(Alignment.Center)\n          .type(ButtonType.Capsule)\n          .width('90%')\n          .height(40)\n          .margin({ top: 5, bottom: 5 })\n          .onClick(() => {\n            // 定义扫码参数options\n            let options: scanBarcode.ScanOptions = {\n              scanTypes: [scanCore.ScanType.ALL],\n              enableMultiMode: true,\n              enableAlbum: true\n            };\n            try {\n              // 可调用getContext接口获取当前页面关联的UIAbilityContext\n              scanBarcode.startScanForResult(getContext(this), options,\n              (error: BusinessError, result: scanBarcode.ScanResult) => {\n                  if (error) {\n                    hilog.error(0x0001, '[Scan CPSample]',\n                    `Failed to get ScanResult by callback with options. Code: ${error.code}, message: ${error.message}`);\n                    return;\n                  }\n                  // 解析码值结果跳转应用服务页\n                  hilog.info(0x0001, '[Scan CPSample]', `Succeeded in getting ScanResult by callback with options, result is ${JSON.stringify(result)}`);\n              })\n            } catch (error) {\n              hilog.error(0x0001, '[Scan CPSample]',\n                `Failed to start the scanning service. Code:${error.code}, message: ${error.message}`);\n            }\n          })\n      }\n      .height('100%')\n    }\n    .width('100%')\n  }\n}  
+模拟器开发
+暂不支持模拟器使用，调用会返回错误信息“Emulator is not supported.”

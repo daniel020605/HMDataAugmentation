@@ -1,0 +1,24 @@
+文件预览
+接口说明
+接口返回值有两种返回形式：callback和promise，promise和callback只是返回值方式不一样，功能相同。具体API说明详见接口文档。
+接口名
+描述
+openPreview(context: Context, file: PreviewInfo, info?: DisplayInfo): Promise<void>
+打开预览功能。通过传入单个文件预览信息以及悬浮窗口属性信息，打开预览窗口。1秒内重复调用无效。使用Promise方式异步返回结果。
+openPreview(context: Context, file: PreviewInfo, info: DisplayInfo, callback: AsyncCallback<void>): void
+打开预览功能。通过传入单个文件预览信息以及悬浮窗口属性信息，打开预览窗口。1秒内重复调用无效。传入callback进行异步回调。
+openPreview(context: Context, files: Array<PreviewInfo>, index?: number): Promise<void>
+打开预览功能。通过传入多个文件预览信息以及选择展示的文件信息下标，打开预览窗口。1秒内重复调用无效。使用Promise方式异步返回结果。仅移动端可用。
+canPreview(context: Context, uri: string): Promise<boolean>
+根据文件的uri判断文件是否可预览。
+ 当传入支持的文件类型（图片、视频、音频、文本、html）和文件夹uri并且文件存在时，会返回true。 当传入不可预览的文件uri时，返回false。 
+hasDisplayed(context: Context): Promise<boolean>
+判断预览窗口是否已经存在。预览窗口是单例的形式。
+ 如果预览窗口已经打开过并且没关闭，那会返回true。 如果没打开或者打开后已关闭，那将返回false。 
+closePreview(context: Context): Promise<void>
+关闭预览窗口，仅当预览窗口存在时起效。
+loadData(context: Context, file: PreviewInfo): Promise<void>
+加载预览文件信息。仅当预览窗口存在时生效。100毫秒内重复调用无效。
+ 传入可预览文件以及文件夹时展示对应预览界面。 传入不可预览文件显示不支持预览界面。 
+开发步骤
+ 导入相关模块。import { filePreview } from '@kit.PreviewKit';\nimport { BusinessError } from '@kit.BasicServicesKit';  判断是否可以预览，以下示例代码中的uri均为参考示例，实际开发需要根据业务传入实际使用的uri。// 该沙箱uri仅为参考，需要根据实际业务传入真实存在的uri\nlet uri = 'file://com.example.myapplication/data/storage/el2/base/haps/entry/files/1.txt';  \nlet uiContext = getContext(this);\nfilePreview.canPreview(uiContext, uri).then((result) => {    // 传入支持的文件类型且项目存在时会返回true\n  console.info(`Succeeded in obtaining the result of whether it can be previewed. result = ${result}`);\n}).catch((err: BusinessError) => {\n  console.error(`Failed to obtain the result of whether it can be previewed, err.code = ${err.code}, err.message = ${err.message}`);\n}); 调用openPreview，实现打开文件预览的功能。        通过Promise方式打开文件let uiContext = getContext(this);\nlet displayInfo: filePreview.DisplayInfo = {\n  x: 100,\n  y: 100,\n  width: 800,\n  height: 800\n};\nlet fileInfo: filePreview.PreviewInfo = {\n  title: '1.txt',\n  // 该沙箱uri仅为参考，需要根据实际业务传入真实uri\n  uri: 'file://com.example.myapplication/data/storage/el2/base/haps/entry/files/1.txt',\n  mimeType: 'text/plain'\n};\nfilePreview.openPreview(uiContext, fileInfo, displayInfo).then(() => {\n  console.info('Succeeded in opening preview');\n}).catch((err: BusinessError) => {\n  console.error(`Failed to open preview, err.code = ${err.code}, err.message = ${err.message}`);\n});   通过CallBack回调函数方式打开文件let uiContext = getContext(this);\nlet displayInfo: filePreview.DisplayInfo = {\n  x: 100,\n  y: 100,\n  width: 800,\n  height: 800\n};\nlet fileInfo: filePreview.PreviewInfo = {\n  title: '1.txt',\n  // 该沙箱uri仅为参考，需要根据实际业务传入真实uri\n  uri: 'file://com.example.myapplication/data/storage/el2/base/haps/entry/files/1.txt',\n  mimeType: 'text/plain'\n};\nfilePreview.openPreview(uiContext, fileInfo, displayInfo, (err) => {\n  if (err && err.code) {\n    console.error(`Failed to open preview, err.code = ${err.code}, err.message = ${err.message}`);    \n    return;\n  }\n  console.info('Succeeded in opening preview');\n}); 传入多个文件打开预览，仅移动端可用。let uiContext = getContext(this);\nlet fileInfo: filePreview.PreviewInfo = {\n  title: '1.txt',\n  // 该uri仅为参考，需要根据实际业务传入真实uri\n  uri: 'file://com.example.myapplication/data/storage/el2/base/haps/entry/files/1.txt',\n  mimeType: 'text/plain'\n};\nlet fileInfo1: filePreview.PreviewInfo = {\n  title: '2.txt',\n  // 该uri仅为参考，需要根据实际业务传入真实uri\n  uri: 'file://com.example.myapplication/data/storage/el2/base/haps/entry/files/2.txt',\n  mimeType: 'text/plain'\n};\nlet files: Array<filePreview.PreviewInfo> = new Array();\nfiles.push(fileInfo);\nfiles.push(fileInfo1);\nfilePreview.openPreview(uiContext, files, 0).then(() => {\n  console.info('Succeeded in opening preview');\n}).catch((err: BusinessError) => {\n  console.error(`Failed to open preview, err.code = ${err.code}, err.message = ${err.message}`);\n});  （可选）如果已经打开过预览窗口，需要重新加载页面，需要调用loadData接口，加载文件。let uiContext = getContext(this);\nlet fileInfo: filePreview.PreviewInfo = {\n  title: '2.txt',\n  // 该uri仅为参考，需要根据实际业务传入真实uri\n  uri: 'file://com.example.myapplication/data/storage/el2/base/haps/entry/files/2.txt',\n  mimeType: 'text/plain'\n};\nfilePreview.loadData(uiContext, fileInfo).then(() => {   // 仅当预览窗口存在时起效\n  console.info('Succeeded in loading data.');\n}).catch((err: BusinessError) => {\n  console.error(`Failed to load data, err.code = ${err.code}, err.message = ${err.message}`);\n});  （可选）如果想要关闭预览窗口，需要调用closePreview。let uiContext = getContext(this);\nfilePreview.closePreview(uiContext).then(() => {   // 仅当预览窗口存在时起效\n  console.info('Succeeded in closing preview');\n}).catch((err: BusinessError) => {\n  console.error(`Failed to close preview, err.code = ${err.code}, err.message = ${err.message}`);\n}); 

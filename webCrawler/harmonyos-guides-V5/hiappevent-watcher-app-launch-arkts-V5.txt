@@ -1,0 +1,12 @@
+订阅启动耗时事件（ArkTS）
+接口说明
+API接口的具体使用说明（参数使用限制、具体取值范围等）请参考应用事件打点API文档。
+接口名
+描述
+addWatcher(watcher: Watcher): AppEventPackageHolder
+添加应用事件观察者，以添加对应用事件的订阅。
+removeWatcher(watcher: Watcher): void
+移除应用事件观察者，以移除对应用事件的订阅。
+开发步骤
+以实现对用户运行应用工程生成的启动耗时事件订阅为例，说明开发步骤。
+ 编辑工程中的“entry > src > main > ets > entryability > EntryAbility.ets”文件，在onCreate函数中添加系统事件的订阅，示例代码如下： import { hiAppEvent, hilog } from '@kit.PerformanceAnalysisKit';\n\nhiAppEvent.addWatcher({\n   // 开发者可以自定义观察者名称，系统会使用名称来标识不同的观察者\n   name: \"watcher\",\n   // 开发者可以订阅感兴趣的系统事件，此处是订阅了启动耗时事件\n   appEventFilters: [\n     {\n       domain: hiAppEvent.domain.OS,\n       names: [hiAppEvent.event.APP_LAUNCH]\n     }\n   ],\n   // 开发者可以自行实现订阅回调函数，以便对订阅获取到的事件数据进行自定义处理\n   onReceive: (domain: string, appEventGroups: Array<hiAppEvent.AppEventGroup>) => {\n     hilog.info(0x0000, 'testTag', `HiAppEvent onReceive: domain=${domain}`);\n     for (const eventGroup of appEventGroups) {\n       // 开发者可以根据事件集合中的事件名称区分不同的系统事件\n       hilog.info(0x0000, 'testTag', `HiAppEvent eventName=${eventGroup.name}`);\n       for (const eventInfo of eventGroup.appEventInfos) {\n         // 开发者可以对事件集合中的事件数据进行自定义处理，此处是将事件数据打印在日志中\n         hilog.info(0x0000, 'testTag', `HiAppEvent eventInfo=${JSON.stringify(eventInfo)}`);\n       }\n     }\n   }\n });     系统在监控应用启动时依赖特定关键事件的记录，若这些事件在5秒内全部上报，系统将立即生成APP_LAUNCH事件，并通过回调函数将事件内容传递给应用；若关键事件存在缺失，系统将在5秒后根据实际接收到的关键事件生成APP_LAUNCH事件。在生成APP_LAUNCH事件的过程中，若应用出现退出或崩溃，onReceive回调接口可能不会被触发，从而导致事件上报失败。当应用重新启动时，将上报前次未发送的启动耗时事件。   点击DevEco Studio界面中的运行按钮，运行应用工程，添加系统事件订阅者，退出应用，再次点击桌面应用图标，触发一次启动耗时事件。 应用工程再次启动可以在Log窗口看到对系统事件数据的处理日志： HiAppEvent onReceive: domain=OS\nHiAppEvent eventName=APP_LAUNCH\nHiAppEvent eventInfo={\"domain\":\"OS\",\"name\":\"APP_LAUNCH\",\"eventType\":4,\"params\":{\"animation_finish_time\":662,\"bundle_name\":\"com.example.myapplication\",\"bundle_version\":\"1.0.0\",\"extend_time\":0,\"icon_input_time\":1709367533224,\"process_name\":\"com.example.myapplication\",\"start_type\":0,\"time\":1709367533901}} 

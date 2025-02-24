@@ -1,0 +1,10 @@
+批注
+进入批注模式，目前支持高亮、下划线和删除线类型批注。
+接口说明
+接口名
+描述
+enableAnnotation(annotationType: SupportedAnnotationType, color?: number): void
+在常用操作之间切换并添加批注。
+示例代码
+ 先加载PDF文档。 调用PdfView预览组件，渲染显示。 调用enableAnnotation方法，进入批注模式。 
+import { pdfService, pdfViewManager, PdfView } from '@kit.PDFKit';\nimport { common } from '@kit.AbilityKit';\n\n@Entry\n@Component\nstruct PdfPage {\n  private pdfController = new pdfViewManager.PdfController();\n  private context = getContext() as common.UIAbilityContext;\n\n  aboutToAppear(): void {\n    // 确保沙箱目录有input.pdf文档\n    let filePath = this.context.filesDir + '/input.pdf';\n    (async () => {\n      let loadResult: pdfService.ParseResult = await this.pdfController.loadDocument(filePath);\n      if (pdfService.ParseResult.PARSE_SUCCESS === loadResult) {\n        // 添加删除线批注\n        this.pdfController.enableAnnotation(pdfViewManager.SupportedAnnotationType.STRIKETHROUGH, 0xAAEEEEEE);\n      }\n    })()\n  }\n\n  build() {\n    Column() {\n      // 加载PdfView组件进行预览\n      PdfView({\n        controller: this.pdfController,\n        pageFit: pdfService.PageFit.FIT_WIDTH,\n        showScroll: true\n      })\n        .id('pdfview_app_view')\n        .layoutWeight(1);\n    }\n  }\n}

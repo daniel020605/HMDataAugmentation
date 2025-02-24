@@ -1,0 +1,13 @@
+距离计算
+场景介绍
+根据用户指定的两个经纬度坐标点，计算这两个点间的直线距离，单位为米。
+接口说明
+以下是距离计算功能相关接口，主要由map命名空间下的calculateDistance方法提供，更多接口及使用方法请参见接口参考。
+接口名
+描述
+mapCommon.LatLng
+经纬度对象。
+calculateDistance(from: mapCommon.LatLng, to: mapCommon.LatLng): number
+计算坐标点之间的距离。
+开发步骤
+ 导入相关模块。import { map, mapCommon } from '@kit.MapKit'; 初始化需要计算的坐标，调用calculateDistance方法计算距离。let fromLatLng: mapCommon.LatLng = {\n  latitude: 38,\n  longitude: 118\n};\nlet toLatLng: mapCommon.LatLng = {\n  latitude: 39,\n  longitude: 119\n};\n\nlet distance = map.calculateDistance(fromLatLng, toLatLng); 

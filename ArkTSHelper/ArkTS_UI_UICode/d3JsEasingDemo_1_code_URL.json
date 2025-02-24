@@ -1,0 +1,20 @@
+{
+    "https://box.nju.edu.cn/seafhttp/files/766c4c97-7b48-47ad-934d-4ec826de3750/Index.png": [
+        {
+            "function_name": "build",
+            "content": "build() {\n      Column() {\n        ForEach(this.pages, (page: PageInfo) => {\n          Button(page.name).onClick(() => {\n            router.pushUrl({\n              url: page.pageUrl\n            });\n          }).width(160).margin({ top: 20 });\n\n        })\n\n      }.width(\"100%\").height(\"100%\")\n  }"
+        }
+    ],
+    "https://box.nju.edu.cn/seafhttp/files/9a52dd0f-419a-426e-bb89-0b3ae864640d/lineAnimate.png": [
+        {
+            "function_name": "build",
+            "content": "build() {\n    Column() {\n      Canvas(this.context)\n        .width('100%')\n        .height(350)\n        .backgroundColor('#ffff00')\n        .onReady(() => {\n          this.createAnimation();\n        })\n        .onAreaChange(() => {\n          this.drawAnimationPath();\n        })\n\n      ForEach(this.rowEasing, (item: EasingFunctions[]) => {\n        Row() {\n          ForEach(item, (easingInfo: EasingFunctions) => {\n            Button(`${easingInfo.easingGroup}.${easingInfo.easingType}`)\n              .width(120)\n              .height(30)\n              .fontColor(Color.White)\n              .backgroundColor(Color.Red)\n              .onClick(() => {\n                if (this.isPlaying) { return; }\n                const easingGroup = easingInfo.easingGroup;\n                const easingType = easingInfo.easingType;\n                this.easingFunctionName = easingGroup !== 'easeLinear' ? easingGroup + easingType : easingGroup;\n                this.drawAnimationPath();\n              })\n          })\n        }.width('100%').margin(5);\n      })\n    }.width(\"100%\").height(\"100%\")\n  }"
+        }
+    ],
+    "https://box.nju.edu.cn/seafhttp/files/2fc39a75-c0f0-4ecd-b8bb-0224c2e018c2/ballAnimate.png": [
+        {
+            "function_name": "build",
+            "content": "build() {\n    Column() {\n      Stack({alignContent: Alignment.TopStart}) {\n        Column(){}.width('100%').height('100%').backgroundColor('#ff58b87c');\n        Column(){}\n        .width(28).height(28)\n        .backgroundColor('#ff0991ec')\n        .borderRadius(14)\n        .margin({left: this.ballAnimateValue, top: 14});\n        Column(){}.width(40).height(40).backgroundColor('#ffece109').margin({left: 30, top: 80}).rotate({ angle: this.angleValue});\n        Column(){}\n        .width(this.widthValue)\n        .height(this.heightValue)\n        .backgroundColor('#ffef4265')\n        .margin({left: 100, top: 80})\n        .borderRadius(this.borderRadiusValue);\n\n      }.width('100%').height(150).margin(this.MTop)\n      Column() {\n\n        TextPicker({ range: this.easingFunctionNames })\n          .onChange((value: string | string[], index: number | number[]) => {\n            if (Array.isArray(value)) {\n              const easingGroup = value[0];\n              const easingType = value[1];\n              this.currentEasingFunction = easingGroup !== 'easeLinear' ? easingGroup + easingType : easingGroup;\n            }\n          })\n          .disappearTextStyle({color: Color.Red, font: {size: 15, weight: FontWeight.Lighter}})\n          .textStyle({color: Color.Black, font: {size: 20, weight: FontWeight.Normal}})\n          .selectedTextStyle({color: Color.Blue, font: {size: 22, weight: FontWeight.Bolder}})\n          .canLoop(false);\n\n        Button('play').onClick(() => {\n          if (this.isPlaying) { return; };\n          this.animationPlay();\n        }).width(220).margin({ top: 16 });\n      }\n\n    }.width(\"100%\").height(\"100%\")\n  }"
+        }
+    ]
+}

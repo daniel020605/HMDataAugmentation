@@ -1,0 +1,13 @@
+@previewer/no-page-method-on-preview-component
+禁止在非路由组件上实例化onPageShow、onPageHide、onBackPress等页面级方法。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@previewer/no-page-method-on-preview-component\": \"warn\"\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+@Entry\n@Component\nstruct Index {\n  @State message: string = 'Hello World';\n  onPageShow(): void {}\n  onPageHide(): void {}\n  onBackPress(): void {}\n  build() {\n    Row() {\n      Column() {\n        Text(this.message)\n      }\n    }\n  }\n}
+反例
+@Preview\n@Component\nstruct Index {\n  @State message: string = 'Hello World';\n  onPageShow(): void {}\n  onPageHide(): void {}\n  onBackPress(): void {}\n  build() {\n    Column() {\n      Text(this.message)\n    }\n  }\n}
+规则集
+plugin:@previewer/recommended\nplugin:@previewer/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

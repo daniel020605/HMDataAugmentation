@@ -1,0 +1,15 @@
+!!语法：双向绑定
+在状态管理V1中使用$$用于内置组件双向绑定。
+在状态管理V2中，提供了归一处理，提供!!语法糖作为统一处理双向绑定语法。
+!!语法从API version 12开始支持。
+概述
+!!双向绑定语法，是一个语法糖方便开发者实现数据双向绑定，用于初始化子组件的@Param和@Event。其中@Event方法名需要声明为“$”+ @Param属性名，详见使用场景。
+如果父组件使用了!!双向绑定语法，则表明父组件的变化会同步给子组件，子组件的变化也会同步给父组件。如果父组件没有使用!!，则父组件发生的变化是单向的。
+使用限制
+!!双向绑定语法不支持多层父子组件传递。
+使用场景
+[h2]自定义组件间双向绑定
+Index中构造Star子组件，双向绑定父子组件中的value，初始化子组件的@Param value和@Event $value。
+双向绑定语法糖可视为： Star({ value: this.value, $value: (val: number) => { this.value = val }}) 
+点击改变Index中的Button，改变value，父组件Index和子组件Star中Text更新。点击改变子组件Star中的Button，调用this.$value(10)，父组件Index和子组件Star中Text更新。
+@Entry\n@ComponentV2\nstruct Index {\n  @Local value: number = 0;\n\n  build() {\n    Column() {\n      Text(`${this.value}`)\n      Button(`change value`).onClick(() => {\n        this.value++;\n      })\n      Star({ value: this.value!! })\n    }\n  }\n}\n\n\n@ComponentV2\nstruct Star {\n  @Param value: number = 0;\n  @Event $value: (val: number) => void = (val: number) => {};\n\n  build() {\n    Column() {\n      Text(`${this.value}`)\n      Button(`change value `).onClick(() => {\n        this.$value(10);\n      })\n    }\n  }\n}

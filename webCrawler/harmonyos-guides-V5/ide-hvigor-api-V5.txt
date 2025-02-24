@@ -1,0 +1,1528 @@
+基础构建能力
+Hvigor预置对象
+\"hvigor\"对象是一个预定义的Hvigor对象，表示当前正在执行的Hvigor构建引擎的实例，通过\"hvigor\"对象可以获得有关构建的一些信息和操作。
+[h2]导入模块
+import { hvigor } from '@ohos/hvigor';
+成员
+声明
+说明
+开始支持的版本
+getRootNode
+getRootNode(): HvigorNode
+获取根项目的节点
+hvigor 4.3.0
+getAllNodes
+getAllNodes(): HvigorNode[]
+获取包含所有节点的数组
+hvigor 4.3.0
+getNode
+getNode(scriptPath: string): HvigorNode
+根据hvigorfile.ts路径获取当前节点
+hvigor 4.0.2
+getNodeByName
+getNodeByName(nodeName: string): HvigorNode | undefined
+根据节点的名字获取节点
+hvigor 4.3.0
+getHvigorConfig
+getHvigorConfig(): HvigorConfig
+获取hvigorConfig对象
+hvigor 4.3.0
+getParameter
+getParameter(): Parameter
+获取Parameter对象
+hvigor 4.3.0
+configEvaluated
+configEvaluated(fn: (HvigorConfig) => {})
+添加一个config文件评估完成的回调函数
+hvigor 4.3.0
+beforeNodeEvaluate
+beforeNodeEvaluate(fn: (HvigorNode) => {})
+为所有的node添加一个node评估前的回调函数
+hvigor 4.3.0
+afterNodeEvaluate
+afterNodeEvaluate(fn: (HvigorNode) => {})
+为所有的node添加一个node评估后的回调函数
+hvigor 4.3.0
+nodesInitialized
+nodesInitialized(fn: (Hvigor) => {})
+添加一个node初始化完成的回调函数
+hvigor 4.3.0
+nodesEvaluated
+nodesEvaluated(fn: (Hvigor) => {}): void
+添加一个nodes解析完成的回调函数
+hvigor 4.0.2
+taskGraphResolved
+taskGraphResolved(fn: (Hvigor) => {})
+添加一个任务图解析完毕的回调函数
+hvigor 4.3.0
+buildFinished
+buildFinished(fn: (BuildResult) => {})
+添加一个构建结束的回调函数
+hvigor 4.3.0
+getCommandEntryTask
+getCommandEntryTask(): string[] | undefined
+获取构建的入口任务名字符串数组
+hvigor 4.3.0
+isCommandEntryTask
+isCommandEntryTask(taskName: string): boolean
+判断是否是命令入口任务
+hvigor 4.3.0
+[h2]getNode4.0.2+
+getNode(scriptPath: string): HvigorNode
+传入hvigorfile.ts脚本文件路径获取当前节点对象。
+参数:
+参数名
+类型
+必填
+说明
+scriptPath
+string
+是
+hvigorfile.ts脚本全路径
+返回值:
+类型
+说明
+HvigorNode
+hvigor节点对象
+示例：获取当前节点对象。
+const node = getNode(__filename);
+[h2]getRootNode4.3.0+
+getRootNode(): HvigorNode
+返回根项目的节点对象。
+注意：在node初始化后才能使用，否则会报错。
+返回值:
+类型
+说明
+HvigorNode
+hvigor根节点对象
+示例：获取根节点对象。
+import { hvigor } from '@ohos/hvigor';\nconst rootNode = hvigor.getRootNode();
+[h2]getAllNodes4.3.0+
+getAllNodes(): HvigorNode[]
+返回所有节点的数组。
+注意：在node初始化后才能使用，否则会报错。
+返回值:
+类型
+说明
+HvigorNode[]
+hvigor所有节点对象的数组
+示例：获取所有节点对象的数组。
+import { hvigor } from '@ohos/hvigor';\nconst allNodes = hvigor.getAllNodes();
+[h2]getNodeByName4.3.0+
+getNodeByName(nodeName: string): HvigorNode | undefined
+根据节点名称获取节点对象。
+注意：在node初始化后才能使用，否则会报错。
+参数:
+参数名
+类型
+必填
+说明
+nodeName
+string
+是
+节点的名称
+返回值:
+类型
+说明
+HvigorNode | undefined
+根据名称找到的节点对象，如果不存在则返回undefined
+示例：通过节点名称获取节点对象。
+import { hvigor } from '@ohos/hvigor';\nconst entryNode = hvigor.getNodeByName('entry');
+[h2]getHvigorConfig4.3.0+
+getHvigorConfig(): HvigorConfig
+返回HvigorConfig对象。
+返回值:
+类型
+说明
+HvigorConfig
+HvigorConfig对象
+示例：获取当前HvigorConfig对象。
+import { hvigor } from '@ohos/hvigor';\nconst hvigorConfig = hvigor.getHvigorConfig();
+[h2]getParameter4.3.0+
+getParameter(): Parameter
+返回Parameter对象。
+返回值:
+类型
+说明
+Parameter
+Parameter对象
+示例：获取当前Parameter对象。
+import { hvigor } from '@ohos/hvigor';\nconst parameter = hvigor.getParameter();
+[h2]configEvaluated4.3.0+
+configEvaluated(fn: (HvigorConfig) => {}): void
+添加一个config文件评估完成的回调函数。
+参数:
+参数名
+类型
+必填
+说明
+fn
+(HvigorConfig) => {}
+是
+一个入参为空或者为hvigorConfig的方法
+此API写在hvigorconfig.ts文件中才会生效，在构建生命周期的初始化阶段被执行。
+示例：注册configEvaluated hook。
+// hvigorconfig.ts文件\nimport { hvigor } from '@ohos/hvigor'\nhvigor.configEvaluated(hvigorConfig => {\n    console.log('configEvaluated');\n})
+[h2]beforeNodeEvaluate4.3.0+
+beforeNodeEvaluate(fn: (HvigorNode) => {}): void
+为所有的node添加一个node评估前的回调函数。
+参数:
+参数名
+类型
+必填
+说明
+fn
+(HvigorNode) => {}
+是
+一个入参为空或者为HvigorNode的方法
+此API写在hvigorconfig.ts文件中才会生效，在构建生命周期的初始化阶段被执行。
+示例：注册beforeNodeEvaluate hook。
+// hvigorconfig.ts文件\nimport { hvigor } from '@ohos/hvigor';\nhvigor.beforeNodeEvaluate(hvigorNode => {\n    console.log('beforeNodeEvaluate');\n})
+[h2]afterNodeEvaluate4.3.0+
+afterNodeEvaluate(fn: (HvigorNode) => {}): void
+为所有的node添加一个node评估后的回调函数。
+参数:
+参数名
+类型
+必填
+说明
+fn
+(HvigorNode) => {}
+是
+一个入参为空或者为HvigorNode的方法
+示例：注册afterNodeEvaluate hook。
+import { hvigor } from '@ohos/hvigor';\nhvigor.afterNodeEvaluate(hvigorNode => {\n    console.log('afterNodeEvaluate');\n})
+[h2]nodesInitialized4.3.0+
+nodesInitialized(fn: (Hvigor) => {}): void
+添加一个node初始化完成的回调函数。
+参数:
+参数名
+类型
+必填
+说明
+fn
+(HvigorNode) => {}
+是
+一个入参为空或者为Hvigor对象的方法
+此API写在hvigorconfig.ts文件中才会生效，在构建生命周期的初始化阶段被执行。
+示例：注册nodesInitialized hook。
+// hvigorconfig.ts文件\nimport { hvigor } from '@ohos/hvigor';\nhvigor.nodesInitialized(() => {\n    console.log('nodesInitialized');\n})
+[h2]nodesEvaluated4.0.2+
+nodesEvaluated(fn: (Hvigor) => {}): void
+添加hvigor配置阶段完成之后执行的回调函数，此函数在配置阶段结束之前使用方可有效。在配置阶段中接口使用场景例如节点插件上下文信息延迟获取、任务延迟注册等。添加的回调函数是以队列的形式存储，遵循先进先出原则，先添加的回调会先被执行。
+参数:
+参数名
+类型
+必填
+说明
+fn
+(Hvigor) => {}
+是
+一个入参为空或者为Hvigor对象的方法
+示例：工程节点获取子节点插件上下文信息。
+import { hvigor } from '@ohos/hvigor';\nimport { OhosHapContext, OhosPluginId } from \"@ohos/hvigor-ohos-plugin\";\nhvigor.nodesEvaluated(() => {\n  // 等待全部节点加载完成之后获取子节点信息\n  hvigor.getRootNode().subNodes(subNode => {\n    const hapContext = subNode.getContext(OhosPluginId.OHOS_HAP_PLUGIN) as OhosHapContext;\n  });\n});
+[h2]taskGraphResolved4.3.0+
+taskGraphResolved(fn: (Hvigor) => {}): void
+添加一个任务图解析完毕的回调函数。
+参数:
+参数名
+类型
+必填
+说明
+fn
+(Hvigor) => {}
+是
+一个入参为空或者为Hvigor对象的方法
+import { hvigor } from '@ohos/hvigor';\nhvigor.taskGraphResolved(() => {\n    console.log('taskGraphResolved');\n});
+[h2]buildFinished4.3.0+
+buildFinished(fn: (BuildResult) => {}): void
+添加一个任务图解析完毕的回调函数。
+参数:
+参数名
+类型
+必填
+说明
+fn
+(BuildResult) => {}
+是
+一个入参为空或者为BuildResult对象的方法
+import { hvigor } from '@ohos/hvigor';\nhvigor.buildFinished(buildResult => {\n  if (buildResult.getError()) {\n    console.log(buildResult.getError().stack);\n  }\n})
+[h2]getCommandEntryTask4.3.0+
+getCommandEntryTask(): string[] | undefined
+获取构建的入口任务名字符串数组。
+返回值:
+类型
+说明
+string[]
+构建的入口任务名字符串数组
+import { hvigor } from '@ohos/hvigor';\nconsole.log(hvigor.getCommandEntryTask());
+[h2]isCommandEntryTask4.3.0+
+isCommandEntryTask(taskName: string): boolean
+判断是否是命令入口任务。
+返回值:
+类型
+说明
+boolean
+是否是入口任务
+import { hvigor } from '@ohos/hvigor';\nconsole.log(hvigor.isCommandEntryTask('assembleHap'));
+BuildResult
+代表构建结果的对象，如果是异常结束则会包含异常的信息。
+成员
+声明
+说明
+开始支持的版本
+getError
+getError(): Error | null
+获取异常信息。没有异常则返回null
+hvigor 4.3.0
+getReportJson
+getReportJson(): any
+获取本次构建的可视化记录report.json结果
+hvigor 5.0.10
+[h2]getError4.3.0+
+getError(): Error | null
+获取异常信息。没有异常则返回null。
+返回值:
+类型
+说明
+Error | null
+异常信息。没有异常则为null。
+import { hvigor } from '@ohos/hvigor';\nhvigor.buildFinished(buildResult => {\n  if (buildResult.getError()) {\n    console.log(buildResult.getError().stack);\n  }\n})
+[h2]getReportJson5.0.10+
+getReportJson(): any
+获取本次构建的可视化记录report.json结果。
+返回值:
+类型
+说明
+any
+本次构建的可视化记录report.json结果。
+report.json结构说明。不同类型的构建事件具有不同结构，以下为典型结构示例：
+{\n  \"version\": \"2.0\", // 固定字段\n  \"ppid\": 524, // process.ppid\n  \"events\": [ // 构建事件\n    ...\n    {\n      \"head\": {\n        \"id\": \"61068546-11d9-49d0-baa7-733e167af7d6\", // 事件id\n        \"name\": \"Finished :entry:default@PreBuild\", // 事件name\n        \"description\": \"Pre-build in the stage model.\",// 描述\n        \"type\": \"log\" // 类型\n      },\n      \"body\": {\n        \"pid\": 3960, // process.pid\n        \"tid\": \"Main Thread\", // thread id\n        \"startTime\": 1280741873226000, // 开始时间\n        \"endTime\": 1280741896325200, // 结束时间\n        \"totalTime\": 22868300 // 总计时间\n      },\n      \"additional\": {\n        \"logType\": \"info\", // log类型\n        \"children\": [], // 子事件id列表\n      }\n    }\n  ],\n  \"workLog\": []\n}
+HvigorConfig
+HvigorConfig对象是在node对象被创建之前用来保存每个节点的描述信息的对象。
+成员
+声明
+说明
+开始支持的版本
+getRootNodeDescriptor
+getRootNodeDescriptor(): HvigorNodeDescriptor
+获取RootNode的描述对象
+hvigor 4.3.0
+getAllNodeDescriptors
+getAllNodeDescriptors(): HvigorNodeDescriptor[]
+获取所有的node描述对象的数组
+hvigor 4.3.0
+getNodeDescriptorByName
+getNodeDescriptorByName(name: string): HvigorNodeDescriptor
+根据节点名称获取node描述对象
+hvigor 4.3.0
+includeNode
+includeNode(name: string, srcPath: string, extraOptions?: Record<string, any>): void
+添加一个node(节点)
+hvigor 5.4.0
+excludeNodeByName
+excludeNodeByName(name: string): void
+排除一个node(节点)
+hvigor 5.4.0
+[h2]getRootNodeDescriptor4.3.0+
+getRootNodeDescriptor(): HvigorNodeDescriptor
+获取RootNode的描述对象。
+返回值:
+类型
+说明
+HvigorNodeDescriptor
+根节点的节点描述对象
+import { hvigor } from '@ohos/hvigor';\nconst rootNodeDescriptor = hvigor.getHvigorConfig().getRootNodeDescriptor();
+[h2]getAllNodeDescriptor4.3.0+
+getAllNodeDescriptor(): HvigorNodeDescriptor[]
+获取所有的node描述对象的数组。
+返回值:
+类型
+说明
+HvigorNodeDescriptor[]
+所有节点的节点描述对象
+import { hvigor } from '@ohos/hvigor';\nconst allNodeDescriptors = hvigor.getHvigorConfig().getAllNodeDescriptor();
+[h2]getNodeDescriptorByName4.3.0+
+getNodeDescriptorByName(name: string): HvigorNodeDescriptor
+根据节点名称获取node描述对象。
+参数:
+参数名
+类型
+必填
+说明
+name
+string
+是
+根据此name查找NodeDescriptor
+返回值:
+类型
+说明
+HvigorNodeDescriptor
+根据名称获取的节点描述对象
+import { hvigor } from '@ohos/hvigor';\nconst entryNodeDescriptors = hvigor.getHvigorConfig().getNodeDescriptorByName('entry');
+[h2]includeNode5.4.0+
+includeNode(name: string, srcPath: string, extraOptions?: Record<string, any>): void
+添加一个node。
+参数:
+参数名
+类型
+必填
+说明
+name
+string
+是
+要添加的node的name
+srcPath
+string
+是
+要添加的node的srcPath
+extraOptions
+Record<string, any>
+否
+可以通过此参数传入额外的配置信息，会被解析成为此node的targets
+返回值: 无
+此API写在hvigorconfig.ts文件中才会生效，在构建生命周期的初始化阶段被执行。
+// hvigorconfig.ts文件\nimport { hvigor } from '@ohos/hvigor';\n\nconst hvigorConfig = hvigor.getHvigorConfig();\nhvigorConfig.includeNode('exampleNodeName', './exampleNodeName');
+// hvigorconfig.ts文件\nimport { hvigor } from '@ohos/hvigor';\n\nconst hvigorConfig = hvigor.getHvigorConfig();\nhvigorConfig.includeNode('exampleNodeName', './exampleNodeName', {\n  \"targets\": [\n    {\n      \"name\": \"default\",\n      \"applyToProducts\": [\n        \"default\"\n      ]\n    },\n    {\n      \"name\": \"targetTest1\",\n      \"applyToProducts\": [\n        \"default\"\n      ]\n    }\n  ]\n});
+[h2]excludeNodeByName5.4.0+
+excludeNodeByName(name: string): void
+通过name排除一个Node。
+参数:
+参数名
+类型
+必填
+说明
+name
+string
+是
+要排除的node的name
+返回值: 无
+此API写在hvigorconfig.ts文件中才会生效，在构建生命周期的初始化阶段被执行。
+// hvigorconfig.ts文件\nimport { hvigor } from '@ohos/hvigor';\n\nconst hvigorConfig = hvigor.getHvigorConfig();\nhvigorConfig.excludeNodeByName('exampleNodeName');
+HvigorNodeDescriptor4.3.0+
+此对象为hvigor的节点描述对象，hvigor在构建时会通过此对象来构造出hvigorNode对象。
+成员
+声明
+说明
+开始支持的版本
+name
+name: string
+节点的名称
+hvigor 4.3.0
+srcPath
+srcPath: string
+节点的src路径
+hvigor 4.3.0
+extraOptions
+extraOptions:  Map<string, any>
+拓展属性，用来保存传递数据
+hvigor 4.3.0
+getChildNode
+getChildNode(): HvigorNodeDescriptor[] | undefined
+获取所有的子节点描述对象，不存在子节点则返回undefined
+hvigor 4.3.0
+getRootNode
+getRootNode(): HvigorNodeDescriptor
+获取根节点的节点描述对象
+hvigor 4.3.0
+Parameter4.3.0+
+“Parameter”是hvigor中的命令配置参数对象，可以通过hvigor.getParameter()方法获取。
+成员
+声明
+说明
+开始支持的版本
+getProperty
+getProperty(key: string): any | undefined
+获取properties配置指定key值的value值
+hvigor 4.1.2
+getProperties
+getProperties(): Properties
+获取properties配置对象
+hvigor 4.1.2
+getExtParam
+getExtParam(key: string): string | undefined
+获取指定key值的-p扩展参数value值
+hvigor 4.1.2
+getExtParams
+getExtParams(): Record<string, string>
+获取全部的-p 扩展参数对象
+hvigor 4.1.2
+getStartParams
+getStartParams(): StartParam
+获取hvigor启动参数
+hvigor 4.1.2
+getWorkspaceDir
+getWorkspaceDir(): string
+获取hvigor工作空间路径
+hvigor 4.1.2
+[h2]getProperty4.1.2+
+getProperty(key: string): any | undefined
+获取properties配置指定key值的value值，若不存在配置时返回undefined。
+示例：获取properties配置中指定key值的value值。
+命令行参数：--config properties.{key}={value}， 缩写-c properties.{key}={value}（相同key值时，命令行参数对应的value值优先）hvigor-config.json5配置文件：在\"properties\"属性中定义的配置项\"properties\": {\n  \"key\": \"value\"\n} 
+参数:
+参数名
+类型
+必填
+说明
+key
+string
+是
+properties配置中key
+返回值:
+类型
+说明
+any
+properties配置中指定key对应的value值（string，number, boolean类型）
+示例：
+在hvigorfile.ts中添加代码。
+import { hvigor } from '@ohos/hvigor';\nconst key = hvigor.getParameter().getProperty('key');\nconsole.log(key);
+执行命令hvigorw --sync -c properties.key=hello，控制台打印：
+hello
+[h2]getProperties4.1.2+
+getProperties(): Properties
+获取properties所有配置的对象。
+返回值:
+类型
+说明
+Properties
+Properties配置对象
+示例：
+在hvigorfile.ts中添加代码
+import { hvigor } from '@ohos/hvigor';\nconst properties = hvigor.getParameter().getProperties();\nconsole.log(properties['key']);
+执行命令hvigorw --sync -c properties.key=hello，控制台打印：
+hello
+[h2]getExtParam4.1.2+
+getExtParam(key: string): string | undefined
+获取指定key值的-p扩展参数value值，若不存在配置时返回undefined。
+参数:
+参数名
+类型
+必填
+说明
+key
+string
+是
+命令行参数-p配置中的key
+返回值:
+类型
+说明
+string | undefined
+指定key值对应的-p参数对应的value，配置不存在时undefined
+示例：
+import { hvigor } from '@ohos/hvigor';\nconst extParam = hvigor.getParameter().getExtParam('key');\nconsole.log(extParam);
+执行命令hvigorw --sync -p key=hello，控制台打印：
+hello
+[h2]getExtParams4.1.2+
+getExtParams(): Record<string, string>
+获取全部的-p扩展参数对象。
+返回值:
+类型
+说明
+Record<string, string>
+命令行中所有配置的-p参数集合对象
+示例：
+import { hvigor } from '@ohos/hvigor';\nconst extParams = hvigor.getParameter().getExtParams();\nconsole.log(extParams['key']);
+执行命令hvigorw --sync -p key=hello，控制台打印：
+hello
+[h2]getStartParams4.1.2+
+getStartParams(): StartParam
+获取hvigor启动参数：例如daemon开关，并行功能开关，增量功能开关，日志级别等。
+返回值:
+类型
+属性
+说明
+StartParams
+daemon: boolean
+守护进程启用状态，true开启（默认开启）、false关闭
+StartParams
+parallel: boolean
+并行编译能力启用状态，true开启（默认开启）、false关闭
+StartParams
+incremental: boolean
+增量编译能力启用状态，true开启（默认开启）、false关闭
+StartParams
+logLevel: string
+当前日志级别，info、debug、warn、error等
+StartParams
+typeCheck: boolean
+hvigorfile.ts的类型检查，true开启、false关闭（默认关闭）
+示例：
+import { hvigor } from '@ohos/hvigor';\nconst startParams = hvigor.getParameter().getStartParams();\nconsole.log(startParams ['daemon']);\nconsole.log(startParams ['logLevel']);
+执行命令hvigorw --sync，控制台打印：
+true\ninfo
+[h2]getWorkspaceDir4.1.2+
+getWorkspaceDir(): string
+获取hvigor工作空间路径。工程空间是指当前工程对应的hvigor插件安装在磁盘的位置。
+示例：
+import { hvigor } from '@ohos/hvigor';\nconst workspaceDir = hvigor.getParameter().getWorkspaceDir();\nconsole.log(workspaceDir);
+执行命令hvigorw --sync，控制台打印当前工程hvigor安装的工作路径：
+// windows\nC:\\Users\\UserName\\.hvigor\\project_caches\\2b85daa9f175d1d9761799fed7e5bb40\\workspace\n// linux \n/Users/UserName/.hvigor/project_caches/2b85daa9f175d1d9761799fed7e5bb40/workspace
+HvigorNode
+\"HvigorNode\"是hvigor中的节点模型接口，Hvigor工程中都有一个根模块对应的节点对象和每个子模块对应的节点对象，节点对象均为HvigorNode接口的实现。节点对象包含了该模块的配置，属性和任务等。
+[h2]导入模块
+import { HvigorNode } from '@ohos/hvigor';
+成员
+声明
+描述
+开始支持的版本
+registerTask
+registerTask: (task: HvigorTask) => void
+注册任务
+hvigor 4.0.2
+getTaskByName
+getTaskByName: (taskName: string) => Task | undefined
+根据taskName获取Task对象
+hvigor 4.0.2
+getNodeName
+getNodeName: () => string
+获取当前节点名称
+hvigor 4.0.2
+getNodePath
+getNodePath: () => string
+获取当前节点路径
+hvigor 4.0.2
+getParentNode
+getParentNode: () => HvigorNode | undefined
+获取父级节点对象
+hvigor 4.0.2
+subNodes
+subNodes: (callbackfn: (node: HvigorNode) => void) => void
+所有子节点回调函数
+hvigor 4.0.2
+getSubNodeByName
+getSubNodeByName: (nodeName: string) => HvigorNode | undefined
+根据节点名称获取节点对象
+hvigor 4.0.2
+getContext
+getContext: (pluginId: string) => any
+根据pluginId获取当前节点上指定插件的上下文接口信息
+hvigor 4.0.2
+getAllPluginIds
+getAllPluginIds: () => string[]
+获取当前节点已加载的pluginId集合
+hvigor 4.0.2
+nodeDir
+nodeDir: NormalizedFile
+当前节点的根目录的NormalizedFile对象
+hvigor 4.3.0
+getNodeDir
+getNodeDir: () => NormalizedFile
+获取当前节点的根目录的NormalizedFile对象
+hvigor 4.3.0
+addExtraOption
+addExtraOption: (key: string, value: any) => void
+为当前的node添加一个拓展属性
+hvigor 4.3.0
+getExtraOption
+getExtraOption: (key: string) => any
+通过key获取一个拓展属性
+hvigor 4.3.0
+beforeNodeEvaluate
+beforeNodeEvaluate(fn: (HvigorNode) => {})
+为当前的node添加一个node评估前的回调函数
+hvigor 4.3.0
+afterNodeEvaluate
+afterNodeEvaluate(fn: (HvigorNode) => {})
+为当前的node添加一个node评估后的回调函数
+hvigor 4.3.0
+[h2]registerTask
+registerTask: (task: HvigorTask) => void
+在当前节点注册任务，在hvigor生命周期中的配置阶段中执行。注册任务需完成HvigorTask的实现作为入参对象。
+参数:
+参数名
+类型
+必填
+说明
+task
+HvigorTask
+是
+HvigorTask的实现
+返回值:
+类型
+说明
+HvigorNode
+hvigor节点对象
+示例：自定义任务注册。
+// node的获取方式请参照hvigor API中的方法\nnode.registerTask({\n    name: 'customTask',\n    run() {\n        console.log('this is Task');\n    }\n});
+[h2]getTaskByName
+getTaskByName: (taskName: string) => Task | undefined
+获取当前节点中已注册的Task对象。
+参数:
+参数名
+类型
+必填
+说明
+taskName
+string
+是
+任务名称
+返回值:
+类型
+说明
+Task | undefined
+Task对象或undefined。当前节点未找到指定taskName的已注册任务时，返回值为undefined。
+示例：
+node.getTaskByName('assembleApp')
+[h2]getNodeName
+getNodeName: () => string
+获取当前节点名称。
+返回值:
+类型
+说明
+string
+节点名称
+[h2]getNodePath
+getNodePath: () => string
+获取当前节点路径。
+返回值:
+类型
+说明
+string
+节点路径
+[h2]getParentNode
+getParentNode: () => HvigorNode | undefined
+获取父级节点对象。
+返回值:
+类型
+说明
+HvigorNode | undefined
+节点对象或undefined
+[h2]subNodes
+subNodes: (callbackfn: (node: HvigorNode) => void) => void
+遍历当前节点下的子节点执行回调函数。可通过此接口在工程节点操作节点对象。
+补充：工程节点比模块节点优先加载，若需操作子节点，需使用hvigor.nodesEvaluated接口等待全部节点加载完成，才能操作子节点对象。
+参数:
+参数名
+类型
+必填
+说明
+callbackfn
+(node: HvigorNode) => void
+是
+入参类型为HvigorNode，返回类型为void的函数
+[h2]getSubNodeByName
+getSubNodeByName: (nodeName: string) => HvigorNode | undefined
+根据节点名称获取节点对象。
+参数:
+参数名
+类型
+必填
+说明
+nodeName
+string
+是
+节点名称
+返回值:
+类型
+说明
+HvigorNode | undefined
+节点对象或undefined
+[h2]getContext
+getContext: (pluginId: string) => any
+根据pluginId获取当前节点上指定插件的上下文接口信息。
+参数:
+参数名
+类型
+必填
+说明
+pluginId
+string
+是
+插件ID
+返回值:
+类型
+说明
+any
+支持自定义返回值类型
+[h2]getAllPluginIds
+getAllPluginIds: () => string[]
+获取当前节点已加载的pluginId集合。
+返回值:
+类型
+说明
+string[]
+当前已加载的插件ID集合
+[h2]nodeDir4.3.0+
+nodeDir: NormalizedFile
+当前节点的根目录的NormalizedFile对象。
+[h2]getNodeDir4.3.0+
+getNodeDir: () => NormalizedFile
+当前节点的根目录的NormalizedFile对象。
+返回值:
+类型
+说明
+NormalizedFile
+当前节点的根目录的NormalizedFile对象
+[h2]addExtraOption4.3.0+
+addExtraOption: (key: string, value: any) => void
+为当前的node添加一个拓展属性。
+参数:
+参数名
+类型
+必填
+说明
+key
+string
+是
+要添加的拓展属性的key
+value
+any
+是
+要添加的拓展属性的value
+[h2]getExtraOption4.3.0+
+getExtraOption: (key: string) => any
+根据节点名称获取节点对象。
+参数:
+参数名
+类型
+必填
+说明
+key
+string
+是
+拓展属性的key
+返回值:
+类型
+说明
+any
+拓展属性的value
+[h2]beforeNodeEvaluate4.3.0+
+beforeNodeEvaluate(fn: (HvigorNode) => {}): void
+为当前的node添加一个node评估前的回调函数。
+参数:
+参数名
+类型
+必填
+说明
+fn
+(HvigorNode) => {}
+是
+一个入参为空或者为HvigorNode的方法
+示例：为名称为entry的node注册一个beforeNodeEvaluate hook并打印出node的信息。
+import { hvigor } from '@ohos/hvigor';\nhvigor.nodesInitialized(() => {\n  hvigor.getRootNode().subNodes(node => {\n    if (node.getNodeName() === 'entry') {\n      node.beforeNodeEvaluate(hvigorNode => {\n        console.log(hvigorNode.getNodeName());\n      })\n    }\n  })\n});
+[h2]afterNodeEvaluate4.3.0+
+afterNodeEvaluate(fn: (HvigorNode) => {}): void
+为当前的node添加一个node评估后的回调函数。
+参数:
+参数名
+类型
+必填
+说明
+fn
+(HvigorNode) => {}
+是
+一个入参为空或者为HvigorNode的方法
+示例：为名称为entry的node注册一个afterNodeEvaluate hook并打印出node的信息。
+import { hvigor } from '@ohos/hvigor';\nhvigor.nodesInitialized(() => {\n  hvigor.getRootNode().subNodes(node => {\n    if (node.getNodeName() === 'entry') {\n      node.afterNodeEvaluate(hvigorNode => {\n        console.log(hvigorNode.getNodeName());\n      })\n    }\n  })\n});
+HvigorPlugin
+该接口定义了Hvigor开发插件的基本范式。开发Hvigor插件需实现此接口。
+[h2]导入模块
+import { HvigorPlugin } from '@ohos/hvigor';
+成员
+声明
+描述
+pluginId
+pluginId: string
+插件唯一标识
+context
+context?: (() => any) | any
+插件上下文定义，在hvigor配置的生命周期调用
+apply
+apply: (node: HvigorNode) => void | Promise<void>
+插件主体函数，用于定义插件实现逻辑(例如任务注册等); 在hvigor的生命周期配置阶段调用
+[h2]pluginId
+pluginId: string
+插件唯一标识属性。
+[h2]context
+context?: (() => any) | any
+插件上下文实现接口，可选实现；实现此函数后，其他插件可通过node.getContext('插件ID'）获取插件中定义的上下文接口。
+返回值:
+类型
+说明
+(() => any) | any
+自定义返回类型的Function或自定义任一返回类型
+[h2]apply
+apply: (node: HvigorNode) => void | Promise<void>
+插件主体函数，用于定义插件实现逻辑(例如任务注册等); 在hvigor的生命周期配置阶段调用。
+参数:
+参数名
+类型
+必填
+说明
+node
+HvigorNode
+是
+hvigor节点对象
+返回值:
+类型
+说明
+(node: HvigorNode) => void | Promise<void>
+入参类型HvigorNode、返回类型为void的函数，或Promise<void>类型
+HvigorTask
+hvigor任务实现的接口类型，定义了任务的实现范式，在创建任务时需实现此接口。
+[h2]导入模块
+import { HvigorTask } from '@ohos/hvigor';
+成员
+声明
+描述
+name
+name: string
+任务名称定义
+context
+context?: (() => any) | any
+定义任务中局部共享的数据对象
+input
+input?: (input: TaskInput) => void
+实现任务增量输入条件定义
+output
+output?: (output: TaskOutput) => void
+实现任务增量输出条件定义
+beforeRun
+beforeRun?: (taskContext: HvigorTaskContext) => void | Promise<void>
+在run函数执行前被执行
+afterRun
+afterRun?: (taskContext: HvigorTaskContext) => void | Promise<void>
+在run函数执行后被执行
+run
+run: (taskContext: HvigorTaskContext) => void | Promise<void>
+任务执行逻辑主体函数
+dependencies
+dependencies?: (() => string[]) | string[]
+配置前置依赖任务
+postDependencies
+postDependencies?: (() => string[]) | string[]
+配置后置依赖任务
+[h2]name
+name: string
+任务名称定义。
+类型:
+类型
+说明
+string
+任务名称
+[h2]context
+context?: (() => any) | any
+任务中的局部内数据共享的对象定义。实现此函数中定义的对象将在任务注册时被注入到this.context属性上，在input、output、run函数中可使用直接this.context调用context函数中定义的对象和属性。
+返回值:
+类型
+说明
+(() => any) | any
+自定义返回类型的Function或自定义任一返回类型
+[h2]input
+input?: (input: TaskInput) => void
+实现任务增量输入条件定义。
+参数:
+参数名
+类型
+必填
+说明
+input
+TaskInput
+是
+控制任务增量的输入条件实现对象
+[h2]output
+output?: (output: TaskOutput) => void
+实现任务增量输出条件定义。
+参数:
+参数名
+类型
+必填
+说明
+output
+TaskOutput
+是
+控制任务增量的输出条件实现对象
+[h2]run
+run: (taskContext: HvigorTaskContext) => void | Promise<void>
+任务执行逻辑主体函数。您可以在此函数实现中定义您所需的任务处理逻辑。
+参数:
+参数名
+类型
+必填
+说明
+taskContext
+HvigorTaskContext
+否
+接口中默认注入的公共信息类型
+返回值:
+类型
+说明
+(taskContext: HvigorTaskContext) => void | Promise<void>
+入参类型为HvigorTaskContext、返回类型为void的函数，或Promise<void>类型
+[h2]beforeRun
+beforeRun?: (taskContext: HvigorTaskContext) => void | Promise<void>
+run函数的前置处理函数。在任务执行阶段，任务中的run函数执行前此函数被调用执行。
+参数:
+参数名
+类型
+必填
+说明
+taskContext
+HvigorTaskContext
+否
+接口中默认注入的公共信息
+返回值:
+类型
+说明
+(taskContext: HvigorTaskContext) => void | Promise<void>
+入参类型为HvigorTaskContext、返回类型为void的函数，或Promise<void>类型
+[h2]afterRun
+afterRun?: (taskContext: HvigorTaskContext) => void | Promise<void>
+run函数的后置处理函数。在任务执行阶段，任务中的run函数执行后此函数被调用执行。
+参数:
+参数名
+类型
+必填
+说明
+taskContext
+HvigorTaskContext
+否
+接口中默认注入的公共信息类型
+返回值:
+类型
+说明
+(taskContext: HvigorTaskContext) => void | Promise<void>
+入参类型为HvigorTaskContext、返回类型为void的函数，或Promise<void>类型
+[h2]dependencies
+dependencies?: (() => string[]) | string[]
+配置前置任务依赖。
+补充：前置任务依赖是指当前任务依赖另一个任务，执行顺序是前置任务 -> 当前任务 -> 后置任务。
+返回值:
+类型
+说明
+(() => string[]) | string[]
+返回类型为string[]的函数或string[]类型
+[h2]postDependencies
+postDependencies?: (() => string[]) | string[]
+配置任务的后置任务依赖。
+说明：后置任务依赖是指另一个任务依赖当前任务，执行顺序是前置任务 -> 当前任务 -> 后置任务。
+返回值:
+类型
+说明
+(() => string[]) | string[]
+返回类型为string[]的函数或string[]类型
+TaskInput
+任务增量执行判断的输入对象实现类型，提供添加任务输入条件的基本函数。
+[h2]导入模块
+import { TaskInput } from '@ohos/hvigor';
+接口成员
+声明
+成员描述
+property
+property(key: string, value: TaskInputValue): TaskInput
+添加键值对作为Task增量输入条件
+file
+file(path: string): TaskInput
+添加单个文件/文件夹路径作为Task增量输入
+files
+files(paths: string[]): TaskInput
+添加多个文件/文件夹路径作为Task增量输入
+[h2]property
+property(key: string, value: TaskInputValue): TaskInput
+添加键值对作为Task增量输入条件。
+参数:
+参数名
+类型
+必填
+说明
+key
+string
+是
+条件名称
+value
+TaskInputValue
+是
+支持基本数组类型number、string、boolean及对应的数组类型的参数
+[h2]file
+file(path: string): TaskInput
+添加单个目录或文件路径作为任务增量输入条件。
+参数:
+参数名
+类型
+必填
+说明
+path
+string
+是
+目录或文件路径
+返回值:
+类型
+说明
+TaskInput
+当前控制任务增量的输入条件对象，用于链式调用
+[h2]files
+files(paths: string[]): TaskInput
+添加多个目录或文件路径作为任务增量输入条件。
+参数:
+参数名
+类型
+必填
+说明
+paths
+string
+是
+目录或文件路径列表
+返回值:
+类型
+说明
+TaskInput
+当前控制任务增量的输入条件对象，用于链式调用
+TaskOutput
+任务增量执行判断的输出对象实现类型，提供添加任务输出条件的基本函数。
+[h2]导入模块
+import { TaskOutput } from '@ohos/hvigor';
+成员
+声明
+描述
+file
+file(path: string): TaskOutput
+添加单个目录或文件路径作为输出条件
+files
+files(paths: string[]): TaskOutput
+添加多个目录或文件路径作为输出条件
+[h2]file
+file(path: string): TaskOutput
+添加单个目录或文件路径作为任务的增量输出条件。
+参数:
+参数名
+类型
+必填
+说明
+path
+string
+是
+目录或文件路径
+返回值:
+类型
+说明
+TaskOutput
+当前控制任务增量的输出条件对象，用于支持链式调用
+[h2]files
+files(paths: string[]): TaskOutput
+添加多个目录或文件路径作为任务的增量输出条件。
+参数:
+参数名
+类型
+必填
+说明
+paths
+string[]
+是
+目录或文件路径列表
+返回值:
+类型
+说明
+TaskOutput
+控制任务增量的输出条件对象，用于支持链式调用
+Task
+HvigorTask的外置对象。您可以使用此对象访问任务的属性、 操作任务提供的接口函数。
+[h2]导入模块
+import { Task } from '@ohos/hvigor';
+成员
+声明
+描述
+getName
+getName: () => string
+获取任务名称
+getDependencies
+getDependencies: () => string[]
+获取当前任务依赖的任务名称列表
+setEnable
+setEnable: (enable: boolean) => void
+设置任务的启动状态
+beforeRun
+beforeRun: (fn: Function) => void
+添加任务执行之前的钩子函数
+afterRun
+afterRun: (fn: Function) => void
+添加任务执行之后的钩子函数
+[h2]getName
+getName: () => string
+获取任务名称。
+返回值:
+类型
+说明
+string
+任务名称
+[h2]getDependencies
+getDependencies: () => string[]
+获取当前任务依赖的前置任务名称列表。
+返回值:
+类型
+说明
+string[]
+任务的依赖的任务名称列表
+[h2]setEnable
+setEnable: (enable: boolean) => void
+设置任务的启用状态，当任务被禁用时，任务仍然在任务依赖图中存在，仅跳过了任务的执行不会破坏原来设定的任务依赖关系。任务被注册时任务状态默认是启用的。
+参数:
+参数名
+类型
+必填
+说明
+enable
+boolean
+是
+true：启用任务， false: 禁用任务
+[h2]beforeRun
+beforeRun: (fn: Function) => void
+添加任务执行之前的钩子函数。钩子函数以栈结构存储，遵循先进后出原则，后添加的函数先被执行。
+参数:
+参数名
+类型
+必填
+说明
+fn
+Function
+是
+回调函数
+[h2]afterRun
+afterRun: (fn: Function) => void
+添加任务执行完成之后的钩子函数。钩子函数以堆结构存储，遵循先进先出原则，先添加的函数先被执行。
+参数:
+参数名
+类型
+必填
+说明
+fn
+Function
+是
+回调函数
+NormalizedFile4.3.0+
+hvigor API中的文件类。您可以通过此对象来进行一些基本的文件操作。
+成员
+声明
+描述
+开始支持的版本
+filePath
+filePath: string
+当前对象的路径信息
+hvigor 4.3.0
+getPath
+getPath: () => string
+获取当前对象路径信息
+hvigor 4.3.0
+file
+file: (_path: string) => NormalizedFile
+在原有的NormalizedFile对象的路径链式拼接，获取它的NormalizedFile对象
+hvigor 4.3.0
+asFileList
+asFileList: () => NormalizedFile[]
+获取到NormalizedFile对象下深层递归的目录与文件NormalizedFile[]，包含它本身
+hvigor 4.3.0
+[h2]filePath4.3.0+
+filePath: string
+当前对象的路径信息。
+[h2]getPath4.3.0+
+getPath: () => string
+获取当前路径信息。
+返回值:
+类型
+说明
+string
+当前对象的路径信息
+[h2]file4.3.0+
+file: (_path: string) => NormalizedFile
+在原有的目录路径链式拼接路径，获取它的NormalizedFile对象。
+参数:
+参数名
+类型
+必填
+说明
+_path
+string
+是
+需要拼接路径字符串
+返回值:
+类型
+说明
+NormalizedFile
+在原有的NormalizedFile对象的路径链式拼接所得到NormalizedFile对象
+[h2]asFileList4.3.0+
+asFileList: () => NormalizedFile[]
+获取到NormalizedFile对象下深层递归的目录与文件NormalizedFile[]，包含它本身。
+返回值:
+类型
+说明
+NormalizedFile[]
+NormalizedFile对象下深层递归的目录与文件NormalizedFile[]，包含它本身
+当前只能通过node节点的 node.nodeDir 或者 node.node.getNodeDir() 获取该node节点的根路径的NormalizedFile对象，再通过NormalizedFile.file(_path: string)方法拼接后续路径来获取到新的NormalizedFile对象，工程级hvigorfile.ts示例：
+import { appTasks } from '@ohos/hvigor-ohos-plugin';\n// 导入接口\nimport { HvigorPlugin, HvigorNode} from '@ohos/hvigor';\n// 实现自定义插件\nfunction customPlugin(): HvigorPlugin {\n    return {\n        pluginId: 'customPlugin',\n        apply(node: HvigorNode) {\n            appTask(node);\n        }\n    }\n}\nfunction appTask(currentNode: HvigorNode) {\n    // 工程级的node\n    currentNode.subNodes((node: HvigorNode) => {\n        // 模块级的node \n        // 通过node.nodeDir 或者 node.node.getNodeDir() 获取该node节点的根路径的NormalizedFile文件\n        const moduleNormalizedFile = node.nodeDir;\n        // 通过NormalizedFile.file() 拼接后续路径，生成新的 NormalizedFile 对象\n        // 生成模块下面 build-Profile.json5 的 NormalizedFile 对象\n        const buildProfileNormalizedFile = moduleNormalizedFile.file('build-profile.json5');\n    })\n}\nexport default {\n    system: appTasks,  /* Built-in plugin of Hvigor. It cannot be modified. */\n    plugins:[\n        customPlugin()  // 应用自定义Plugin\n    ]         /* Custom plugin to extend the functionality of Hvigor. */\n}
+FileUtil4.3.0+
+文件操作工具类，支持一些基本的文件操作。
+[h2]导入模块
+import { FileUtil } from '@ohos/hvigor';
+成员
+声明
+描述
+开始支持的版本
+exist
+exist: (filePath: string) => boolean
+判断文件路径是否存在
+hvigor 4.3.0
+isDictionary
+isDictionary: (file: string | NormalizedFile) => boolean
+判断文件路径或NormalizedFile对象是否是目录
+hvigor 4.3.0
+isFile
+isFile: (file: string | NormalizedFile) => boolean
+判断文件路径或NormalizedFile对象是否是文件
+hvigor 4.3.0
+ensureDirSync
+ensureDirSync: (dirPath: string) => void
+确保目录存在，不存在就创建
+hvigor 4.3.0
+ensureFileSync
+ensureFileSync: (filePath: string) => void
+确保文件存在，不存在就创建
+hvigor 4.3.0
+readJson5
+readJson5: (file: string | NormalizedFile) => JSON
+读取Json5文件
+hvigor 4.3.0
+readFileSync
+readFileSync: (file: string | NormalizedFile) => Buffer
+同步读取文件
+hvigor 4.3.0
+readFile
+readFile: (file: string | NormalizedFile) => Promise<Buffer>
+异步读取文件
+hvigor 4.3.0
+writeFileSync
+writeFileSync: (file: string | NormalizedFile, content: any) => void
+同步写入文件
+hvigor 4.3.0
+writeFile
+writeFile: (file: string | NormalizedFile, content: any) => Promise<void>
+异步写入文件
+hvigor 4.3.0
+copyFileSync
+copyFileSync: (file: string | NormalizedFile, dest: string) => void
+同步复制文件
+hvigor 4.3.0
+copyFile
+copyFile: (file: string | NormalizedFile, dest: string) => Promise<void>
+异步复制文件
+hvigor 4.3.0
+pathResolve
+pathResolve: (...paths: string[]) => string
+拼接路径方法类
+hvigor 4.3.0
+[h2]exist4.3.0+
+exist: (filePath: string) => boolean
+判断文件路径是否存在。
+参数:
+参数名
+类型
+必填
+说明
+filePath
+string
+是
+文件路径字符串
+返回值:
+类型
+说明
+boolean
+true: 文件路径存在，false: 文件路径不存在
+[h2]isDictionary4.3.0+
+isDictionary: (file: string | NormalizedFile) => boolean
+判断文件路径或NormalizedFile对象是否是目录。
+参数:
+参数名
+类型
+必填
+说明
+file
+string | NormalizedFile
+是
+文件路径字符串或者是NormalizedFile对象
+返回值:
+类型
+说明
+boolean
+true: 是目录，false: 不是目录
+[h2]isFile4.3.0+
+isFile: (file: string | NormalizedFile) => boolean
+判断文件路径或NormalizedFile对象是否是文件。
+参数:
+参数名
+类型
+必填
+说明
+file
+string | NormalizedFile
+是
+文件路径字符串或者是NormalizedFile对象
+返回值:
+类型
+说明
+boolean
+true: 是文件，false: 不是文件
+[h2]ensureDirSync4.3.0+
+ensureDirSync: (dirPath: string) => void
+确保目录存在，不存在就创建。
+参数:
+参数名
+类型
+必填
+说明
+dirPath
+string
+是
+目标目录地址
+[h2]ensureFileSync4.3.0+
+ensureFileSync: (filePath: string) => void
+确保目录存在，不存在就创建。
+参数:
+参数名
+类型
+必填
+说明
+filePath
+string
+是
+目标文件地址
+[h2]readJson54.3.0+
+readJson5: (file: string | NormalizedFile) => JSON
+同步读取Json5文件。
+参数:
+参数名
+类型
+必填
+说明
+file
+string | NormalizedFile
+是
+json5文件路径或者NormalizedFile对象
+返回值:
+类型
+说明
+JSON
+读取出的JSON格式数据
+[h2]readFileSync4.3.0+
+readFileSync: (file: string | NormalizedFile) => Buffer
+同步读取文件。
+参数:
+参数名
+类型
+必填
+说明
+file
+string | NormalizedFile
+是
+文件路径字符串或者是NormalizedFile对象
+返回值:
+类型
+说明
+Buffer
+读取的Buffer数据
+[h2]readFile4.3.0+
+readFile: (file: string | NormalizedFile) => Promise<Buffer>
+异步读取文件。
+参数:
+参数名
+类型
+必填
+说明
+file
+string | NormalizedFile
+是
+文件路径字符串或者是NormalizedFile对象
+返回值:
+类型
+说明
+Promise
+Promise<Buffer>
+[h2]writeFileSync4.3.0+
+writeFileSync: (file: string | NormalizedFile, content: any) => void
+同步写入文件。
+参数:
+参数名
+类型
+必填
+说明
+file
+string | NormalizedFile
+是
+文件路径字符串或者是NormalizedFile对象
+content
+any
+是
+需要写入文件的内容
+[h2]writeFile4.3.0+
+writeFile: (file: string | NormalizedFile, content: any) => Promise<void>
+异步写入文件。
+参数:
+参数名
+类型
+必填
+说明
+file
+string | NormalizedFile
+是
+文件路径字符串或者是NormalizedFile对象
+content
+any
+是
+需要写入文件的内容
+返回值:
+类型
+说明
+Promise
+Promise<void>
+[h2]copyFileSync4.3.0+
+copyFileSync: (file: string | NormalizedFile, dest: string) => void
+同步复制文件。
+参数:
+参数名
+类型
+必填
+说明
+file
+string | NormalizedFile
+是
+文件路径字符串或者是NormalizedFile对象
+dest
+string
+是
+目标文件路径
+[h2]copyFile4.3.0+
+copyFile: (file: string | NormalizedFile, dest: string) => Promise<void>
+异步复制文件。
+参数:
+参数名
+类型
+必填
+说明
+file
+string | NormalizedFile
+是
+文件路径字符串或者是NormalizedFile对象
+dest
+string
+是
+目标文件路径
+返回值:
+类型
+说明
+Promise
+Promise<void>
+[h2]pathResolve4.3.0+
+pathResolve: (...paths: string[]) => string
+拼接路径。
+参数:
+参数名
+类型
+必填
+说明
+...paths
+string[]
+是
+文件路径信息数组
+返回值:
+类型
+说明
+string
+拼接后得到的路径信息

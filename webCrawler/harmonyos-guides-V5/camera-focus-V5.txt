@@ -1,0 +1,9 @@
+对焦(ArkTS)
+相机框架提供对设备对焦的能力，业务应用可以根据使用场景进行对焦模式和对焦点的设置。
+开发步骤
+详细的API说明请参考Camera API参考。
+导入相关接口，导入方法如下。 import { camera } from '@kit.CameraKit';\nimport { BusinessError } from '@kit.BasicServicesKit'; 在设置对焦模式前，需要先调用isFocusModeSupported检查设备是否支持指定的焦距模式。  需要在Session调用commitConfig完成配流之后调用。  function isFocusModeSupported(photoSession: camera.PhotoSession): boolean {\n  let status: boolean = false;\n  try {\n    // 以检查是否支持连续自动对焦模式为例\n    status = photoSession.isFocusModeSupported(camera.FocusMode.FOCUS_MODE_CONTINUOUS_AUTO);\n  } catch (error) {\n    // 失败返回错误码error.code并处理\n    let err = error as BusinessError;\n    console.error(`The isFocusModeSupported call failed. error code: ${err.code}`);\n  }\n  return status;\n} 调用setFocusMode设置对焦模式。 若设置为自动对焦模式，支持调用setFocusPoint设置对焦点，根据对焦点执行一次自动对焦。 需要在Session调用commitConfig完成配流之后调用。  function setFocusMode(photoSession: camera.PhotoSession): void {\n  const focusPoint: camera.Point = {x: 1, y: 1};\n  try {\n    // 设置自动对焦模式\n    photoSession.setFocusMode(camera.FocusMode.FOCUS_MODE_AUTO);\n    // 设置对焦点\n    photoSession.setFocusPoint(focusPoint);\n  } catch (error) {\n    // 失败返回错误码error.code并处理\n    let err = error as BusinessError;\n    console.error(`The setFocusMode and setFocusPoint call failed. error code: ${err.code}`);\n  }\n}  
+状态监听
+在相机应用开发过程中，可以随时监听相机聚焦的状态变化。
+通过注册focusStateChange的回调函数获取监听结果，仅当自动对焦模式时，且相机对焦状态发生改变时触发该事件。
+function onFocusStateChange(photoSession: camera.PhotoSession): void {\n  photoSession.on('focusStateChange', (err: BusinessError, focusState: camera.FocusState) => {\n    if (err !== undefined && err.code !== 0) {\n      console.error(`focusStateChange error code: ${err.code}`);\n      return;\n    }\n    console.info(`focusStateChange focusState: ${focusState}`);\n    // 为保证对焦功能的用户体验，在自动对焦成功后，可将对焦模式设置为连续自动对焦\n    if (focusState === camera.FocusState.FOCUS_STATE_FOCUSED) {\n      photoSession.setFocusMode(camera.FocusMode.FOCUS_MODE_CONTINUOUS_AUTO);\n    }\n  });\n}

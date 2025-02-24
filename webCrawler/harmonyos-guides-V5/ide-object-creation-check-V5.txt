@@ -1,0 +1,13 @@
+@performance/object-creation-check（已下线）
+建议使用字面量进行对象创建。仅支持检查ts文件，暂不支持ets文件检查。该规则已于5.0.3.500版本下线。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@performance/object-creation-check\": \"suggestion\",\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+// Test.ts\n// 创建一个array\nlet arr: number[] = [];\n// 创建一个普通对象\nlet obj = {};          \n// 创建一个正则对象\nlet reg = /../; 
+反例
+// Test.ts\n// 创建一个array\nlet arr: number[] = new Array(); \n// 创建一个普通对象\nlet obj = new Object();          \n// 创建一个正则对象\nlet reg = new RegExp('/../');    
+规则集
+plugin:@performance/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

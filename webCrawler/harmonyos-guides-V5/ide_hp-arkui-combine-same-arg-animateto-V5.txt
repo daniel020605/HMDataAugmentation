@@ -1,0 +1,14 @@
+@performance/hp-arkui-combine-same-arg-animateto
+建议动画参数相同时使用同一个animateTo。
+动效丢帧场景下，建议优先修改。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@performance/hp-arkui-combine-same-arg-animateto\": \"warn\",\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+@Entry\n@Component\nstruct MyComponent {\n  @State textWidth: number = 200;\n  @State color: Color = Color.Red;\n  \n  func() {\n    animateTo({ curve: Curve.Sharp, duration: 1000 }, () => {\n      this.textWidth = (this.textWidth === 100 ? 200 : 100);\n      this.color = (this.color === Color.Yellow ? Color.Red : Color.Yellow);\n    });\n  }\n  \n  build() {\n    Column() {\n      Row()\n        .width(this.textWidth)\n        .height(10)\n        .backgroundColor(this.color)\n      Text('click')\n        .onClick(() => {\n          this.func();\n        })\n    }\n    .width('100%')\n    .height('100%')\n  }\n}
+反例
+@Entry\n@Component\nstruct MyComponent {\n  @State textWidth: number = 200;\n  @State color: Color = Color.Red;\n  \n  func1() {\n    animateTo({ curve: Curve.Sharp, duration: 1000 }, () => {\n      this.textWidth = (this.textWidth === 100 ? 200 : 100);\n    });\n  }\n  \n  func2() {\n    animateTo({ curve: Curve.Sharp, duration: 1000 }, () => {\n      this.color = (this.color === Color.Yellow ? Color.Red : Color.Yellow);\n    });\n  }\n  \n  build() {\n    Column() {\n      Row()\n        .width(this.textWidth)\n        .height(10)\n        .backgroundColor(this.color)\n      Text('click')\n        .onClick(() => {\n          this.func1();\n          this.func2();\n        })\n    }\n    .width('100%')\n    .height('100%')\n  }\n}
+规则集
+plugin:@performance/recommended
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

@@ -1,0 +1,25 @@
+一体化工程迁移
+DevEco Studio从5.0.0 Release版本开始，提供开箱即用的开发体验，将SDK、Node.js、Hvigor、OHPM等工具链进行合一打包，简化DevEco Studio安装配置流程；并提供一体化的历史工程迁移能力，帮助开发者快速完成工程转换。
+为了避免数据丢失，迁移前请对工程进行备份。
+本次一体化变更点如下：
+变更点
+详细说明
+删除compileSdkVersion字段
+删除工程级build-profile.json5中的compileSdkVersion配置。编译所用的SDK版本即为配套的SDK版本。
+由于targetSdkVersion未配置时值默认与compileSdkVersion的值一致，如果之前未配置targetSdkVersion，targetSdkVersion的值将与配套的SDK版本保持一致；如果之前配置过targetSdkVersion，targetSdkVersion的值不变。若工程为Openharmony工程，则无需执行此步骤。当前版本compileSdkVersion、compatibleSdkVersion支持的赋值为10或11。
+删除部分hvigor文件 & 删除冗余hvigor配置
+删除hvigor-wrapper.json。删除hvigorw、hvigorw.bat。删除hvigor-config.json5中的hvigorVersion字段，并删除dependencies中@ohos/hvigor-ohos-plugin及rollup字段。
+删除HarmonyOS SDK配置
+删除local.properties中的HarmonyOS SDK配置。若工程为Openharmony工程，则忽略此步骤。
+增加开发态配置
+在hvigor-config.json5中增加开发态配置版本号modelVersion。在工程级的oh-package.json5中增加开发态配置版本号modelVersion。
+自动迁移
+打开历史工程，Notifications通知栏将出现“Sync failed.”同步失败提示，点击Migrate Assistant，进入迁移助手页面。 可以通过菜单栏Tools > Migrate Assistant，进入迁移助手页面。   在页面下方的Migrate Assistant页签中选择迁移到5.0.0，并点击Migrate按钮，此时将出现弹窗提示开发者进行数据备份。若确认已完成备份，请点击弹窗中Migrate，启动迁移任务。 待工程重新完成同步，并无其他报错提示，即为迁移成功。 
+若您的工程是NPM管理的API 8/9工程，请先按照适配OHPM包管理完成升级，再通过菜单栏Tools > Migrate Assistant，进入迁移助手页面，完成一体化工程自动迁移。
+手动迁移
+[h2]API 10及以上历史工程迁移
+如自动化迁移不成功或希望进行手动迁移，迁移前同样需对工程进行备份。手动迁移流程如下：
+进入工程级build-profile.json5文件，删除compileSdkVersion配置。若工程为Openharmony工程，则无需删除compileSdkVersion字段。 删除并修改Hvigor相关文件：在左侧工程目录中删除hvigorw、hvigorw.bat文件，并删除hvigor目录下的hvigor-wrapper.js文件。 进入hvigor > hvigor-config.json5文件中，新增modelVersion字段，其值为\"5.0.0\"。并删除hvigorVersion字段、dependencies中的@ohos/hvigor-ohos-plugin和rollup字段（如有）。  在工程级oh-package.json5文件中同样也需新增modelVersion字段，其值为\"5.0.0\"。 在local.properties文件中，删除HarmonyOS SDK配置。若工程为Openharmony工程，则无需执行此步骤。 点击编辑界面上方Sync now或进入菜单栏点击File > Sync and Refresh Project，重新进行工程同步。若无其他报错，至此历史工程手动迁移完成。 
+[h2]API 9历史工程迁移
+将工程级build-profile.json5文件中compileSdkVersion字段删除，并将compatibleSdkVersion字段从app字段下迁移到当前选中的product中。当前生效的product可以通过点击编辑区域右上方图标进行查看。 请将compatibleSdkVersion和targetSdkVersion（若已配置）从9改为4.0.0(10)，并配置runtimeOS。版本号需满足M.S.F(X)规则的字符串类型，使用英文.和()。\"app\": {\n  \"signingConfigs\": [],\n  \"products\": [\n    {\n      \"name\": \"default\",\n      \"signingConfig\": \"default\",\n      \"compatibleSdkVersion\": \"4.0.0(10)\",      //指定HarmonyOS应用/元服务兼容的最低版本。\n      \"targetSdkVersion\": \"4.0.0(10)\",          //指定HarmonyOS应用/元服务目标版本。若没有设置，默认为compatibleSdkVersion\n      \"runtimeOS\": \"HarmonyOS\",                 //指定为HarmonyOS\n    }\n  ],\n  ...\n}  将其他各模块级别的build-profile.json5文件中target字段下配置的runtimeOS删除。 继续参考步骤二，完成余下手动迁移步骤。
+一键升级只针对当前选择的product生效。如有多个product，需要分别切换不同product后，按照手动升级的方式对工程进行升级。每一个product下都需要配置相应的compatibleSdkVersion和runtimeOS。针对API 8/9 NPM工程，请先按照适配OHPM包管理完成升级，再按照API 9历史工程迁移完成手动迁移配置。从DevEco Studio 4.0 Release版本开始，代码编辑器及编译构建过程增强了对ArkTS语法规范的检查，如果历史工程中存在不符合ArkTS语法规范的代码，在迁移完成后可能会报错，需根据具体报错信息修正不符合ArkTS语法规范的代码。如果历史工程包含低代码方式开发的界面，在迁移完成后，需要将这部分低代码开发的界面转换为ArkTS代码，并修正相关报错后才可以正常编译。代码转换操作会删除visual文件及其父目录，且为不可逆过程，代码转换后不能通过ets文件反向生成visual文件。

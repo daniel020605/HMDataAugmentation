@@ -1,0 +1,1219 @@
+应用UI测试（基于python）
+框架概述
+DevEco Testing Hypium(以下简称Hypium)是HarmonyOS平台的UI自动化测试框架，支持开发者使用python语言为应用编写UI自动化测试脚本，主要包含以下特性：
+Hypium提供了原生控件/图像/比例坐标等多种控件定位能力，支持多窗口操作以及触摸屏/鼠标/键盘等多种模拟输入功能，支持多设备并行操作，能够覆盖各类场景和多种形态设备上的自动化用例编写需求。Hypium包含配套用例编写辅助插件, 支持控件查看/投屏操作等多种用例开发辅助功能，提升用例开发体验和效率。Hypium能够为执行的用例生成详细的用例执行报告，并且自动记录设备日志以及执行步骤截图，为开发者和测试人员提供高效和专业的测试用例执行和结果分析体验。
+安装向导
+1.Python安装
+推荐从官网获取3.10版本，其他版本可能出现兼容性问题
+https://www.python.org/
+pip源配置：
+Ⅰ.在用户目录下的pip目录中创建pip.ini，配置pip源为可以正常访问的pip源
+Ⅱ. pip.ini内容如下:
+[global]\nindex-url = https://repo.huaweicloud.com/repository/pypi/simple\ntrusted-host = repo.huaweicloud.com\ntimeout = 120
+Ⅲ. 在CMD命令窗口输入 python -m pip install --upgrade pip 更新pip
+python -m pip install --upgrade pip
+2.IDE安装
+推荐从pycharm官网获取2022.3以后的社区版本：
+https://www.jetbrains.com.cn/en-us/pycharm/
+3.HDC安装
+下载DevEco Studio获取，配置向导默认下载Toolchains获取，详情请参考DevEco Studio使用指南及调试工具-hdc
+4.Hypium安装
+访问华为开发者联盟官网下载页面：
+https://developer.huawei.com/consumer/cn/download/
+找到DevEco Testing Hypium，下载解压后找到其中的hypium-5.0.7.200.zip(请以实际版本号为准)。
+解压后该文件后得到的4个tar.gz格式的pip安装包，使用pip install命令安装。
+Hypium安装对xdevice有依赖，优先安装xdevice，以下版本号仅做示例，请以实际版本号为准。
+pip install xdevice-5.0.7.200.tar.gz\npip install xdevice-devicetest-5.0.7.200.tar.gz\npip install xdevice-ohos-5.0.7.200.tar.gz\npip install hypium-5.0.7.200.tar.gz
+5.DevEco Testing Hypium插件安装及使用方法
+注意：Mac系统使用UIViewer功能时，必须在设置面板中手动指定Hdc路径，详情可见 · 插件功能 Ⅳ.设置面板区域-Hdc路径。
+插件安装
+Ⅰ. 准备DevEco Testing Hypium件离线安装包，下载完成后不需要解压。
+Ⅱ. 打开pycharm后，点击File -> Settings -> Plugin -> 齿轮图标 -> Install Plugin from Disk -> 选中刚刚下载的离线安装zip包 -> 安装完成后重启pycharm。
+安装完成后会有如下内容：
+插件功能
+插件功能按功能区域进行区分，分为三个区域
+Ⅰ. 项目文件区域
+在项目文件区域选中
+序号
+功能
+图片
+说明
+注意
+1
+执行当前项目
+遍历当前选中的文件夹，寻找文件夹中所有的json文件名，将其拼接成Hypium任务执行命令然后执行
+需要选中文件夹右键
+2
+一键执行当前用例
+将当前的文件名拼接成Hypium任务执行命令然后执行
+需要选中py或json文件右键
+3
+生成Hypium模板用例
+在当前选中文件下生成配套的模板用例py和json
+需要在testcases或其子文件夹右键选择New，此功能才会展示出来
+4
+生成Hypium模板测试套
+在当前选中文件下生成配套的测试套模板用例py和json
+需要在testcases或其子文件夹右键选择New，此功能才会展示出来
+5
+生成回归测试服务包
+打开后会有\"回归测试\"、\"场景化性能\"两种测试服务包的生成模板，用户根据需求，填写完成后即可生成对应的测试服务包
+1.需要选中项目根目录文件夹右键
+2.当前项目根目录下要存在testcases文件夹
+3.当前项目根目录下存在\"setup-sceneperf.py\"或\"setup-regression.py\"，否则打包不成功
+Ⅱ. 代码编辑区域
+序号
+功能
+图片
+说明
+注意
+1
+一键执行当前用例
+将当前的文件名拼接成Hypium任务执行命令然后执行
+需要保证当前打开的项目根目录下存在\"config\"文件夹和\"testcases\"文件夹，此功能才会展示出来
+2
+一键调试当前用例
+将当前的文件名拼接成Hypium任务执行命令然后以调试模式进行执行，用户可以在用例中添加断点
+需要保证当前打开的项目根目录下存在\"config\"文件夹和\"testcases\"文件夹，此功能才会展示出来
+3
+选区快速执行
+用户在编辑区选中代码要运行的代码片段后右键，然后再选中要运行的设备，插件便会只运行选中的代码段。此方式执行速度要比整个用例执行快，适合于检查某个AW的效果。
+1.需要在\"UIViewer\"面板中刷新出设备，此功能才会展示出来
+2.需要保证当前打开的项目根目录下存在\"config\"文件夹和\"testcases\"文件夹，此功能才会展示出来
+4
+选区快速调试
+功能与使用方式和\"选区快速执行\"一直，区别是使用调试模式来执行
+1.需要在\"UIViewer\"面板中刷新出设备，此功能才会展示出来
+2.需要保证当前打开的项目根目录下存在\"config\"文件夹和\"testcases\"文件夹，此功能才会展示出来
+5
+生成Hypium模板代码
+点击后将弹出模板代码选项窗口，用户可以根据需要选择对应的模板代码进行创建，创建完成后将在当前编辑器的光标中插入模板代码
+6
+函数快速执行
+如果插件检测到当前py文件为Hypium用例，就会在setup、process、teardown的函数左边生成一个图标，点击后就可以选择设备执行当前的这段函数
+1.需要在\"UIViewer\"面板中刷新出设备，此功能才会展示出来
+2.需要保证当前打开的项目根目录下存在\"config\"文件夹和\"testcases\"文件夹，此功能才会展示出来
+Ⅲ. ToolWindow区域
+UIViewer功能
+pycharm界面右侧栏的toolWindow区域有UIViewer标签，点击后会展开UIViewer面板。UIViewer功能目前分为4个界面: 设备选择界面 、单设备控件查看界面 、单设备投屏界面 、双设备投屏界面。
+设备选择界面
+如果是第一次进入此界面，或设备有变动，需要点击\"刷新\"按钮进行设备刷新
+注：当前仅支持USB连接本地设备调测，暂不支持模拟器。
+设备选择界面最多同时支持选择两个设备进入投屏状态。若勾选了两个设备后点击\"确定\"按钮，则会进入双设备投屏界面。进入双设备投屏界面时，需要保证两个设备的\"设备编号\"不同，进入双设备投屏界面后，设备编号为\"dev1\"的设备会显示在左侧，设备编号为\"dev2\"的设备会显示在右侧。若勾选了一个设备后点击\"确定\"按钮，则会进入单设备投屏界面
+序号
+标签名称
+说明
+1
+sn号
+当前设备的sn
+2
+设备类型
+当前设备时用adb还是hdc检测出
+3
+设备状态
+表示当前设备能否使用UIViewer工具。OK表示可用，NOT_SUPPORT表示不可用
+4
+设备编号
+针对于双设备投屏的参数。在双设备界面中，dev1的设备会排左边，dev2的设备会排右边
+单设备投屏界面
+布局说明：
+镜像投屏：点击后进入镜像投屏模式，此模式下可以使用鼠标对显示界面进行点击、滑动操作；只有在此模式下才能进入控件查看模式。设备切换：点击后回到设备选择界面。shell命令输入：在输入框输入shell命令之后点击确定，插件便会在当前设备上执行shell命令，插件会自动给命令头部添加\"hdc shell\"，同时请勿执行阻塞性命令。设备显示界面：显示当前设备的屏幕画面，处于投屏状态时，可以用鼠标点击和滑动此界面来控制设备。工具区：设备显示界面右侧为工具区，工具区从上至下分为以下3部分：
+工具区1：
+此工具区提供控件查看的功能，处于控件查看模式时，设备画面不再变动。若要重新获取当前页面的信息，需要点击控件刷新按钮。
+序号
+图标
+功能
+说明
+1
+控件查看
+点击后进入控件查看模式，(获取控件树需要时间，鼠标光标处于转圈状态时，请勿点击其他按钮)。处于选择状态时再次点击，会回到投屏模式。
+2
+高级控件查看
+处于此状态时，控件信息会随鼠标游走进行不断的展示，点击某个控件信息后回到控件查看模式。处于选择状态时再次点击，会回到投屏模式。
+3
+功能脚本录制
+点击后，将页面左上角将出现红色提示文字，提示进入录制状态，处于此状态时，点击画面中控件后，将在编辑器光标处生成hypium用例测试语句。录制出的测试语句仅对静态页面的回放成功率较高，动态页面的回放成功率较低。
+4
+控件刷新
+如果设备界面有变动或刷新，可点击此按钮重新获取当前页面的控件信息
+工具区2：
+此工具区提供一些设备操作的功能，目前提供的功能如下：
+序号
+图标
+功能
+说明
+1
+音量加
+点击后对设备进行音量加操作
+2
+音量减
+点击后对设备进行音量减操作
+3
+电源键
+点击后模拟按下设备电源键
+4
+重启键
+点击后将重启设备
+5
+返回键
+点击后模拟返回键操作
+6
+Home键
+点击后模拟返回桌面操作
+工具区3:
+此工具区的按钮主要提供一些与设备系统交互的功能，目前提供的功能如下：
+序号
+图标
+功能
+说明
+1
+设备信息
+点击后在\"设备信息展示区\"显示当前设备的信息
+2
+全屏截图
+点击后会将当前屏幕画面保存至当前项目的\"resource\"文件夹下的\"Hypium\"目录下
+3
+区域截图
+点击后设备显示界面进入截图状态，鼠标在设备显示界面按下然后拖动，就会框选出一个截图区域，松开鼠标后就会将当前选择的区域截图保存至当前项目的\"resource\"文件夹下的\"Hypium\"目录下
+4
+竖屏
+将设备设置为竖屏状态
+5
+横屏
+将设备支持为横屏状态(目前已知问题：将设备设置为横屏状态后，设备的点击、滑动、控件查看功能会出现问题)
+6
+应用安装
+用户可以从PC本地选择一个hap文件进行安装，当前仅支持HarmonyOS NEXT 设备。
+7
+应用卸载
+用户可对当前设备所安装的应用进行卸载，当前仅支持HarmonyOS NEXT 设备。
+8
+发送文件
+用户可以从电脑端选择一个文件或目录发送到设备端的指定地址，当前仅支持HarmonyOS NEXT 设备。
+9
+应用管理器
+点击后将打开一个App管理界面，此界面可以进行对设备进行app的安装及卸载。当前仅支持HarmonyOS NEXT 设备。
+双设备投屏界面
+此界面的功能与单设备的投屏(控件)界面功能相同，只是展示设备的数量变为2个。对某个设备进行控件查看时，会自动退出双设备投屏界面，回到单设备的控制查看界面。
+执行结果报告展示功能
+使用一键执行当前用例功能后，当用例执行完成，插件会在控制台旁生成一个标签，点击后可以看到用例的执行步骤图片。
+Ⅳ. 设置面板区域
+打开pycharm设备面板，可以看到Deveco Testing Hypium的设置选项，点击后的图片如下：
+序号
+功能
+说明
+注意
+1
+配置文件路径
+一键执行\\调试功能所使用的配置文件路径，如不设置，则默认使用当前项目下的\"config\"文件夹作为配置文件路径
+-
+2
+测试用例路径
+一键执行\\调试功能所使用的测试文件路径，如不设置，则默认使用当前项目下的\"testcases\"文件夹作为测试用例路径
+-
+3
+额外执行参数
+插件的一键执行/调试功能，实际上是就是自动帮用户配置了Hypium的任务执行参数然后启动执行，如果当前执行的参数不能满足用户的需要，可以在此额外添加一些执行命令参数
+比如框架生成的一键执行命令为\"run -l XXX\"，用户想设置每个步骤都截图，便可在此写上\"-ta screenshot:true\"，然后框架生成的一键执行命令就变成\"run -l XXX -ta screenshot:true\"
+4
+是否以bin模式执行
+以bin模式执行用例时，不会断开投屏
+-
+5
+Hdc路径
+手动指定UIViewer所使用的Hdc路径
+-
+6
+游走模式自动刷新间隔
+控制UIViewer功能中的游走模式的刷新间隔，默认60秒自动重新获取一次界面的布局，最小时间可以设为30秒，最大时间300秒
+-
+7
+是否使用视频流投屏模式
+当视频流模式无法投屏时，可以将此选项改为否，此时的投屏帧率会降低。
+-
+8
+依赖下载参数
+生成回归测试服务包过程中会使用pip download 命令下载第三方依赖，如果出现依赖下载慢或失败的情况，可以在此添加\"-i XXX\"参数，指定下载的python源
+-
+Ⅴ. 工程创建区域
+在pycharm顶部点击File -> new project ：
+可以看到pycharm提供的模板创建工程中有DevEco Testing Hypium，此处提供两种类型的Hypium模板工程创建，分别为单设备和双设备的场景：
+点击其中一个模板后便会创建Hypium模板工程，工程其中包含了一个模板用例和一个模板user_config.xml，正常情况下用户无需改动。下面以单设备工程为例，创建完成后的界面如下，接入设备后，右键一键执行便可执行当前用例：
+测试脚本开发快速入门
+本章节适用于Hypium测试脚本开发的初学者。通过创建一个简单的测试脚本工程，快速了解工程目录的主要文件，熟悉Hypium测试脚本的开发流程。
+测试脚本工程创建
+测试脚本工程创建主要有两种方式：
+a）直接利用以下附件中的模板工程；
+HypiumProjectTemplate.zip
+b）通过pycharm上的Hypium插件进行创建；
+Ⅰ.工程目录文件介绍
+HypiumProjectTemplate\n|     |----aw                                       // 工程中自定义模块文件夹\n|     |     |----Utils.py                         // 示例模块文件\n|     |----config                                  // 测试工程配置文件夹\n|     |     |----user_config.xml             // 测试工程配置文件，主要是测试框架的任务配置\n|     |----resource                              // 测试资源文件夹，测试过程中用到的资源文件默认会优先从当前文件夹进行查找\n|     |----testcases                             // 测试用例文件夹，测试过程中的测试用例文件优先会从当前文件夹进行查找\n|     |    |----Example.json                  // Example测试用例配置文件，配置用例设备信息等\n|     |    |----Example.py                     // Example测试用例文件，实际的测试逻辑代码\n|     |----main.py                               // 测试用例执行入口
+Ⅱ.工程目录文件介绍
+<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<user_config>\n    <environment>\n        <!-- type: 设备连接方式,usb-hdc表示使用hdc命令控制设备(默认) -->\n        <device type=\"usb-hdc\">\n            <!-- ip: 远端设备地址,ip和port为空时使用本地设备,非空时使用远端设备 -->\n            <ip></ip> \n            <!-- port: 远端设备端口号 -->\n            <port></port> \n            <!-- sn: 设备SN号列表,SN之间用分号\";\"分隔,sn字段为空时使用所有本地设备,非空时使用指定的sn设备 -->\n            <sn></sn> \n        </device>\n    </environment>\n    <testcases>\n        <!-- 指定测试用例目录，为空则默认设置为当前项目下的testcase文件夹 -->\n        <dir></dir>\n    </testcases>\n    <resource>\n        <!-- 指定资源目录，为空则默认设置为当前项目下的resource文件夹 -->\n        <dir></dir>\n    </resource>\n    <!-- 默认为INFO，如需更详细信息可设置为DEBUG -->\n    <loglevel>DEBUG</loglevel>\n    <devicelog>\n        <!--在测试用例结束后额外后拉取以下路径的日志到报告下-->\n        <dir>/data/log/tee;/data/log/test</dir>\n        <!--控制hilog日志等级，默认值为INFO-->\n        <loglevel>DEBUG</loglevel>    \n        <!--控制是否在拉取日志后设备端的日志，默认值为true-->\n        <clear></clear>                \n        <!--控制是否抓取设备日志，默认值为ON，OFF时候上述两个标签不生效-->\n        <enable>ON</enable>            \n    </devicelog>\n</user_config>
+Ⅲ.测试用例介绍
+Hypium测试用例由两部分组成，分别是测试用例配置文件以及测试用例文件。其中测试用例的形态分两种模式，单个用例模式（一个测试用例py文件，一个测试配置json文件）以及测试套模式（一个测试套py文件、N个测试用例py文件、一个测试配置json文件），开发者可以根据业务的需要自行选择开发模式。
+单个测试用例模式
+测试用例的生命周期函数主要有三个，分别是setup、process、teardown。每个测试用例的编写都需要重写这三部分内容，示例如下。
+序号
+生命周期函数
+说明
+1
+setup
+测试用例的前置步骤，主要用于执行测试用例的预置动作
+2
+process
+测试用例的实际操作步骤，主要描述当前测试用例中的所有测试用例步骤集合
+3
+teardown
+测试用例的清理步骤，主要用于执行测试用例的环境清理等操作
+# !/usr/bin/env python\n# coding: utf-8\n\"\"\"\n#!!================================================================\n#版权 (C) 2023, Huawei Technologies Co.\n#==================================================================\n#文 件 名：                 Example.py\n#文件说明：                 Example TestScript\n#作    者：                 author\n#生成日期：                 2023-07-13\n#!!================================================================\n\"\"\"\nfrom devicetest.core.test_case import TestCase, Step\nfrom devicetest.utils.file_util import get_resource_path\nfrom hypium import *\nfrom aw import Utils\nclass Example(TestCase):\n    def __init__(self, controllers):\n        self.TAG = self.__class__.__name__\n        TestCase.__init__(self, self.TAG, controllers)\n        self.driver = UiDriver(self.device1)\n    def setup(self):\n        Step('1.回到桌面')\n        self.driver.swipe_to_home()\n    def process(self):\n        Step('2.检查短信应用版本')\n        mms_version = Utils.get_app_version_code(self.driver, 'com.ohos.mms')\n        host.check_greater(mms_version, 0)\n        Step('3.点击桌面上的短信')\n        self.driver.touch(BY.text(\"信息\"))\n    def teardown(self):\n        Step(\"4. 停止短信应用\")\n        self.driver.stop_app(\"com.ohos.mms\")
+测试用例配置文件
+该文件主要描述测试套的测试配置信息，比如测试套需要多少个设备、测试套的测试驱动信息、测试套的描述信息等，示例如下：
+{\n    \"description\": \"Config for OpenHarmony app test suites\",\n    //environment字段主要描述测试用例需要的环境信息，如需要多少个设备\n    \"environment\": [\n        {\n            \"type\": \"device\",   //device表示OpenHarmony设备\n            \"label\": \"phone\"   //设备类型，phone为手机，tablet为平板，默认不填写则对设备无要求\n        }，\n        {\n            \"type\": \"device\",   //多个设备时填写\n            \"label\": \"phone\"\n        }\n    ],\n    // driver字段主要描述测试用例的测试驱动是什么，以及具体要执行的py脚本文件在哪（填写与当前json文件的相对路径即可）\n    // 不填写则在当前json文件下寻找同名py文件\n    // 注意：“py_file”字段当前只能填写一个py文件\n    \"driver\": {\n        \"type\": \"DeviceTest\",\n        \"py_file\": [\"Test.py\"]\n    }\n}
+测试套模式
+测试套的生命周期函数主要有两个，解释如下表。
+序号
+生命周期函数
+说明
+1
+setup
+整个测试套的前置步骤，在测试套运行前先执行该函数
+2
+teardown
+整个测试套的清理步骤，在执行完所有测试用例后执行
+from devicetest.core.test_case import Step\nfrom devicetest.core.suite.test_suite import TestSuite\nclass Testsuite1(TestSuite):\n    # 测试套的前置步骤，会在所有的测试用例执行前先运行，对于批量测试用例有共同的前置步骤的诉求可以写在这\n    def setup(self):\n        Step(\"TestSuite: setup\")\n    # 测试套的清理步骤，会在所有测试用例执行完后运行\n    def teardown(self):\n        Step(\"TestSuite: teardown\")
+测试套配置文件介绍
+该文件主要描述测试套的测试配置信息，比如测试套需要多少个设备、测试套的测试驱动信息、测试套的描述信息等，示例如下：
+{\n    \"description\": \"Config for OpenHarmony app test suites\",\n    //environment字段主要描述测试用例需要的环境信息，如需要多少个设备\n    \"environment\": [\n        {\n            \"type\": \"device\",\n            \"label\": \"phone\"\n        }\n    ],\n    // driver字段主要描述测试用例的测试驱动是什么，以及具体要执行的py脚本文件在哪（填写与当前json文件的相对路径即可）\n    \"driver\": {\n        \"type\": \"DeviceTestSuite\",\n        // 指定测试套json文件对应的py文件路径(可以不加py后缀)，可以为相对路径或者绝对路径，如果使用相对路径，需要指定相对测试工程根目录的路径。可以不指定，不指定则直接查找和当前json同目录下同名的py文件\n        \"testsuite\": \"TS_001/TS_001\",\n        //指定测试套中的测试用例列表，有两种方式\n        //方式一，定义suitecases字段，然后明确定义好当前测试套下有哪些测试用例（相对路径或者是绝对路径，使用相对路径时根目录为测试套目录）\n        \"suitecases\": [\n            \"XXX_001.py\",\n            \"/path/to/XXX_002.py\"\n        ]\n        //方式二，测试用例的py文件放在testsuite1文件夹中，并且命名以\"TC_\"开头，框架即可自动扫描所有用例并执行\n    },\n    // kits字段主要描述测试用例需要的测试公共kit，如pushkit、shellkit等\n    \"kits\": [\n    ]\n}
+测试用例文件介绍
+测试用例的编写可以有两种方式。
+第一种、框架自动扫描的测试用例脚本，需要满足以下规则。
+与测试套py文件在同一个文件夹目录下；文件名的开头必须是以“TC_”开头；
+第二种、需要在json中指定py文件，示例参考上述章节中的测试用例编写规范。
+测试用例执行
+本章节主要介绍测试用例如何执行，测试用例执行有两种方式，一种是通过命令行方式执行用例，一种是通过pycharm IDE上的Hypium插件一键执行。
+Ⅰ.命令介绍
+Hypium框架指令可以分为三组：help、list、run。在指令序列中，以run为最常用的执行指令。
+命令交互入口
+打开命令行窗口，并进入到测试脚本工程的根目录；执行以下命令进入Hypium控制台，即可完成Hypium框架启动：
+python -m hypium
+Ⅱ. 常用命令介绍
+help命令
+输入help指令可以查询框架指令帮助信息。
+help:\n    use help to get information.  \nusage:\n    run:  Display a list of supported run command.\n    list: Display a list of supported device and task record.  \nExamples:\n    help run\n    help list
+说明： help run：展示run指令相关说明；help list：展示 list指令相关说明。
+list命令
+list指令用来展示设备和相关的任务信息。
+list:\n    This command is used to display device list and task record.  \nusage:\n      list\n      list history\n      list <id>  \nIntroduction:\n    list:         display device list\n    list history: display history record of a serial of tasks\n    list <id>:    display history record about task what contains specific id  \nExamples:\n    list\n    list history\n    list 6e****90
+说明： list: 展示设备信息；list history: 展示任务历史信息；list< id > : 展示特定id的任务其历史信息。
+run命令
+run指令主要用于执行测试任务。
+run:\n    This command is used to execute the selected testcases.\n    It includes a series of processes such as use case compilation, execution, and result collection.  \nusage: run [-l TESTLIST [TESTLIST ...] | -tf TESTFILE\n            [TESTFILE ...]] [-tc TESTCASE] [-c CONFIG] [-sn DEVICE_SN]\n            [-rp REPORT_PATH [REPORT_PATH ...]]\n            [-respath RESOURCE_PATH [RESOURCE_PATH ...]]\n            [-tcpath TESTCASES_PATH [TESTCASES_PATH ...]]\n            [-ta TESTARGS [TESTARGS ...]]\n            [-env TEST_ENVIRONMENT [TEST_ENVIRONMENT ...]]\n            [--retry RETRY] [--session SESSION]\n            [--repeat REPEAT]\n            action task  \nSpecify tests to run.\n  positional arguments:\n  action                Specify action\n  task                    Specify task name,such as \"ssts\", \"acts\", \"hits\"
+run常用指令基本使用方式如下：
+序号
+xDevice命令
+功能
+示例
+1
+run -l XXX
+运行指定测试套。如有多个测试套，测试套之间以分号分隔
+run -l Example1;Example2（testcase目录下的测试用例json名）
+2
+run -sn
+指定运行设备sn号，多个sn号之间以分号分隔
+run -l Example1 -sn sn1run -l Example1 -sn sn1;sn2
+3
+run -rp
+指定报告生成路径，默认报告生成在项目根目录下的reports文件夹，以时间戳或任务id建立子目录
+run -l Example1 -rp /XXXX/XXX
+4
+run -respath
+指定测试资源路径，默认为项目根目录下的resource文件夹
+run -l Example1 -respath /XXX/XXX/XXX
+5
+run -tcpath
+指定测试用例路径,默认为项目根目录下的testcases文件夹
+run -l Example1 -tcpath /XXX/XXX/XXX
+6
+run - ta
+指定模块运行参数，可以指定运行测试套中的某个用例，多个用例之间以逗号分隔，目前只支持hits
+run -l Example1 -ta screenshot:true(测试用例每个Step步骤截图)run -l Example1 -ta class:XXXX(类名)#XXXXX(方法名)
+7
+run --retry
+重新运行上次失败的测试用例
+run --retry --session 2022-12-13-12-21-11(report任务报告目录)
+Ⅲ. IDE上用例执行
+具体IDE上如何可视化执行参考Hypium上插件使用方法。
+Ⅳ. 测试报告查看
+测试框架执行完用例后，会生成对应的log文件，还会生成对应的执行结果报告。如果使用了-rp参数指定报告路径，那么报告就会生成在指定的路径下。否则报告会存放在默认目录（工程目录的reports文件夹下）。
+当前报告目录（默认目录/指定目录）\n    ├── details（用例步骤截图存放目录）\n    ├── result（模块执行结果存放目录）\n    │     ├── <测试用例1结果>.xml\n    │     ├──  ... ...  \n    ├── log (设备和任务运行log存放目录)\n    │     ├── <测试用例1设备执行>.log\n    │     ├── ... ...\n    │     ├── <任务执行>.log\n    ├── static (报告展示页面css元素存放目录)\n    ├── summary_report.html（测试任务可视化报告）\n    ├── summary_report.xml（测试任务数据报告）\n    ├── summary.ini（记录测试类型，使用的设备，开始时间和结束时间等信息）\n    ├── task_info.record（记录执行命令，失败用例等清单信息）
+API使用说明
+Hypium测试框架提供了两大类API来支持用例的编写。第一类是需要被测设备参数执行的API，第二类是无需被测设备，在PC端可独立调用的API。
+设备相关的API主要包括四个基础API类：UiDriver，BY，UiComponent，UiWindow。
+UiDriver类为UI测试的入口，代表了一个被测设备，提供控件查找、控件检查、用户操作模拟、执行shell命令、安装卸载应用等等Ui测试核心能力。BY对象用于描述需要操作的控件属性，实现控件定位。UiComponent为UiDriver查找返回的控件对象，提供控件属性查询、控件点击、滑动查找等触控/检视能力。UiWindow为UiDriver查找返回的窗口对象，提供窗口属性查询、窗口拖动、大小调整等触控能力。
+示例代码
+from hypium import UiDriver，BY，UiComponent，UiWindow\nfrom hypium.model import WindowFilter\n\n# 创建driver对象（self.device1对象在测试用例类中提供）\ndriver = UiDriver(self.device1)\n# 查找控件\ncomponent = driver.find_component(BY.text(\"蓝牙\"))\n# 查找窗口\nwindow = driver.find_window(WindowFilter().bundle_name(\"com.huawei.hmos.settings\"))
+设备无关的API当前主要包括两个基础API类: host 和CV。
+host 提供基础值断言, PC端shell命令执行等PC端基础操作能力。CV 提供图像查找，图像比较，压缩，清晰度计算等基础图像操作能力。
+示例代码
+from hypium import host, CV\n\n# 执行PC端命令\necho = host.shell(\"a.bat\")\n# 调用图像接口\nbrightness = CV.calculate_brightness(\"/path/to/image.jpeg\")
+此外Hypium定义的一些常量类型，例如KeyCode，UiParam，MatchPattern等，以及数据类型Point，Rect等，这部分包含在hypium.model包中。
+示例代码
+from hypium.model import KeyCode, UiParam, MatchPattern\n\n# 按下电源键（使用常量KeyCode.POWER）\ndriver.press_key(KeyCode.POWER)\n# 向左滑动屏幕（使用常量UiParam.LEFT）\ndriver.swipe(UiParam.LEFT)
+下文各小节将详细介绍主要测试场景中Hypium的API使用方法。
+API使用方法
+控件查看
+使用DevEco Testing Hypium插件中的UIViewer工具即可查看控件的各种属性。
+控件查找
+Hypium中的定位操作目标的方式主要分三大类型，包括控件属性定位，图片匹配定位以及比例坐标定位。根据操作目标的定位准确性，首选方式为控件属性定位，次选图片匹配定位。当无法使用前两类方式定位时，可以选择比例坐标定位操作目标。
+Hypium中的控件属性定位通过BY选择器对象来实现，接下来将介绍使用控件属性定位控件，及使用图片匹配和比例坐标定位控件。
+单属性定位控件
+从hypium包中导入BY选择器对象, 从hypium.model包中导入匹配模式常量类MatchPattern
+from hypium import BY\nfrom hypium.model import MatchPattern
+通过BY对象可以指定需要查找/操作的控件对象。
+# 查找text属性为\"控件文本\"的控件\ncomponent = driver.find_component(BY.text(\"蓝牙\"))\n# 读取控件的的边框位置\nbounds = component.getBounds()\n# 直接点击控件\ncomponent = driver.touch(BY.text(\"蓝牙\"))
+注意: 默认情况下，find_component和touch等方法会查找/操作第一个条件匹配的控件，如需操作第n个满足匹配条件的控件，请参考查找所有匹配控件
+当前控件的text属性支持三种模糊匹配方式，通过BY.text方法第二个可选参数指定，如下表所示:
+序号
+匹配方式常量
+说明
+1
+MatchPattern.STARTS_WITH
+前缀匹配
+2
+MatchPattern.ENDS_WITH
+后缀匹配
+3
+MatchPattern.CONTAINS
+包含匹配
+# 点击text属性以`今天星期`开头的控件\ndriver.touch(BY.text(\"今天星期\", MatchPattern.STARTS_WITH))
+BY选择器支持的所有属性如下表所示。
+序号
+属性名称
+属性值类型
+对应BY选择器
+是否支持模糊匹配
+1
+text
+str
+BY.text
+是
+2
+key
+str
+BY.key
+否
+3
+type
+str
+BY.type
+否
+4
+checkable
+bool
+BY.checkable
+否
+5
+longClickable
+bool
+BY.longClickable
+否
+6
+clickable
+bool
+BY.clickable
+否
+7
+scrollable
+bool
+BY.scrollable
+否
+8
+enabled
+bool
+BY.enabled
+否
+9
+focused
+bool
+BY.focused
+否
+10
+selected
+bool
+BY.selected
+否
+11
+checked
+bool
+BY.checked
+否
+多属性组合定位控件
+BY选择器支持使用链式调用的方式指定多个属性来定位一个控件，在多个控件有部分属性相同，部分属性不同时可以更精确地定位控件。
+# 点击文本为\"蓝牙\", 类型为\"Button\", 并且key为\"bluetooth_switch\"的按钮\ndriver.touch(BY.text(\"蓝牙\").type(\"Button\").key(\"bluetooth_switch\"))\n\n# 同样，在查找以及其他可以传入BY对象的接口中可以使用相同的用法\ncomponent = driver.find_component(BY.text(\"蓝牙\").type(\"Button\").key(\"bluetooth_switch\"))
+控件相对位置+属性组合定位控件
+对于某些自身属性不唯一，无法精确定位的控件，BY选择器支持通过与其他控件的相对位置关系来提高定位控件的精确性。支持的相对定位方式如下表所示。
+序号
+相对位置定位接口
+功能描述
+1
+BY.isBefore
+匹配在指定控件前边的控件
+2
+BY.isAfter
+匹配在指定控件后边的控件
+3
+BY.within
+匹配在指定控件内部的控件
+4
+BY.inWindow
+匹配在指定控件内部的控件
+(在支持多窗口的设备中通过包名指定控件所在的窗口，不属于控件相对位置)
+相对位置通常和控件的属性结合使用来定位控件，以下图场景为例，界面上存在多个按钮，我们需要点击显示通知图标之后的按钮，定位方式如下:
+首先选择一个可以通过属性唯一定位的锚点控件。例如BY.text(\"显示通知图标\")然后找到想要操作的目标控件，选择该控件的一个不唯一属性(通常为type属性)。例如BY.type(\"Button\")使用相对位置接口来描述锚点控件和目标控件的位置的关系，得到完整的控件选择器。例如BY.type(\"Button\").isAfter(BY.text(\"显示通知图标\"))，注意到这里组合使用了type属性和isAfter相对位置接口。
+其余相对定位的方式使用方法类似。
+示例代码
+# 查找在text属性为\"显示通知图标\"的控件之后的type属性为\"Button\"的控件\ncomponent = driver.find_component(BY.type(\"Button\").isAfter(BY.text(\"显示通知图标\")))
+# 查找在text属性为\"账号\"的控件之前的type属性为\"Image\"的控件\ncomponent = driver.find_component(BY.type(\"Image\").isBefore(BY.text(\"账号\")))
+# 查找在key为\"nav_container\"内部的类型为\"Image\"的控件\ncomponent = driver.find_component(BY.type(\"Image\").within(BY.key(\"nav_container\")))
+# 查找包名为\"com.huawei.hmos.settings\"的应用内部的text属性为\"蓝牙\"的控件\ncomponent = driver.find_component(BY.text(\"蓝牙\").inWindow(\"com.huawei.hmos.settings\"))
+注意: 相对位置中的锚点控件不能再使用相对位置描述，即BY.isBefore方法的参数中不能在出现BY.isBefore或者BY.isAfter等相对定位的方式。
+# 以下代码无法正常执行, 因为BY.isBefore的参数BY对象中不能使用BY.isAfter等相对定位的方式\ncomponent = driver.find_component(BY.type(\"Image\").isBefore(BY.type(\"Button\").isAfter(BY.text(\"蓝牙\"))))
+xpath方式查找匹配的控件
+部分控件没有唯一定位的属性，同时通过相对定位的方式也无法准确定位，此时可以使用xpath语法来进行更新精确的控件定位。
+使用BY.xpath匹配器可以支持通过xpath语法来查找控件。注意xpath不能和其他匹配器一起使用，并且通过xpath查找控件会慢一些。
+在如下场景中，需要找到红框标识的图标，然而该图标没有唯一定位的属性，此时可以使用xpath语法描述该控件相对其他可定位控件的路径关系来定位该控件。
+该页面上，\"可用 WLAN\"是一个固定的可唯一定位的文本，我们首先通过xpath定位到该文本//*[@text='可用 WLAN']，然后在找这个节点所在的List控件/ancestor::List，然后从这个List控件开始找到对应的Image控件/ListItemGroup/ListItem[1]//Text//following::Image。
+关于xpath的语法可以参考https://www.runoob.com/xpath/xpath-tutorial.html
+示例代码
+# 查找上图中红框所示的图标，并点击\ncomp = driver.find_component(BY.xpath(\"//*[@text='可用 WLAN']/ancestor::List/ListItemGroup/ListItem[1]//Text/following::Image\"))\ncomp.click()
+在支持传入BY选择器的接口上都可以使用xpath来定位控件
+# 查找text属性为WLAN的控件\ndriver.find_component(BY.xpath(\"//*[@text='WLAN']\"))\ndriver.find_all_components(BY.xpath(\"//*[@text='WLAN']\"))\ndriver.wait_for_component(BY.xpath(\"//*[@text='WLAN']\"))\n# 点击text属性为WLAN的控件\ndriver.touch(BY.xpath(\"//*[@text='WLAN']\"))
+查找所有匹配控件
+默认情况下，find_component接口和其他支持传入BY选择器的接口会查找第一个匹配的控件进行操作，使用driver.find_all_components接口可以返回所有匹配查找条件的控件，脚本开发人员可以根据需要选择其中的某个控件进行操作，或者对所有控件进行操作。
+以如下场景为例，界面上存在多个Button，我们需要点击第n个特定的Button或者点击所有Button，则可以使用driver.find_all_components
+示例代码
+# 查找所有type属性为\"Button\"的控件, 如果有匹配的结果，components为列表，包含多个满足条件的UiComponent对象\ncomponents = driver.find_all_components(BY.type(\"Button\"))\n# 点击所有的控件\nfor component in components:\n    driver.touch(component)\n# 点击第2个控件\ndriver.touch(component[1])
+图片定位控件
+如果控件没有可用于定位的唯一属性，通过相对位置也无法实现定位，可以通过截取控件的图片，然后使用driver.find_image来查找控件的位置，或者使用driver.touch_image接口来直接点击控件。
+例如如下场景，如果红框中的控件没有可供唯一定位的属性，同时附近的控件也无法唯一定位导致不能使用相对位置定位时，可以尝试使用图片匹配的方案定位控件，定位方式如下:
+截取红框中图片保存到为template.jpeg(文件名根据需要定义)调用driver.touch_image，传入template.jpeg图片的路径
+注意：使用图片定位控件必须安装opencv-python包，使用如下命令安装：
+pip install opencv-python
+示例代码
+# 点击屏幕上和模板图片template.jpeg匹配的位置\ndriver.touch_image(\"/path/to/template.jpeg\")\n\n# 查找屏幕上和模板图片template.jpeg匹配的位置, bounds为Rect类型，记录了控件上下左右边框的位置\nbounds = driver.find_image(\"template.jpeg\")\nprint(bounds.top, bounds.left, bounds.bottom, bounds.right)
+注意: 当前仅支持查找匹配度最高的第一个匹配的图片区域，不支持匹配多个目标。
+比例坐标定位控件
+如果图像特征不明显，使用图像匹配的方式也无法准确识别控件位置，可以通过比例坐标的方式点击控件。注意该方式不推荐使用，因为在屏幕比例或者控件位置发生变化时该种方式通常会失效，无法操作到正确的控件，并且如果实际操作界面不在当前界面，点击也会成功，但实际效果不符合预期。如果必须使用，通常需要保证其前一步或者后一步是通过控件属性来定位控件的，避免脚本执行非预期操作而框架无法感知。
+例如下图场景中，如果红框中的控件无法通过上述方式定位，可以采用比例坐标的方式点击(不推荐使用)
+比例坐标可通过DevEco Testing Hypium插件查看
+# 点击屏幕上(0.52 * 屏幕宽度, 0.98 * 屏幕高度)的位置\ndriver.touch((0.52, 0.98))
+窗口查找
+查找窗口
+def find_window(filter: WindowFilter) -> UiWindow
+接口说明
+根据指定条件查找窗口，返回窗口对象
+参数说明
+参数名称
+参数描述
+filter
+使用WindowFilter对象指定查找条件
+返回值
+如果找到window则返回UiWindow对象，否则返回None
+使用示例
+# 查找标题为日历的窗口\nwindow = driver.find_window(WindowFilter().title(\"日历\"))\n# 查找包名为com.ohos.calender，并且处于活动状态的窗口\nwindow = driver.find_window(WindowFilter().bundle_name(\"com.ohos.calendar\").actived(True))\n# 查找处于活动状态的窗口\nwindow = driver.find_window(WindowFilter().actived(True))\n# 查找聚焦状态的窗口\nwindow = driver.find_window(WindowFilter().focused(True))
+界面操作
+Ⅰ.触摸屏
+点击
+def touch(target: Union[By, UiComponent, tuple], mode: str = \"normal\", scroll_target: Union[By, UiComponent] = None, wait_time: float = 0.1)
+接口说明
+根据选定的控件或者坐标位置执行点击操作
+参数说明
+序号
+参数名称
+参数描述
+1
+target
+需要点击的目标，可以为控件(通过By类指定)或者屏幕坐标(通过tuple类型指定，例如(100, 200)， 其中100为x轴坐标，200为y轴坐标), 或者使用find_component找到的控件对象
+2
+mode
+点击模式，目前支持:
+\"normal\" 点击
+\"long\" 长按（长按后放开）
+\"double\" 双击
+3
+scroll_target
+指定可滚动的控件，在该控件中滚动搜索指定的目标控件target。仅在target为By对象时有效
+4
+wait_time
+点击后等待响应的时间，默认0.1s
+使用示例
+# 点击文本为\"hello\"的控件\ndriver.touch(BY.text(\"hello\"))\n# 点击(100, 200)的位置\ndriver.touch((100, 200))\n# 点击比例坐标为(0.8, 0.9)的位置\ndriver.touch((0.8, 0.9))\n# 双击确认按钮(控件文本为\"确认\", 类型为\"Button\")\ndriver.touch(BY.text(\"确认\").type(\"Button\"), mode=UiParam.DOUBLE)\n# 在类型为Scroll的控件上滑动查找文本为\"退出\"的控件并点击\ndriver.touch(BY.text(\"退出\"), scroll_target=BY.type(\"Scroll\"))\n# 长按比例坐标为(0.8, 0.9)的位置\ndriver.touch((0.8, 0.9), mode=\"long\")
+多指点击
+def multi_finger_touch(points: List[tuple], duration: float = 0.1，area: Rect = None)
+接口说明
+执行多指点击操作
+参数说明
+序号
+参数名称
+参数描述
+1
+points
+需要点击的坐标位置列表，每个坐标对应一个手指, 例如[(0.1, 0.2), (0.3, 0.4)], 最多支持4指点击
+2
+duration
+按下/抬起的时间，可实现多指长按操作, 单位秒
+3
+area
+点击操作的区域, 当起始结束坐标为(0.1, 0.2)等相对比例坐标时生效，默认为操作区域为全屏
+使用示例
+# 执行多指点击操作, 同时点击屏幕(0.1, 0.2), (0.3, 0.4)的位置\ndriver.multi_finger_touch([(0.1, 0.2), (0.3, 0.4)])\n# 执行多指点击操作, 设置点击按下时间为1秒\ndriver.multi_finger_touch([(0.1, 0.2), (0.3, 0.4)], duration=2)\n# 查找Image类型控件\ncomp = driver.find_component(BY.type(\"Image\"))\n# 在指定的控件区域内执行多指点击(点击坐标为控件区域内的比例坐标)\ndriver.multi_finger_touch([(0.5, 0.5), (0.6, 0.6)], area=comp.getBounds())
+滑动
+执行不太精准的滑动操作
+def swipe(direction: str, distance: int = 60, area: Union[By, UiComponent] = None, side: str = None, start_point: tuple = None, swipe_time: float = 0.3)
+接口说明
+在屏幕上或者指定区域area中执行朝向指定方向direction的滑动操作。该接口用于执行不太精准的滑动操作。
+参数说明
+序号
+参数名称
+参数描述
+1
+direction
+滑动方向，目前支持:
+\"LEFT\" 左滑
+\"RIGHT\" 右滑
+\"UP\" 上滑
+\"DOWN\" 下滑
+2
+distance
+相对滑动区域总长度的滑动距离，范围为1-100, 表示滑动长度为滑动区域总长度的1%到100%， 默认为60
+3
+area
+通过控件指定的滑动区域
+4
+side
+滑动位置， 指定滑动区域内部(屏幕内部)执行操作的大概位置，支持:
+UiParam.LEFT 靠左区域
+UiParam.RIGHT 靠右区域
+UiParam.TOP 靠上区域
+UiParam.BOTTOM 靠下区域
+5
+start_point
+滑动起始点, 默认为None, 表示在区域中间位置执行滑动操作, 可以传入滑动起始点坐标，支持使用(0.5, 0.5)
+这样的比例坐标。当同时传入side和start_point的时候, 仅start_point生效
+6
+swipe_time
+滑动时间（s)， 默认0.3s
+使用示例
+# 在屏幕上向上滑动, 距离40\ndriver.swipe(UiParam.UP, distance=40)\n# 在屏幕上向右滑动, 滑动事件为0.1秒\ndriver.swipe(UiParam.RIGHT, swipe_time=0.1)\n# 在屏幕起始点为比例坐标为(0.8, 0.8)的位置向上滑动，距离30\ndriver.swipe(UiParam.UP, 30, start_point=(0.8, 0.8))\n# 在屏幕左边区域向下滑动， 距离30\ndriver.swipe(UiParam.DOWN, 30, side=UiParam.LEFT)\n# 在屏幕右侧区域向上滑动，距离30\ndriver.swipe(UiParam.UP, side=UiParam.RIGHT)\n# 在类型为Scroll的控件中向上滑动\ndriver.swipe(UiParam.UP, area=BY.type(\"Scroll\"))
+执行精准的滑动操作
+def slide(start: Union[By, tuple], end: Union[By, tuple], area: Union[By, UiComponent] = None, slide_time: float = DEFAULT_SLIDE_TIME)
+接口说明
+根据指定的起始和结束位置执行滑动操作，起始和结束的位置可以为控件或者屏幕坐标。该接口用于执行较为精准的滑动操作。
+参数说明
+序列
+参数名称
+参数描述
+1
+start
+滑动起始位置，可以为控件BY.text(“滑块”)或者坐标(100, 200), 或者使用find_component找到的控件对象
+2
+end
+滑动结束位置，可以为控件BY.text(“最大值”)或者坐标(100, 200), 或者使用find_component找到的控件对象
+3
+area
+滑动操作区域，可以为控件BY.text(\"画布\")。目前仅在start或者end为坐标
+时生效，指定区域后，当start和end为坐标时，其坐标将被视为相对于指定的区域
+的相对位置坐标。
+4
+slide_time
+滑动操作总时间，单位秒
+使用示例
+# 从类型为Slider的控件滑动到文本为最大的控件\ndriver.slide(BY.type(\"Slider\"), BY.text(\"最大\"))\n# 从坐标100, 200滑动到300，400\ndriver.slide((100, 200), (300, 400))\n# 从坐标100, 200滑动到300，400, 滑动时间为3秒\ndriver.slide((100, 200), (300, 400), slide_time=3)\n# 在类型为Slider的控件上从(0, 0)滑动到(100, 0)\ndriver.slide((0, 0), (100, 0), area = BY.type(\"Slider\"))
+拖拽
+def drag(start: Union[By, tuple, UiComponent], end: Union[By, tuple, UiComponent], area: Union[By, UiComponent] = None, press_time: float = 1, drag_time: float = 1)
+接口说明
+根据指定的起始和结束位置执行拖拽操作，起始和结束的位置可以为控件或者屏幕坐标
+参数说明
+序号
+参数名称
+参数描述
+1
+start
+拖拽起始位置，可以为控件BY.text(“滑块”)或者坐标(100, 200), 或者使用find_component找到的控件对象
+2
+end
+拖拽结束位置，可以为控件BY.text(“最大值”)或者坐标(100, 200), 或者使用find_component找到的控件对象
+3
+area
+拖拽操作区域，可以为控件BY.text(\"画布\"), 或者使用find_component找到的控件对象。
+目前仅在start或者end为坐标时生效，指定区域后，当start和end为坐标时，其坐标将被视为相对于指定的区域的相对位置坐标。
+4
+press_time
+拖拽操作开始时，长按的时间, 默认为1s(设置暂时无效)
+5
+drag_time
+拖动的时间， 默认为1s(整个拖拽操作总时间 = press_time + drag_time)
+使用示例
+# 拖拽文本为\"文件.txt\"的控件到文本为\"上传文件\"的控件\ndriver.drag(BY.text(\"文件.txt\"), BY.text(\"上传文件\"))\n# 拖拽id为\"start_bar\"的控件到坐标(100, 200)的位置, 拖拽时间为2秒\ndriver.drag(BY.key(\"start_bar\"), (100, 200), drag_time=2)\n# 在id为\"Canvas\"的控件上从相对位置(10, 20)拖拽到(100, 200)\ndriver.drag((10, 20), (100, 200), area = BY.id(\"Canvas\"))\n# 在滑动条上从相对位置(10, 10)拖拽到(10, 200)\ndriver.drag((10, 10), (10, 200), area=BY.type(\"Slider\"))
+捏合缩小
+def pinch_in(area: Union[By, UiComponent, Rect], scale: float = 0.4, direction: str = \"diagonal\", **kwargs)
+接口说明
+在控件上捏合缩小
+参数说明
+序号
+参数名称
+参数描述
+1
+area
+手势执行的区域
+2
+scale
+缩放的比例, [0, 1], 值越小表示缩放操作距离越长, 缩小的越多
+3
+direction
+双指缩放时缩放操作方向, 支持
+\"diagonal\" 对角线滑动
+\"horizontal\" 水平滑动
+4
+kwargs
+其他可选滑动配置参数
+dead_zone_ratio 缩放操作时控件靠近边界不可操作的区域占控件长度/宽度的比例, 默认为0.2, 调节范围为(0, 0.5)
+使用示例
+# 在类型为Image的控件上进行双指捏合缩小操作\ndriver.pinch_in(BY.type(\"Image\"))\n# 在类型为Image的控件上进行双指捏合缩小操作, 设置水平方向捏合\ndriver.pinch_in(BY.type(\"Image\"), direction=\"horizontal\")
+双指放大
+def pinch_out(area: Union[By, UiComponent, Rect], scale: float = 1.6, direction: str = \"diagonal\", **kwargs)
+接口说明
+在控件上双指放大
+参数说明
+序号
+参数名称
+参数描述
+1
+area
+手势执行的区域
+2
+scale
+缩放的比例, 范围1~2, 值越大表示缩放操作滑动的距离越长, 放大的越多
+3
+direction
+双指缩放时缩放操作方向, 支持
+\"diagonal\" 对角线滑动
+\"horizontal\" 水平滑动
+4
+kwargs
+其他可选滑动配置参数
+dead_zone_ratio 缩放操作时控件靠近边界不可操作的区域占控件长度/宽度的比例, 默认为0.2, 调节范围为(0, 0.5)
+使用示例
+# 在类型为Image的控件上进行双指放大操作\ndriver.pinch_out(BY.type(\"Image\"))\n# 在类型为Image的控件上进行双指捏合缩小操作, 设置水平方向捏合\ndriver.pinch_out(BY.type(\"Image\"), direction=\"horizontal\")
+双指滑动
+def two_finger_swipe(start1: tuple, end1: tuple, start2: tuple, end2: tuple, duration: float = 0.5, area: Rect = None)
+接口说明
+执行双指滑动操作
+参数说明
+序号
+参数名称
+参数描述
+1
+start1
+手指1起始坐标
+2
+end1
+手指1结束坐标
+3
+start2
+手指2起始坐标
+4
+end2
+手指2结束坐标
+5
+duration
+滑动操作持续时间
+6
+area
+滑动操作的区域, 当起始结束坐标为(0.1, 0.2)等相对比例坐标时生效，默认为操作区域为全屏
+使用示例
+# 执行双指滑动操作, 手指1从(0.4, 0.4)滑动到(0.2, 0.2), 手指2从(0.6, 0.6)滑动到(0.8, 0.8)\ndriver.two_finger_swipe((0.4, 0.4), (0.2, 0.2), (0.6, 0.6), (0.8, 0.8))\n# 执行双指滑动操作, 手指1从(0.4, 0.4)滑动到(0.2, 0.2), 手指2从(0.6, 0.6)滑动到(0.8, 0.8), 持续时间3秒\ndriver.two_finger_swipe((0.4, 0.4), (0.2, 0.2), (0.6, 0.6), (0.8, 0.8), duration=3)\n# 查找Image类型控件\ncomp = driver.find_component(BY.type(\"Image\"))\n# 在指定的控件区域内执行双指滑动(滑动起始/停止坐标为控件区域内的比例坐标)\ndriver.two_finger_swipe((0.4, 0.4), (0.1, 0.1), (0.6, 0.6), (0.9, 0.9), area=comp.getBounds())
+自定路径滑动手势（单指）
+def inject_gesture(gesture: Gesture, speed: int = 2000)
+接口说明
+执行自定义滑动手势操作
+参数说明
+序列
+参数名称
+参数描述
+1
+gesture
+描述手势操作的Gesture对象
+2
+speed
+默认操作速度, 当生成Gesture对象的某个步骤中没有传入操作时间的默认使用该速度进行操作
+使用示例
+from hypium.uidriver import Gesture\n\n# 创建一个gesture对象\ngesture = Gesture()\n# 获取控件计算器的位置\npos = driver.findComponent(BY.text(\"计算器\")).getBoundsCenter()\n# 获取屏幕尺寸\nsize = driver.getDisplaySize()\n# 起始位置, 长按2秒\ngesture.start(pos.to_tuple(), 2)\n# 移动到屏幕边缘\ngesture.move_to(Point(size.X - 20, int(size.Y / 2)).to_tuple())\n# 停留2秒\ngesture.pause(2)\n# 移动到(360, 500)的位置\ngesture.move_to(Point(360, 500).to_tuple())\n# 停留2秒结束\ngesture.pause(2)\n# 执行gesture对象描述的操作\ndriver.inject_gesture(gesture)
+自定路径滑动手势(多指)
+def inject_multi_finger_gesture(gestures: List[Gesture], speed: int = 6000)
+接口说明
+注入多指手势操作
+参数说明
+序号
+参数名称
+参数描述
+1
+gestures
+表示单指手势操作的Gesture对象列表，每个Gesture对象描述一个手指的操作轨迹，最多4指
+注意如果各个手势持续时间不同，时间短的手势操作会保持在结束位置，等待所有手势完成后才会抬起对应手指。
+2
+speed
+gesture的步骤没设置时间时, 使用该速度计算时间, 单独 像素/秒
+使用示例
+from hypium.uidriver import Gesture\n# 创建手指1的手势, 从(0.4, 0.4)的位置移动到(0.2, 0.2)的位置\ngesture1 = Gesture().start((0.4, 0.4)).move_to((0.2, 0.2), interval=1)\n# 创建手指2的手势, 从(0.6, 0.6)的位置移动到(0.8, 0.8)的位置\ngesture2 = Gesture().start((0.6, 0.6)).move_to((0.8, 0.8), interval=1)\n# 注入多指操作\ndriver.inject_multi_finger_gesture((gesture1, gesture2))
+Ⅱ. 键盘鼠标
+鼠标点击
+def mouse_click(pos: Union[tuple, UiComponent, By], button_id: MouseButton = MouseButton.MOUSE_BUTTON_LEFT, key1: Union[KeyCode, int] = None, key2: Union[KeyCode, int] = None)
+接口说明
+鼠标点击, 支持键鼠组合操作
+参数说明
+序号
+参数名称
+参数描述
+1
+pos
+点击的位置, 支持位置, UiComponent对象以及By, 例如(100, 200), BY.text(\"确认\")
+2
+button_id
+需要点击的鼠标按键
+3
+key1
+需要组合按下的第一个键盘按键
+4
+key2
+需要组合按下的第二个键盘按键
+使用示例
+# 使用鼠标左键长按(100, 200)的位置\ndriver.mouse_long_click((100, 200), MouseButton.MOUSE_BUTTON_LEFT)\n# 使用鼠标右键长按文本为\"确认\"的控件\ndriver.mouse_long_click(BY.text(\"确认\"), MouseButton.MOUSE_BUTTON_RIGHT)\n# 使用鼠标右键长按比例坐标(0.8, 0.5)的位置\ndriver.mouse_long_click((0.8, 0.5), MouseButton.MOUSE_BUTTON_RIGHT)
+鼠标拖拽
+def mouse_drag(start: Union[tuple, UiComponent, By], end: Union[tuple, UiComponent, By], speed: int = 3000)
+接口说明
+使用鼠标进行拖拽操作(按住鼠标左键移动鼠标)
+参数说明
+序号
+参数名称
+参数描述
+1
+start
+起始位置, 支持坐标和控件
+2
+end
+结束位置, 支持坐标和控件
+3
+speed
+鼠标移动速度，像素/秒
+使用示例
+# 鼠标从控件1拖拽到控件2\ndriver.mouse_drag(BY.text(\"控件1\"), BY.text(\"控件2\"))
+鼠标移动
+def mouse_move(start: Union[tuple, UiComponent, By], end: Union[tuple, UiComponent, By], speed: int = 3000)
+接口说明
+鼠标指针从之前起始位置移动到结束位置，模拟移动轨迹和速度
+参数说明
+序号
+参数名称
+参数描述
+1
+start
+起始位置, 支持坐标和控件
+2
+end
+结束位置, 支持坐标和控件
+3
+speed
+鼠标移动速度，像素/秒
+使用示例
+# 鼠标从控件1移动到控件2\ndriver.mouse_move(BY.text(\"控件1\"), BY.text(\"控件2\"))
+按键
+def press_key(key_code: Union[KeyCode, int], key_code2: Union[KeyCode, int] = None, mode=\"normal\")
+接口说明
+按下指定按键(按组合键请使用press_combination_key)
+参数说明
+序号
+参数名称
+参数描述
+1
+key_code
+需要按下的按键编码
+2
+key_code2
+需要按下的按键编码
+3
+mode
+按键模式, 仅在进行单个按键时支持，支持:
+UiParam.NORMAL 默认, 按一次
+UiParam.LONG 长按
+UiParam.DOUBLE 双击
+使用示例
+# 按下电源键\ndriver.press_key(KeyCode.POWER)\n# 长按电源键\ndriver.press_key(KeyCode.POWER, mode=UiParam.LONG)\n# 按下音量下键\ndriver.press_key(KeyCode.VOLUME_DOWN)
+按组合键
+def press_combination_key(key1: Union[KeyCode, int], key2: Union[KeyCode, int], key3: Union[KeyCode, int] = None)
+接口说明
+按下组合键, 支持2键或者3键组合
+参数说明
+序号
+参数名称
+参数描述
+1
+key1
+组合键第一个按键
+2
+key2
+组合键第二个按键
+3
+key3
+组合键第三个按键(HMOS不支持三键组合, 第三个按键不会生效)
+使用示例
+# 按下音量下键和电源键的组合键\ndriver.press_combination_key(KeyCode.VOLUME_DOWN, KeyCode.POWER)\n# 同时按下ctrl, shift和F键\ndriver.press_combination_key(KeyCode.CTRL_LEFT, KeyCode.SHIFT_LEFT, KeyCode.F)
+hdc/shell命令执行
+hdc命令执行
+def hdc(cmd, timeout: float = 60) -> str
+接口说明
+执行hdc命令
+参数说明
+序号
+参数名称
+参数描述
+1
+cmd
+执行的hdc命令
+2
+timeout
+超时时间, 单位秒
+返回值
+命令执行后的回显内容
+使用示例
+# 执行hdc命令list targets\necho = driver.hdc(\"list targets\")\n# 执行hdc命令hilog, 设置30秒超时\necho = driver.hdc(\"hilog\", timeout = 30)
+设备侧shell命令执行
+def shell(cmd: str, timeout: float = 60) -> str
+接口说明
+在设备端shell中执行命令
+参数说明
+序号
+参数名称
+参数描述
+1
+cmd
+执行的shell命令
+2
+timeout
+超时时间, 单位秒
+返回值
+命令执行后的回显内容
+使用示例
+# 在设备shell中执行命令ls -l\necho = driver.shell(\"ls -l\")\n# 在设备shell中执行命令top, 设置10秒超时时间\necho = driver.shell(\"top\", timeout=10)
+PC侧shell命令执行
+def shell(cmd: Union[str, list], timeout: float = 300) -> str
+接口说明
+在PC端执行shell命令
+参数说明
+序号
+参数名称
+参数描述
+1
+cmd
+命令内容
+2
+timeout
+超时时间, 单位秒
+使用示例
+# 在PC端执行dir命令\necho = host.shell(\"dir\")\n# 在PC端执行netstat命令读取回显结果, 设置超时时间为10秒\necho = host.shell(\"netstat\", timeout=10)
+应用预置操作
+安装应用
+def install_app(package_path: str, options: str = \"\", **kwargs)
+接口说明
+安装app
+参数说明
+序号
+参数名称
+参数描述
+1
+package_path
+PC端保存的安装包路径
+2
+options
+传递给install命令的额外参数
+使用示例
+# 安装路径为test.hap的安装包到手机\ndriver.install_app(r\"test.hap\")\n# 替换安装路径为test.hap的安装包到手机(增加-r参数指定替换安装)\ndriver.install_app(r\"test.hap\", \"-r\")
+卸载应用
+def uninstall_app(package_name: str, **kwargs)
+接口说明
+卸载App
+参数说明
+参数名称
+参数描述
+package_name
+需要卸载的app包名
+使用示例
+driver.uninstall_app(driver, \"com.ohos.devicetest\")
+清除应用缓存数据
+def clear_app_data(package_name: str)
+接口说明
+清除app的缓存数据
+参数说明
+参数名称
+参数描述
+package_name
+app包名（bundle name）
+使用示例
+# 清除包名为com.tencent.mm的应用的缓存数据\ndriver.clear_app_data(\"com.tencent.mm\")
+启动应用
+def start_app(package_name: str, page_name: str = None, params: str = \"\", wait_time: float = 1)
+接口说明
+根据包名启动指定的app
+参数说明
+序号
+参数名称
+参数描述
+1
+package_name
+应用程序包名(bundle name)
+2
+page_name
+应用内页面名称(ability name)
+3
+params
+其他传递给aa命令行参数
+4
+wait_time
+发送启动指令后，等待app启动的时间
+使用示例
+# 启动浏览器\ndriver.start_app(\"com.huawei.hmos.browser\", \"MainAbility\")
+停止应用
+def stop_app(package_name: str, wait_time: float = 0.5)
+接口说明
+停止指定的应用
+参数说明
+序号
+参数名称
+参数描述
+1
+package_name
+应用程序包名
+2
+wait_time
+停止app后延时等待的时间, 单位为秒
+使用示例
+# 停止com.ohos.settings\ndriver.stop_app(\"com.ohos.settings\")
+文件拉取/推送
+拉取文件
+def pull_file(device_path: str, local_path: str = None, timeout: int = 60)
+接口说明
+从设备端的传输文件到pc端
+参数说明
+序号
+参数名称
+参数描述
+1
+local_path
+PC侧保存文件的路径
+2
+device_path
+设备侧保存文件的路径
+3
+timeout
+拉取文件超时时间, 默认60秒
+使用示例
+# 从设备中拉取文件\"/data/local/tmp/test.log\"保存到pc端的test.log\ndriver.pull_file(\"/data/local/tmp/test.log\", \"test.log\")
+推送文件
+def push_file(local_path: str, device_path: str, timeout: int = 60)
+接口说明
+从pc端传输文件到设备端
+参数说明
+序号
+参数名称
+参数描述
+1
+local_path
+PC侧文件的路径
+2
+device_path
+设备侧文件的路径
+3
+timeout
+推送文件超时时间
+使用示例
+# 从设备中推送文件test.hap保存到设备端的\"/data/local/tmp/test.hap\"\ndriver.push_file(\"test.hap\", \"/data/local/tmp/test.hap\")
+查询文件是否存在
+def has_file(file_path: str) -> bool
+接口说明
+查询设备中是否有存在路径为file_path的文件
+参数说明
+参数名称
+参数描述
+file_path
+需要检查的设备端文件路径
+使用示例
+# 查询设备端是否存在文件/data/local/tmp/test_file.txt\ndriver.has_file(\"/data/local/tmp/test_file.txt\")
+文本输入/清除
+输入文本
+def input_text(component: Union[By, UiComponent], text: str)
+接口说明
+向指定控件中输入文本内容
+参数说明
+序号
+参数名称
+参数描述
+1
+component
+需要输入文本的控件，可以使用By对象，或者使用find_component找到的控件对象
+2
+text
+需要输入的文本
+使用示例
+# 在类型为\"TextInput\"的控件中输入文本\"hello world\"\ndriver.input_text(BY.type(\"TextInput\"), \"hello world\")
+清除文本
+def clear_text(component: [By, UiComponent])
+接口说明
+清空指定控件中的文本内容
+参数说明
+参数名称
+参数描述
+component
+需要清除文本的控件
+使用示例
+# 清除类型为\"InputText\"的控件中的内容\ndriver.clear_text(BY.type(\"InputText\"))
+断言
+Ⅰ. 常规断言
+检查是否相等
+def check_equal(value: Any, expect: Any = True, fail_msg: str = None, expect_equal=True)
+接口说明
+检查实际值和期望值相等，在不一致时抛出TestFailure异常, 并打印fail_msg
+参数说明
+序号
+参数名称
+参数描述
+1
+value
+实际值, 如果为list或者tuple，将取其中每个值同expect中的每个值进行比较
+2
+expect
+期望值， 如果为list或者tuple，将取其中每个值同value中的每个值进行比较
+3
+fail_msg
+断言失败时打印的提示信息
+使用示例
+# 检查a等于b\nhost.check(a, b, \"a != b\")
+检查是否超出预期
+def check_greater(value: Any, expect: Any, fail_msg: str = None)
+接口说明
+检查value是否大于expect, 不满足时抛出TestAssertionError异常
+参数说明
+序号
+参数名称
+参数描述
+1
+value
+实际值
+2
+expect
+期望值
+3
+fail_msg
+断言失败时打印的提示信息
+使用示例
+# 检查a大于b\nhost.check_greater(a, b)
+Ⅱ. 控件断言
+检查控件是否存在
+def check_component_exist(component: By, expect_exist: bool = True, wait_time: int = 0, scroll_target: Union[By, UiComponent] = None)
+接口说明
+检查指定UI控件是否存在
+参数说明
+序号
+参数名称
+参数描述
+1
+component
+待检查的UI控件, 使用By对象指定
+2
+expect_exist
+是否期望控件存在, True表示期望控件存在，False表示期望控件不存在
+3
+wait_time
+检查过程中等待控件出现的时间
+4
+scroll_target
+上下滑动检查目标控件时滑动的控件, 默认为None表示不进行滑动查找
+使用示例
+# 检查类型为Button的控件存在\ndriver.check_component_exist(BY.type(\"Button\"))\n# 检查类型为Button的控件存在，如果不存在等待最多5秒\ndriver.check_component_exist(BY.type(\"Button\"), wait_time=5)\n# 在类型为Scroll的控件上滚动检查文本为\"hello\"的控件存在\ndriver.check_component_exist(BY.text(\"hello\"), scroll_target=BY.type(\"Scroll\"))\n# 检查文本为确认的控件不存在\ndriver.check_component_exist(BY.text(\"确认\"), expect_exist=False)
+检查控件属性
+def check_component(component: Union[By, UiComponent], expected_equal: bool = True, **kwargs)
+接口说明
+检查控件属性是否符合预期
+参数说明
+序号
+参数名称
+参数描述
+1
+component
+需要检查的控件, 支持By或者UiComponent对象
+2
+expected_equal
+预期值和实际值是否相等，True表示预期相等，False表示预期不相等
+3
+kwargs
+指定预期的控件属性值, 目前支持:
+\"id\", \"text\", \"key\", \"type\", \"enabled\", \"focused\", \"clickable\", \"scrollable\"
+\"checked\", \"checkable\"
+使用示例
+# 检查id为xxx的控件的checked属性为True\ndriver.check_component(BY.key(\"xxx\"), checked=True)\n# 检查id为check_button的按钮enabled属性为True\ndriver.check_component(BY.key(\"checked_button\"), enabled=True)\n# 检查id为container的控件文本内容为正在检查\ndriver.check_component(BY.key(\"container\"), text=\"正在检查\")\n# 检查id为container的控件文本内容不为空\ndriver.check_component(BY.key(\"container\"), text=\"\", expect_equal=False)
+检查图片是否存在
+def check_image_exist(image_path_pc: str, expect_exist: bool = True, similarity: float = 0.95, timeout: int = 3, mode=\"template\", **kwargs)
+接口说明
+使用图片模板匹配算法检测当前屏幕截图中是否有指定图片，需要保证模板图片的分辨率和屏幕截图中目标图像的分辨率一致，否则会无法成功检测到目标图片
+参数说明
+序号
+参数名称
+参数描述
+1
+image_path_pc
+待检查的图片路径（图片保存在PC端）
+2
+expect_exist
+是否期望图片在设备屏幕上存在, True表示期望控件存在，False表示期望控件不存在
+3
+similarity
+图像匹配算法比较图片时使用的相似度, 范围0~1,
+4
+timeout
+检查的总时间，每秒会进行获取一次屏幕截图检查指定图片是否存在，通过timeout可指定检查的次数
+5
+mode
+图片匹配模式, 支持template和sift, 图片分辨率/旋转变化对sift模式影响相对较小，但sift模式难以处理缺少较复杂图案的纯色，无线条图片
+6
+kwargs
+其他配置参数
+min_match_point: 最少匹配特征点数, 值越大匹配越严格, 默认为16, 仅sift模式有效
+使用示例
+# 检查图片存在\ndriver.check_image_exist(\"test.jpeg\")\n# 检查图片不存在\ndriver.check_image_exist(\"test.jpeg\", expect_exist=False)\n# 检查图片存在, 图片相似度要求95%, 重复检查时间5秒\ndriver.check_image_exist(\"test.jpeg\", timeout=5, similarity=0.95)\n# 检查图片不存在, 重复检查时间5秒\ndriver.check_image_exist(\"test.jpeg\", timeout=5, expect_exist=False)\n# 使用sift算法检查图片存在, 设置最少匹配特征点数量为16\ndriver.check_image_exist(\"test.jpeg\", mode=\"sift\", min_match_point=16)
+Ⅲ. 窗口断言
+检查窗口
+def check_window(window: WindowFilter, title: str = None, bundle_name: str = None)
+接口说明
+检查指定的window的属性是否符合预期
+参数说明
+序号
+参数名称
+参数描述
+1
+title
+预期的窗口标题, None表示不检查
+2
+bundle_name
+预期窗口所属的app包名, None表示不检查
+使用示例
+# 检查当前焦点窗口的包名为com.ohos.setting\ndriver.check_window(WindowFilter().focused(True), bundle_name=\"com.ohos.settings\")
+日志打印
+使用以下方法在脚本或者封装的AW中打印能够记录到测试报告中的日志消息。
+from devicetest.core.testcase import Step, CheckPoint, MESSAGE\n\nStep(\"点击按钮\")\nCheckPoint(\"检查联系人存在\")\nMESSAGE(\"打印一条提示消息\")
+在自定义的aw实现中，可以调用driver对象中的log模块打印日志消息。
+driver.log.debug(\"debug级别的日志\")\ndriver.log.info(\"info级别的日志\")\ndriver.log.warning(\"warning级别的日志\")\ndriver.log.error(\"error级别的日志\")
+读取测试项目中资源文件路径
+使用以下方法在程序工作目录下resource目录以及其他工程配置文件配置的资源目录中搜索名为filename的文件。该方法会返回文件完整路径，可以仅传入文件名或者相对路径
+from devicetest.utils import file_util\nfile_path = file_util.get_resource_path(\"filename\")
+默认搜索文件路径，设置isdir=True来读取目录路径
+dir_path = file_util.get_resource_path(\"dirname\", isdir=True)

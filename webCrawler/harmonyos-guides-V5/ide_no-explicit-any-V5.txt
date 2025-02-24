@@ -1,0 +1,14 @@
+@typescript-eslint/no-explicit-any
+不允许使用“any”类型。
+该规则仅支持对.js/.ts文件进行检查。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/no-explicit-any\": \"error\"\n  }\n}
+选项
+详情请参考@typescript-eslint/no-explicit-any选项。
+正例
+export const age1 = 17;\nexport const age2 = [age1];\nexport const age3 = [age1];\n\nexport function greet1(): string {\n  return 'greet';\n}\n\nexport function greet2(): string[] {\n  return ['greet'];\n}\n\nexport function greet4(): string[][] {\n  return [['greet']];\n}\n\nexport function greet5(param: readonly string[]): string {\n  return param[age1];\n}\n\nexport function greet6(param: readonly string[]): string[] {\n  return [...param];\n}
+反例
+export const age1: any = 17;\nexport const age2: any = [age1];\nexport const age3: any = [age1];\n\nexport function greet1(): any {\n  return 'greet';\n}\n\nexport function greet2(): any[] {\n  return ['greet'];\n}\n\nexport function greet4(): any[][] {\n  return [['greet']];\n}\n\nexport function greet5(param: readonly any[]): any {\n  return param[age1];\n}\n\nexport function greet6(param: readonly any[]): any[] {\n  return [...param];\n}
+规则集
+plugin:@typescript-eslint/recommended\nplugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

@@ -1,0 +1,13 @@
+@typescript-eslint/semi
+要求或不允许使用分号。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/semi\": \"error\"\n  }\n}
+选项
+详情请参考@typescript-eslint/semi选项。
+正例
+export const name = 'ESLint';\n\nexport class Foo {\n  public bar = '1';\n}
+反例
+// 默认在语句末尾需要加分号\nexport const name = 'ESLint'\n\nexport class Foo {\n  // 默认在语句末尾需要加分号\n  public bar = '1'\n}
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

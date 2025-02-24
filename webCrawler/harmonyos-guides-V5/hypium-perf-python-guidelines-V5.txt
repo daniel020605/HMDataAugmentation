@@ -1,0 +1,408 @@
+自定义性能脚本测试（基于python）
+框架概述
+性能测试框架属于hypium自动化测试的的增强能力，设备操作的api能力与hypium一致。性能测试框架主要控制性能自动化测试模型流程执行、控制测试步骤中trace资源与视频资源的抓取以及自动化测试完成后的指标分析。
+AW接口功能介绍，请参考指导：Hypium框架-API使用方法
+场景tag
+场景tag是测试框架定义的一套用于标注测试步骤使用场景的标签。
+def create_tag(self, step_name=\"\", scene_type=\"\", pkg_name=\"\", wait_time=0)
+参数名称
+参数描述
+step_name
+必填，测试步骤中文名字
+scene_type
+必填，对应性能tag类型，从SceneType中选择
+pkg_name
+非必填，测试应用相关包名
+wait_time
+非必填，增加采集时长，避免采集未包含全部动效
+注：所有性能测试的需要采集指标的步骤，有以下3个原则：
+AW/接口使用 _perf方法必须带上场景Tag每个步骤必须是单独的tag，不能多个步骤共用一个tag
+场景tag类型
+为了采集器能准确识别场景，明确采集性能指标，定义了如下场景tag：
+class SceneType(Enum):\n    # 冷启\n    COLD_START = \"COLD_START\"\n\n    # 热启\n    HOT_START = \"HOT_START\"\n\n    # 有页面切换\n    WITH_PAGE_SWITCH = \"WITH_PAGE_SWITCH\"\n\n    # 无页面切换\n    NO_PAGE_SWITCH = \"NO_PAGE_SWITCH\"
+注：滑动操作和无页面切换的场景不测完成时延；冷启前需要杀掉该后台应用，热启前需要拉起该应用并置于后台
+hypium_perf常用接口和用法
+在hypium的界面操作接口上封装一套perf接口，提供给性能测试使用。
+备注：以下所有示例代码中driver都是UiExplorerPerf对象, 所有带_perf的操作，tag一定不能遗漏
+1、Phone常用接口
+1） 点击
+def touch_perf(self, target: Union[By, UiComponent, tuple], mode: str = \"normal\", scroll_target: Union[By, UiComponent] = None, wait_time: float = 0.1, tag: Tag = None)
+接口说明
+根据选定的控件或者坐标位置执行点击操作。
+参数说明
+序号
+参数名称
+参数描述
+1
+target
+需要点击的目标，可以为控件(通过By类指定)或者屏幕坐标(通过tuple类型指定，例如(100, 200)， 其中100为x轴坐标，200为y轴坐标), 或者使用find_component找到的控件对象
+2
+mode
+点击模式，目前支持: \"normal\" 点击\"long\" 长按（长按后放开）\"double\" 双击
+3
+scroll_target
+指定可滚动的控件，在该控件中滚动搜索指定的目标控件target。仅在target为By对象时有效
+4
+wait_time
+点击后等待响应的时间，默认0.1s
+5
+tag
+对应性能场景tag，点击如果进入新界面，需使用WITH_PAGE_SWITCH有界面切换的场景类型
+使用示例
+# 点击文本为\"hello\"的控件\ndriver.touch_perf(BY.text(\"hello\"), tag=self.create_tag(\"点击hello\", SceneType.NO_PAGE_SWITCH))\n\n# 点击(100, 200)的位置\ndriver.touch_perf((100, 200), tag=self.create_tag(\"点击(100, 200)\", SceneType.NO_PAGE_SWITCH))\n\n# 双击确认按钮(控件文本为\"确认\", 类型为\"Button\")\ndriver.touch_perf(BY.text(\"确认\").type(\"Button\"), mode=UiParam.DOUBLE, tag=self.create_tag(\"双击确认按钮\", SceneType.WITH_PAGE_SWITCH))\n\n# 在类型为Scroll的控件上滑动查找文本为\"退出\"的控件并点击\ndriver.touch_perf(BY.text(\"退出\"), scroll_target=BY.type(\"Scroll\"), tag=self.create_tag(\"点击退出\", SceneType.NO_PAGE_SWITCH))\n\n# 冷启动相机\nicon_pos = self.driver.find_app_in_launcher(APP_NAME)\ndriver.touch_perf(icon_pos, tag=self.create_tag(\"相机冷启动\", SceneType.COLD_START))
+2） 用于执行不太精准的滑动操作
+def swipe_perf(self, direction: str, distance: int = 60, area: Union[By, UiComponent] = None, side: str = None,\n                   start_point: tuple = None, swipe_time: float = None, tag: Tag = None, check_scroll=False)
+接口说明
+在屏幕上或者指定区域area中执行朝向指定方向direction的滑动操作。该接口用于执行不太精准的滑动操作。
+序号
+参数名称
+参数描述
+1
+direction
+滑动方向，目前支持:\"LEFT\" 左滑\"RIGHT\" 右滑\"UP\" 上滑\"DOWN\" 下滑
+2
+distance
+相对滑动区域总长度的滑动距离，范围为1-100, 表示滑动长度为滑动区域总长度的1%到100%， 默认为60
+3
+area
+通过控件指定的滑动区域
+4
+side
+滑动位置， 指定滑动区域内部(屏幕内部)执行操作的大概位置，支持:UiParam.LEFT 靠左区域UiParam.RIGHT 靠右区域UiParam.TOP 靠上区域UiParam.BOTTOM 靠下区域
+5
+start_point
+滑动起始点, 默认为None, 表示在区域中间位置执行滑动操作, 可以传入滑动起始点坐标，支持使用(0.5, 0.5)这样的比例坐标。当同时传入side和start_point的时候, 仅start_point生效
+6
+swipe_time
+滑动时间（s)， 默认0.3s
+7
+tag
+对应性能场景tag，若该操作不涉及页面切换，需使用NO_PAGE_SWITCH场景类型
+使用示例
+# 在屏幕上向上滑动, 距离40\ndriver.swipe_perf(UiParam.UP, distance=40, tag=self.create_tag(\"向上滑动\", SceneType.NO_PAGE_SWITCH))\n\n# 在屏幕上向右滑动, 滑动事件为0.1秒\ndriver.swipe_perf(UiParam.RIGHT, swipe_time=0.1, tag=self.create_tag(\"向右滑动\", SceneType.NO_PAGE_SWITCH))\n\n# 在屏幕起始点为比例坐标为(0.8, 0.8)的位置向上滑动，距离30\ndriver.swipe_perf(UiParam.UP, 30, start_point=(0.8, 0.8), tag=self.create_tag(\"向上滑动\", SceneType.NO_PAGE_SWITCH))\n\n# 在屏幕左边区域向下滑动， 距离30\ndriver.swipe_perf(UiParam.DOWN, 30, side=UiParam.LEFT, tag=self.create_tag(\"向下滑动\", SceneType.NO_PAGE_SWITCH))\n\n# 在屏幕右侧区域向上滑动，距离30\ndriver.swipe_perf(UiParam.UP, side=UiParam.RIGHT, tag=self.create_tag(\"在右侧向上滑动\", SceneType.NO_PAGE_SWITCH))\n\n# 在类型为Scroll的控件中向上滑动\ndriver.swipe_perf(UiParam.UP, area=BY.type(\"Scroll\"), tag=self.create_tag(\"在滑动区域向上滑动\", SceneType.NO_PAGE_SWITCH))
+3）执行精准的滑动操作
+def slide_perf(self, start: Union[By, tuple], end: Union[By, tuple],\n                   area: By = None, slide_time: float = 2, tag: Tag = None, check_scroll=False)
+接口说明
+根据指定的起始和结束位置执行滑动操作，起始和结束的位置可以为控件或者屏幕坐标。该接口用于执行较为精准的滑动操作。
+参数说明
+序列
+参数名称
+参数描述
+1
+start
+滑动起始位置，可以为控件BY.text(“滑块”)或者坐标(100, 200), 或者使用find_component找到的控件对象
+2
+end
+滑动结束位置，可以为控件BY.text(“最大值”)或者坐标(100, 200), 或者使用find_component找到的控件对象
+3
+area
+滑动操作区域，可以为控件BY.text(\"画布\")。目前仅在start或者end为坐标时生效，指定区域后，当start和end为坐标时，其坐标将被视为相对于指定的区域的相对位置坐标。
+4
+slide_time
+滑动操作总时间，单位秒
+5
+tag
+对应性能场景tag，若该操作不涉及页面切换，需使用NO_PAGE_SWITCH场景类型
+使用示例
+# 从类型为Slider的控件滑动到文本为最大的控件\ndriver.slide_perf(BY.type(\"Slider\"), BY.text(\"最大\")，tag=self.create_tag(\"滑动到最大\", SceneType.NO_PAGE_SWITCH))\n\n# 从坐标100, 200滑动到300，400\ndriver.slide_perf((100, 200), (300, 400), tag=self.create_tag(\"向上滑动\", SceneType.NO_PAGE_SWITCH))\n\n# 从坐标100, 200滑动到300，400, 滑动时间为3秒\ndriver.slide_perf((100, 200), (300, 400), slide_time=3, tag=self.create_tag(\"向上滑动\", SceneType.NO_PAGE_SWITCH))\n\n# 在类型为Slider的控件上从(0, 0)滑动到(100, 0)\ndriver.slide_perf((0, 0), (100, 0), area = BY.type(\"Slider\"), tag=self.create_tag(\"向上滑动\", SceneType.NO_PAGE_SWITCH))
+4）拖拽
+def drag_perf(self, start: Union[By, tuple], end: Union[By, tuple],\n                  area: By = None, press_time: float = 1, drag_time: float = 1, tag: Tag = None)
+接口说明
+根据指定的起始和结束位置执行拖拽操作，起始和结束的位置可以为控件或者屏幕坐标
+参数说明
+序号
+参数名称
+参数描述
+1
+start
+拖拽起始位置，可以为控件BY.text(“滑块”)或者坐标(100, 200), 或者使用find_component找到的控件对象
+2
+end
+拖拽结束位置，可以为控件BY.text(“最大值”)或者坐标(100, 200), 或者使用find_component找到的控件对象
+3
+area
+拖拽操作区域，可以为控件BY.text(\"画布\"), 或者使用find_component找到的控件对象。目前仅在start或者end为坐标时生效，指定区域后，当start和end为坐标时，其坐标将被视为相对于指定的区域的相对位置坐标。
+4
+press_time
+拖拽操作开始时，长按的时间, 默认为1s(设置暂时无效)
+5
+drag_time
+拖动的时间， 默认为1s(整个拖拽操作总时间 = press_time + drag_time)
+6
+tag
+对应性能场景tag，若该操作不涉及页面切换，需使用NO_PAGE_SWITCH场景类型
+使用示例
+# 拖拽文本为\"文件.txt\"的控件到文本为\"上传文件\"的控件\ndriver.drag_perf(BY.text(\"文件.txt\"), BY.text(\"上传文件\"), tag=self.create_tag(\"拖拽文件\", SceneType.NO_PAGE_SWITCH))\n\n# 拖拽id为\"start_bar\"的控件到坐标(100, 200)的位置, 拖拽时间为2秒\ndriver.drag_perf(BY.key(\"start_bar\"), (100, 200), drag_time=2, tag=self.create_tag(\"拖拽start_bar\", SceneType.NO_PAGE_SWITCH))\n\n# 在id为\"Canvas\"的控件上从相对位置(10, 20)拖拽到(100, 200)\ndriver.drag_perf((10, 20), (100, 200), area = BY.id(\"Canvas\"), tag=self.create_tag(\"拖拽Canvas\", SceneType.NO_PAGE_SWITCH))\n\n# 在滑动条上从相对位置(10, 10)拖拽到(10, 200)\ndriver.drag_perf((10, 10), (10, 200), area=BY.type(\"Slider\"), tag=self.create_tag(\"拖拽滑动条\", SceneType.NO_PAGE_SWITCH))
+5）屏幕侧边滑动返回
+def swipe_to_back_perf(self, side=UiParam.RIGHT, times: int = 1, height: float = 0.5, tag: Tag = None)
+接口说明
+滑动屏幕右侧返回，设备预置：设备开启触摸屏手势导航。
+参数说明
+序号
+参数名称
+参数描述
+1
+side
+滑动的位置, \"RIGHT\"表示在右边滑动返回，\"LEFT\"表示在左边滑动返回
+2
+times
+滑动次数, 默认1次, 某些场景可能需要两次才能返回
+3
+height
+滑动位置在屏幕中Y轴的比例高度(从屏幕顶部开始计算)
+4
+tag
+对应性能场景tag，侧边返回有界面切换时，需使用WITH_PAGE_SWITCH场景类型
+使用示例
+# 侧滑返回\nself.driver.swipe_to_back_perf(tag=self.create_tag(\"侧滑返回\", SceneType.WITH_PAGE_SWITCH))\n\n# 侧滑2次返回\nself.driver.swipe_to_back_perf(times=2, tag=self.create_tag(\"侧滑2次返回\", SceneType.WITH_PAGE_SWITCH))\n\n# 设置侧滑位置的高度比例为屏幕高度的80%，即在屏幕靠下的位置侧滑返回\nself.driver.swipe_to_back_perf(height=0.8, tag=self.create_tag(\"屏幕靠下的位置侧滑返回\", SceneType.WITH_PAGE_SWITCH))
+6）从屏幕底部上滑返回桌面
+def swipe_to_home_perf(self, times: int = 1, tag: Tag = None)
+接口说明
+屏幕低端上滑回到桌面，设备预置：设备开启触摸屏手势导航。
+参数说明
+序号
+参数名称
+参数描述
+1
+times
+上滑次数, 默认1次, 某些场景可能需要两次上滑才能返回桌面
+2
+tag
+对应性能场景tag，返回桌面一般带有界面切换，需使用WITH_PAGE_SWITCH场景类型
+使用示例
+# 上滑返回桌面\nself.driver.swipe_to_home_perf(tag=self.create_tag(\"上滑返回桌面\", SceneType.WITH_PAGE_SWITCH))\n\n# 连续上滑2次返回桌面\nself.driver.swipe_to_home_perf(times=2, tag=self.create_tag(\"上滑返回桌面\", SceneType.WITH_PAGE_SWITCH))
+2、PC常用接口
+1）鼠标点击
+def mouse_click_perf(self, pos: Union[tuple, UiComponent, By],  \n                     button_id: MouseButton = MouseButton.MOUSE_BUTTON_LEFT,  \n                     key1: Union[KeyCode, int] = None, key2: Union[KeyCode, int] = None, tag: Tag = None)
+接口说明
+根据选定的控件或者坐标位置执行鼠标点击操作，支持键鼠组合操作。
+参数说明
+序号
+参数名称
+参数描述
+1
+pos
+需要点击的位置, 支持坐标, UiComponent对象以及By, 例如(100, 200), BY.text(\"确认\")
+2
+button_id
+需要点击的鼠标按键，默认为鼠标左键MouseButton.MOUSE_BUTTON_LEFT
+鼠标右键：MOUSE_BUTTON_RIGHT，鼠标中键：MOUSE_BUTTON_MIDDLE
+3
+key1
+需要组合按下的第一个键盘按键，按键参数可以从KeyCode枚举类中选取
+4
+key2
+需要组合按下的第二个键盘按键
+5
+tag
+对应性能场景tag，点击如果进入新界面，需使用WITH_PAGE_SWITCH有界面切换的场景类型
+使用示例
+# 使用鼠标左键点击(100, 200)的位置\ndriver.mouse_click_perf((100, 200), MouseButton.MOUSE_BUTTON_LEFT, \ntag=self.create_tag(\"鼠标左键点击\", SceneType.NO_PAGE_SWITCH))\n# 使用鼠标右键点击文本为\"确认\"的控件\ndriver.mouse_click_perf(BY.text(\"确认\"), MouseButton.MOUSE_BUTTON_RIGHT, \ntag=self.create_tag(\"鼠标右键点击‘确认’\", SceneType.NO_PAGE_SWITCH))\n# 使用鼠标右键点击比例坐标(0.8, 0.5)的位置\ndriver.mouse_click_perf((0.8, 0.5), MouseButton.MOUSE_BUTTON_RIGHT, \ntag=self.create_tag(\"鼠标右键点击\", SceneType.NO_PAGE_SWITCH))
+2）滚轮滑动
+def mouse_scroll_perf(self, pos: Union[tuple, UiComponent, By], scroll_direction: str, scroll_steps: int, key1: int = None, key2: int = None, tag: Tag = None):
+接口说明
+鼠标滚轮滑动，支持键鼠组合操作。
+参数说明
+序号
+参数名称
+参数描述
+1
+pos
+滚动的位置, 例如(100, 200)
+2
+scroll_direction
+滚动方向\"up\" 向上滚动\"down\" 向下滚动
+3
+scroll_steps
+滚动的鼠标格数
+4
+key1
+需要组合按下的第一个键盘按键，按键参数可以从KeyCode枚举类中选取
+5
+key2
+需要组合按下的第二个键盘按键
+6
+tag
+对应性能场景tag，若该操作不涉及页面切换，需使用NO_PAGE_SWITCH场景类型
+使用示例
+# 鼠标滚轮在(100, 200)的位置向下滚动10格\ndriver.mouse_scroll_perf((100, 200), UiParam.DOWN, scroll_steps=10, \ntag=self.create_tag(\"滚轮向下滑动\", SceneType.NO_PAGE_SWITCH))\n\n# 鼠标滚轮在类型为Scroll的控件上向上滚动10格\ndriver.mouse_scroll_perf(BY.type(\"Scroll\"), UiParam.UP, scroll_steps=10, \ntag=self.create_tag(\"滚轮向上滑动\", SceneType.NO_PAGE_SWITCH))\n\n# 按住ctrl键, 鼠标滚轮在类型为Scroll的控件上向上滚动10格\ndriver.mouse_scroll_perf(BY.type(\"Scroll\"), UiParam.UP, scroll_steps=10, key1=KeyCode.CTRL_LEFT, \ntag=self.create_tag(\"滚轮向上滑动\", SceneType.NO_PAGE_SWITCH))\n\n# 按住ctrl和shift键, 鼠标滚轮在类型为Scroll的控件上向上滚动10格\ndriver.mouse_scroll_perf(BY.type(\"Scroll\"), UiParam.UP, scroll_steps=10, key1=KeyCode.CTRL_LEFT, key2=KeyCode.SHIFT_LEFT, \ntag=self.create_tag(\"按住ctrl和shift滚轮向上滑动\", SceneType.NO_PAGE_SWITCH))
+3）鼠标拖拽
+def mouse_drag_perf(self, start: Union[tuple, UiComponent, By], end: Union[tuple, UiComponent, By], speed: int = 3000, tag: Tag = None):
+接口说明
+根据指定的起始和结束位置执行拖拽操作，使用鼠标进行拖拽操作(按住鼠标左键移动鼠标)。
+参数说明
+序号
+参数名称
+参数描述
+1
+start
+拖拽起始位置，可以为控件BY.text(“滑块”)或者坐标(100, 200), 或者使用控件对象
+2
+end
+拖拽结束位置，可以为控件BY.text(“最大值”)或者坐标(200, 200), 或者使用控件对象
+3
+speed
+鼠标移动速度，像素/秒
+4
+tag
+对应性能场景tag，若该操作不涉及页面切换，需使用NO_PAGE_SWITCH场景类型
+使用示例
+# 鼠标从控件1拖拽到控件2\ndriver.mouse_drag_perf(BY.text(\"控件1\"), BY.text(\"控件2\"),  tag=self.create_tag(\"鼠标从控件1拖拽到控件2\", SceneType.NO_PAGE_SWITCH))
+4）鼠标移动
+def mouse_move_perf(self, start: Union[tuple, UiComponent, By], end: Union[tuple, UiComponent, By], speed: int = 3000, tag: Tag = None):
+接口说明
+鼠标指针从起始位置移动到结束位置，模拟移动轨迹和速度。
+参数说明
+序号
+参数名称
+参数描述
+1
+start
+拖拽起始位置，可以为控件BY.text(“滑块”)或者坐标(100, 200), 或者使用控件对象
+2
+end
+拖拽结束位置，可以为控件BY.text(“最大值”)或者坐标(200, 200), 或者使用控件对象
+3
+speed
+鼠标移动速度，像素/秒
+4
+tag
+对应性能场景tag，若该操作不涉及页面切换，需使用NO_PAGE_SWITCH场景类型
+使用示例
+# 鼠标从控件1移动到控件2\ndriver.mouse_move_perf(BY.text(\"控件1\"), BY.text(\"控件2\"), tag=self.create_tag(\"鼠标从控件1移动到控件2\", SceneType.NO_PAGE_SWITCH))
+5）键盘单按键
+def press_key_perf(self, key_code: Union[KeyCode, int], mode=\"normal\", tag: Tag = None):
+接口说明
+键盘按下指定单个按键。
+参数说明
+序号
+参数名称
+参数描述
+1
+key_code
+需要按下的按键编码，按键参数可以从KeyCode枚举类中选取
+2
+mode
+按键模式, 仅在进行单个按键时支持，支持:UiParam.NORMAL 默认, 按一次UiParam.LONG 长按UiParam.DOUBLE 双击
+3
+tag
+对应性能场景tag，若该操作有页面切换，需使用WITH_PAGE_SWITCH场景类型
+使用示例
+# 按下电源键\ndriver.press_key_perf(KeyCode.POWER, tag=self.create_tag(\"按电源键唤醒屏幕\", scene_type=SceneType.WITH_PAGE_SWITCH))\n\n# 长按电源键\ndriver.press_key_perf(KeyCode.POWER, mode=UiParam.LONG, tag=self.create_tag(\"长按电源键\", scene_type=SceneType.WITH_PAGE_SWITCH))\n\n# 按下音量下键\ndriver.press_key_perf(KeyCode.VOLUME_DOWN, tag=self.create_tag(\"按下音量下键\", \nscene_type=SceneType.NO_PAGE_SWITCH))
+6）键盘组合键
+def press_combination_key_perf(self, key1: Union[KeyCode, int], key2: Union[KeyCode, int], key3: Union[KeyCode, int] = None, tag: Tag = None):
+接口说明
+键盘按下组合键, 支持2键或者3键组合。
+参数说明
+序号
+参数名称
+参数描述
+1
+key1
+组合键第一个按键，按键参数可以从KeyCode枚举类中选取
+2
+key2
+组合键第二个按键
+3
+key3
+组合键第三个按键
+4
+tag
+对应性能场景tag，若该操作有页面切换，需使用WITH_PAGE_SWITCH场景类型
+使用示例
+# 按下音量下键和电源键的组合键\ndriver.press_combination_key_perf(KeyCode.VOLUME_DOWN, KeyCode.POWER,\n                                    tag=self.create_tag(\"按下音量下键和电源键的组合键\", scene_type=SceneType.NO_PAGE_SWITCH))\n\n# 同时按下ctrl, shift和F键\ndriver.press_combination_key_perf(KeyCode.CTRL_LEFT, KeyCode.SHIFT_LEFT, KeyCode.F,\n                                    tag=self.create_tag(\"同时按下ctrl, shift和F键\", scene_type=SceneType.NO_PAGE_SWITCH))
+7）从应用中心启动APP
+def start_app_from_panel_perf(self, app_name, package_name, tag: Tag = None):
+接口说明
+基于APP名称和包名，启动对应的app。
+参数说明
+序号
+参数名称
+参数描述
+1
+app_name
+窗口的APP名称，例：“设置”
+2
+package_name
+窗口的App的包名，例：\"com.huawei.hmos.settings\"
+3
+tag
+对应性能场景tag，冷启动App，scene_type一般使用SceneType.COLD_START
+使用示例
+APP_NAME = \"设置\"\nPACKAGE_NAM = \"com.huawei.hmos.settings\"\n\n# 冷启动设置app\ndriver.start_app_from_panel_perf(APP_NAME, PACKAGE_NAME, tag=self.create_tag(\"从应用中心冷启动设置\", scene_type=SceneType.COLD_START))
+8）关闭APP窗口
+def close_window_by_app_perf(self, app_name, package_name, tag: Tag = None):
+接口说明
+基于APP名称和包名，关闭对应app的窗口。
+参数说明
+序号
+参数名称
+参数描述
+1
+app_name
+窗口的APP名称，例：“设置”
+2
+package_name
+窗口的App的包名，例：\"com.huawei.hmos.settings\"
+3
+tag
+对应性能场景tag，若该操作有页面切换，需使用WITH_PAGE_SWITCH场景类型
+使用示例
+APP_NAME = \"设置\"\nPACKAGE_NAM = \"com.huawei.hmos.settings\"\n\n# 关闭设置app的窗口\ndriver.close_window_by_app_perf(APP_NAME, PACKAGE_NAME, tag=self.create_tag(\"点击右上角×关闭设置\", scene_type=SceneType.WITH_PAGE_SWITCH))
+9）调整窗口大小
+def resize_window_perf(self, width_diff: int, height_diff: int, direction: ResizeDirection, window: Union[str, UiWindow, WindowFilter] = None, tag: Tag = None):
+接口说明
+根据传入的宽、高和调整方向来调整窗口的大小。适用于支持调整大小的窗口。
+参数说明
+序号
+参数名称
+参数描述
+1
+width_diff
+窗口宽度的变化量
+2
+height_diff
+窗口高度的变化量
+3
+direction
+窗口调整的方向，方向参数可在ResizeDirection中选取
+4
+window
+指定需要操作的窗口
+5
+tag
+对应性能场景tag，若该操作有页面切换，需使用WITH_PAGE_SWITCH场景类型
+使用示例
+# 查找需要操作的窗口\nwindow = driver.find_window(WindowFilter().bundle_name(package_name))\n\n# 鼠标置于窗口右下角，拖动对角线进行扩大窗口大小\ndriver.resize_window_perf(width_diff=200, height_diff=200, \ndirection=ResizeDirection.RIGHT_DOWN, window, tag=self.create_tag(\"鼠标置于窗口右下角，拖动对角线进行扩大窗口大小\", scene_type=SceneType.NO_PAGE_SWITCH))
+10）最大化窗口
+def maximize_window_perf(self, window: Union[str, UiWindow, WindowFilter] = None, tag: Tag = None):
+接口说明
+最大化窗口。
+参数说明
+序号
+参数名称
+参数描述
+1
+window
+指定需要操作的窗口
+2
+tag
+对应性能场景tag，若该操作有页面切换，需使用WITH_PAGE_SWITCH场景类型
+使用示例
+# 查找需要操作的窗口\nwindow = driver.find_window(WindowFilter().bundle_name(package_name))\n\n# 点击窗口最大化\ndriver.maximize_window_perf(window, tag=self.create_tag(\"点击窗口最大化\", \nscene_type=SceneType.WITH_PAGE_SWITCH))
+11）最小化窗口
+def minimize_window_perf(self, window: Union[str, UiWindow, WindowFilter] = None, tag: Tag = None, **kwargs):
+接口说明
+最小化窗口。
+参数说明
+序号
+参数名称
+参数描述
+1
+window
+指定需要操作的窗口
+2
+tag
+对应性能场景tag，若该操作有页面切换，需使用WITH_PAGE_SWITCH场景类型
+使用示例
+# 查找需要操作的窗口\nwindow = driver.find_window(WindowFilter().bundle_name(package_name))\n# 点击窗口最小化\ndriver.minimize_window_perf(window, tag=self.create_tag(\"点击窗口最小化\", \nscene_type=SceneType.WITH_PAGE_SWITCH))

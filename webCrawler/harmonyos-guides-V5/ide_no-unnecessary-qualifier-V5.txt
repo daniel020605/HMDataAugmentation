@@ -1,0 +1,13 @@
+@typescript-eslint/no-unnecessary-qualifier
+禁止不必要的命名空间限定符。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/no-unnecessary-qualifier\": \"error\"\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+export enum A {\n  b = 'x',\n  c = b\n}\n\nexport namespace B {\n  export type C = number;\n  export const x: C = 3;\n}
+反例
+export enum A {\n  b = 'x',\n  c = A.b\n}\n\nexport namespace B {\n  export type C = number;\n  export const x: B.C = 3;\n}
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

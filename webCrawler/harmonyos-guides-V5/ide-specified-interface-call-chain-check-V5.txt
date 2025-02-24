@@ -1,0 +1,19 @@
+@security/specified-interface-call-chain-check
+该规则旨在标识指定接口的调用链，方便接口管理，调用链最大数量为5000。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@security/specified-interface-call-chain-check\": [\n      \"suggestion\",\n      {\n        \"outputDirPath\": \"\", // 配置输出结果的文件目录，填写文件夹绝对路径，目录不存在则新建，输出文件名为specified-interface-call-chain-check_result.txt。\n        \"callChainMaxLen\": 0, // 调用链最大长度，默认为0（表示不限制）\n      },\n      {\n        \"selector\": \"\", // 枚举：namespace/class/function/property/type（function包括函数和类方法，class包括类class、接口interface、枚举enum和结构体struct）\n        \"filePath\": \"\", // 目标文件的绝对路径\n        \"namespace\": [], // 命名空间的名字数组，表示定义在namespace里或者检查namespace本身，嵌套则按顺序填写\n        \"class\": \"\", // 类名，表示定义在class里边或者是检查的class本身\n        \"function\": \"\", // 函数名\n        \"property\": \"\", // 类属性名\n        \"type\": \"\", // 类型别名\n      },\n      {\n        \"selector\": \"\" // 枚举：namespace/class/function/property/type（function包括函数类方法）\n        \"filePath\": \"\", // 目标文件的绝对路径\n        \"namespace\": [], // 命名空间的名字数组，表示定义在namespace里或者检测namespace本身，嵌套则按顺序填写\n        \"class\": \"\", // 类名，表示定义在class里边或者是检查的class本身\n        \"function\": \"\", // 函数名\n        \"property\": \"\", // 类属性名\n        \"type\": \"\", // 类型别名\n      },\n    ],\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+下文中absolute-path-1.ets为依赖代码：
+// Absolute-Path1.ets\n\nexport class Cls1 {\n  public func1() {\n    console.log('This is func1 in cls1.');\n  }\n  public func2() {\n    console.log('This is func2 in cls1.');\n  }\n}
+下文中Correct.ets为正例测试代码，依赖上文中AbsolutePath1.ets：
+// Correct.ets\n\nimport { Cls1 } from './AbsolutePath1';\nlet testClass = new Cls1();\ntestClass.func2();
+反例
+下文中absolute-path-1.ets为依赖代码：
+// absolute-path-1.ets\n\nexport class cls1 {\n  public func1() {\n    console.log('This is func1 in cls1.');\n  }\n  public func2() {\n    console.log('This is func2 in cls1.');\n  }\n}
+下文中incorrect.ets为反例测试代码，依赖上文中absolute-path-1.ets：
+// incorrect.ets\n\nimport { cls1 } from './absolute-path-1';\nlet testClass = new cls1();\ntestClass.func1();
+规则集
+plugin:@security/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

@@ -1,0 +1,42 @@
+锻炼记录
+场景介绍
+锻炼记录，记录用户一次活动的基本信息，包括锻炼的起止时间，运动类型，统计数据，详情数据等，支持写入、读取和删除，每条锻炼记录数据需要关联数据源。
+接口说明
+接口名
+描述
+saveData(exerciseSequence: ExerciseSequence[] | ExerciseSequence): Promise<void>
+保存锻炼记录，入参为单个ExerciseSequence或ExerciseSequence数组。
+readData<T extends ExerciseSequence>(request: ExerciseSequenceReadRequest): Promise<T[]>
+查询锻炼记录，通过ExerciseSequenceReadRequest设置查询条件，可按数据类型，字段、时间范围等条件查询。
+deleteData(exerciseSequence: ExerciseSequence | ExerciseSequence[]): Promise<void>
+删除锻炼记录，按入参删除指定的锻炼记录，可传入单个ExerciseSequence或ExerciseSequence数组。
+deleteData(request: ExerciseSequenceDeleteRequest | ExerciseSequenceDeleteRequest[]): Promise<void>
+删除锻炼记录，按ExerciseSequenceDeleteRequest删除，可设置数据类型、时间范围、数据源等删除条件。
+开发前检查
+ 完成申请运动健康服务与配置Client ID。 接口首次调用前，需先使用init方法进行初始化。 需先通过用户授权接口引导用户授权，用户授权对应数据类型权限后，才有权限调用接口操作相关数据类型数据。 错误码参考ArkTS API错误码，常见问题参考Health Service Kit常见问题。 
+开发步骤
+[h2]保存用户的锻炼记录
+1.导入运动健康服务功能模块及相关公共模块。
+import { healthStore } from '@kit.HealthServiceKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';
+2.获取dataSourceId，参考管理数据源，插入一个新的数据源或读取已有数据源。
+3.创建锻炼记录。
+// 构造跑步记录\nconst startTime = 1698040800000; // 2023-10-23 14:00:00\nconst endTime = 1698042600000; // 2023-10-23 14:30:00\n\nconst runningSequence: healthStore.exerciseSequenceHelper.running.Model = {\n  dataType: healthStore.exerciseSequenceHelper.DATA_TYPE,\n  // insertDataSource插入数据源接口返回的dataSourceId，或读取已有数据源的dataSourceId\n  dataSourceId: 'xxx',\n  startTime: startTime, // 2023-10-23 14:00:00\n  endTime: endTime, // 2023-10-23 14:30:00\n  localDate: '10/23/2023',\n  timeZone: '+0800',\n  modifiedTime: new Date().getTime(),\n  exerciseType: healthStore.exerciseSequenceHelper.running.EXERCISE_TYPE,\n  duration: 1800,\n  summaries: {\n    distance: {\n      totalDistance: 2000\n    },\n    calorie: {\n      totalCalories: 20\n    },\n    speed: {\n      avg: 5,\n      max: 6\n    }\n  },\n  details: {\n    exerciseHeartRate: [\n      {\n        startTime: startTime,\n        bpm: 88\n      },\n      {\n        startTime: startTime + 5000,\n        bpm: 89\n      }\n    ],\n    speed: [\n      {\n        startTime: startTime,\n        speed: 2.5\n      }, \n      {\n        startTime: startTime + 5000,\n        speed: 2.3\n      }\n    ],\n    altitude: [\n      {\n        startTime: startTime,\n        altitude: 100\n      }, \n      {\n        startTime: startTime + 5000,\n        altitude: 101\n      }\n    ]\n  }\n};
+try {\n  await healthStore.saveData(runningSequence);\n  hilog.info(0x0000, 'testTag', 'Succeeded in saving data.');\n} catch (err) {\n  hilog.error(0x0000, 'testTag', `Failed to save data. Code: ${err.code}, message: ${err.message}`);\n}
+[h2]读取用户的锻炼记录
+1.导入运动健康服务功能模块及相关公共模块。
+import { healthStore } from '@kit.HealthServiceKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';
+2.创建查询请求。
+// 查询跑步记录\nconst sequenceReadRequest: healthStore.ExerciseSequenceReadRequest<healthStore.exerciseSequenceHelper.running.DetailFields> = {\n  startTime: 1698040800000,\n  endTime: 1698042600000,\n  exerciseType: healthStore.exerciseSequenceHelper.running.EXERCISE_TYPE,\n  count: 1,\n  sortOrder: 1,\n  readOptions: {\n    withPartialDetails: ['exerciseHeartRate', 'altitude'] \n }\n};
+try {\n  const runningSequences = await healthStore.readData<healthStore.exerciseSequenceHelper.running.Model>(sequenceReadRequest);\n  hilog.info(0x0000, 'testTag', 'Succeeded in reading data.');\n  runningSequences.forEach((runningSequence) => {\n    hilog.info(0x0000, 'testTag', `the start time is ${runningSequence.startTime}.`);\n    hilog.info(0x0000, 'testTag', `the end time is ${runningSequence.endTime}.`);\n    Object.keys(runningSequence.summaries).forEach((key) => {\n      Object.keys(runningSequence.summaries[key]).forEach((fieldName) => {\n        hilog.info(0x0000, 'testTag', `the summaries of ${key} field ${fieldName} is ${runningSequence.summaries[key][fieldName]}.`);\n      });\n    });\n  });\n} catch (err) {\n  hilog.error(0x0000, 'testTag', `Failed to read data. Code: ${err.code}, message: ${err.message}`);\n}
+[h2]删除指定的锻炼记录
+1.导入运动健康服务功能模块及相关公共模块。
+import { healthStore } from '@kit.HealthServiceKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';
+2.查询待删除的锻炼记录。
+// 查询跑步记录\nconst sequenceReadRequest: healthStore.ExerciseSequenceReadRequest<healthStore.exerciseSequenceHelper.running.DetailFields> = {\n  startTime: 1698040800000,\n  endTime: 1698042600000,\n  exerciseType: healthStore.exerciseSequenceHelper.running.EXERCISE_TYPE\n};\nconst runningSequences = await healthStore.readData<healthStore.exerciseSequenceHelper.running.Model>(sequenceReadRequest);
+try {\n  for (let index = 0; index < runningSequences.length; index++) {\n    const runningSequence = runningSequences[index];\n    await healthStore.deleteData(runningSequence);\n  }\n  hilog.info(0x0000, 'testTag', 'Succeeded in deleting data.');\n} catch (err) {\n  hilog.error(0x0000, 'testTag', `Failed to delete data. Code: ${err.code}, message: ${err.message}`);\n}
+[h2]根据请求删除用户锻炼记录
+1.导入运动健康服务功能模块及相关公共模块。
+import { healthStore } from '@kit.HealthServiceKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';
+2.创建删除请求。
+let exerciseSequenceDeleteRequest: healthStore.ExerciseSequenceDeleteRequest= {\n  exerciseType: healthStore.exerciseSequenceHelper.running.EXERCISE_TYPE,\n  startTime: 1698633801000,\n  endTime: 1698633801000\n}
+try {\n  await healthStore.deleteData(exerciseSequenceDeleteRequest);\n  hilog.info(0x0000, 'testTag', 'Succeeded in deleting data.');\n} catch (err) {\n  hilog.error(0x0000, 'testTag', `Failed to delete data. Code: ${err.code}, message: ${err.message}`);\n}

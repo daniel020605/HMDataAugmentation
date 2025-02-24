@@ -1,0 +1,29 @@
+管理应用账号
+应用开发者可以使用应用账号SDK管理本应用的账号数据。
+能力限制：应用卸载场景下，被卸载应用的账号数据会被删除；本地账号删除场景下，被删除本地账号下的所有应用的账号数据会被删除。
+开发准备
+ 导入应用账号模块。 import { appAccount, BusinessError } from '@kit.BasicServicesKit'; 获取应用账号的实例对象。 const appAccountManager = appAccount.createAppAccountManager(); 
+创建应用账号
+用户在应用中登录后，开发者可以在系统中创建一个关联的应用账号，后续可以基于此账号进行数据管理。
+具体开发实例如下：
+ 参数准备，指定账号名和可选配置。 let name: string = \"ZhangSan\";\nlet options: appAccount.CreateAccountOptions = {\n  customData: {\n    age: '10'\n  }\n}; 调用createAccount接口，根据名称和选项创建应用账号。 try {\n  await appAccountManager.createAccount(name, options);\n  console.log('createAccount successfully');\n} catch (err) {\n  console.log('createAccount failed, error: ' + JSON.stringify(err));\n} 
+查询应用账号列表
+具体开发实例如下：
+调用getAllAccounts接口查询账号列表。
+appAccountManager.getAllAccounts().then((data: appAccount.AppAccountInfo[]) => {\n    console.debug('getAllAccounts successfully, data: ' + JSON.stringify(data));\n}).catch((err: BusinessError) => {\n    console.debug('getAllAccounts failed, error: ' + JSON.stringify(err));\n});
+存取账号的凭据
+具体开发实例如下：
+ 准备参数，指定账号名、凭据类型和凭据。 let name: string = 'ZhangSan';\nlet credentialType: string = 'PIN_SIX';\nlet credential: string = 'xxxxxx'; 调用getCredential接口，获取账号的凭据。 appAccountManager.getCredential(name, credentialType).then((data: string) => {\n    console.log('getCredential successfully, data: ' + data);\n}).catch((err: BusinessError) => {\n    console.log('getCredential failed, error: ' + JSON.stringify(err));\n}); 调用setCredential接口，设置账号的凭据。 appAccountManager.setCredential(name, credentialType, credential).then(() => {\n    console.log('setCredential successfully');\n}).catch((err: BusinessError) => {\n    console.log('setCredential failed: ' + JSON.stringify(err));\n}); 
+存取账号的自定义数据
+具体开发实例如下：
+ 准备参数，指定账号名和自定义键值。 let name: string = 'ZhangSan';\nlet key: string = 'age';\nlet value: string = '12'; 调用setCustomData接口，设置账号的自定义数据。 appAccountManager.setCustomData(name, key, value).then(() => {\n    console.log('setCustomData successfully');\n}).catch((err: BusinessError) => {\n    console.log('setCustomData failed: ' + JSON.stringify(err));\n}); 调用getCustomData接口，获取账号的自定义数据。 appAccountManager.getCustomData(name, key).then((data: string) => {\n    console.log('getCustomData successfully, data: ' + data);\n}).catch((err: BusinessError) => {\n    console.log('getCustomData failed, error: ' + JSON.stringify(err));\n}); 
+存取账号的授权令牌
+具体开发实例如下：
+ 准备参数，指定账号名、账号所有者、授权类型和授权令牌。 let name: string = 'ZhangSan';\nlet owner: string = 'com.example.accountjsdemo';\nlet authType: string = 'getSocialData';\nlet token: string = 'xxxxxx'; 调用setAuthToken接口，设置指定授权类型的授权令牌。 appAccountManager.setAuthToken(name, authType, token).then(() => {\n    console.log('setAuthToken successfully');\n}).catch((err: BusinessError) => {\n    console.log('setAuthToken failed: ' + JSON.stringify(err));\n}); 调用getAuthToken接口，获取指定授权类型的授权令牌。 appAccountManager.getAuthToken(name, owner, authType).then((data: string) => {\n    console.log('getAuthToken successfully, data: ' + data);\n}).catch((err: BusinessError) => {\n    console.log('getAuthToken failed, error: ' + JSON.stringify(err));\n}); 
+删除应用账号
+用户退出登录后，应用需及时将相应的应用账号从系统中删除。
+具体开发实例如下：
+指定要删除的账号名称，调用removeAccount接口删除账号。
+let name: string = 'Zhangsan';\nappAccountManager.removeAccount(name).then(() => {\n    console.log('removeAccount successfully');\n}).catch((err: BusinessError) => {\n    console.log('removeAccount failed, error: ' + JSON.stringify(err));\n});
+示例代码
+ 应用账号管理 

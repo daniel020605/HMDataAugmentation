@@ -1,0 +1,172 @@
+通过Petal 地图应用实现导航等能力
+通过AppLinking拉起Petal Maps鸿蒙应用APP
+Petal 地图提供了通过AppLinking拉起应用的能力。 当前可以通过AppLinking拉起地图应用到首页、路径规划、导航、地点详情、地点搜索页面。
+该功能支持的Petal 地图应用版本大于等于1.7.0.300。
+接口名称
+接口调用方向
+接口描述
+拉起Petal 地图 APP
+Map Kit或三方应用 -> Petal 地图 APP
+HarmonyOS系统openLink接口。
+拉起方实现跳转
+通过openLink接口拉起。将appLinkingOnly参数设为true，若有匹配的应用，则直接打开目标应用。若无App Linking匹配的应用, 目前openLink接口会抛异常给开发者进行处理。鸿蒙将会支持，在没有安装应用时候，牵引用户到应用市场进行下载。
+Petal 地图使用的坐标类型
+在国内站点，中国大陆、中国香港和中国澳门使用GCJ02坐标系，中国台湾使用WGS84坐标系。
+在海外站点，统一使用WGS84坐标系。坐标系转换参考：地图坐标系说明及转换。
+拉起Petal 地图首页
+import { common } from '@kit.AbilityKit';\nconst uri = 'https://www.petalmaps.com';\n let context = getContext(this) as common.UIAbilityContext;\ncontext.openLink(uri, {\n  appLinkingOnly: true\n})
+ Uri定义 
+参数名
+类型
+必填
+说明
+uri
+string
+是
+拉起页面地址，https://www.petalmaps.com。
+ Parameters配置参数定义 
+参数名
+类型
+必填
+说明
+utm_source
+string
+是
+接入方业务名或包名，Link请求来源。
+ 效果截图示例       图1 手机    图2 平板   
+拉起Petal 地图查看位置详情
+import { common } from '@kit.AbilityKit';\nconst uri = 'https://www.petalmaps.com/place/?z=16&marker=48.2944863308775,4.07333135604859&placeId=653905656638747008';  \nlet context = getContext(this) as common.UIAbilityContext;\ncontext.openLink(uri, {\n  appLinkingOnly: true\n})
+ Uri定义 
+参数名
+类型
+必填
+说明
+uri
+string
+是
+拉起页面地址，https://www.petalmaps.com/place。
+ Parameters配置参数定义 
+参数名
+类型
+必填
+说明
+utm_source
+string
+是
+接入方业务名或包名，Link请求来源。
+marker
+string
+是
+位置经纬度。
+placeId
+string
+否
+位置ID，如果有，优先使用。如果没有填写placeId，则调用逆地理接口，展示位置及其对应的经纬度。
+z
+string
+否
+z取层级范围3~20的整数，不符合或不填则按照默认层级展示。
+coordinateType
+string
+否
+传入的经纬度的坐标系类型。0-WGS84，1-GCJ02，默认GCJ02。
+ 效果截图示例       图3 手机   图4 平板  
+拉起Petal 地图查看路径规划
+import { common } from '@kit.AbilityKit';\nconst uri = 'https://www.petalmaps.com/routes/?saddr=25.102916,55.165363&daddr=25.164610000000,55.228869000000&type=walk&utm_source=fb';\nlet context = getContext(this) as common.UIAbilityContext;\ncontext.openLink(uri, {\n   appLinkingOnly: true\n});
+ Uri定义 
+参数名
+类型
+必填
+说明
+uri
+string
+是
+拉起页面地址，https://www.petalmaps.com/routes。
+ Parameters配置参数定义 
+参数名
+类型
+必填
+说明
+utm_source
+string
+是
+Link请求来源，接入方业务名或包名。
+saddr
+string
+否
+起点经纬度(纬度在前，经度在后)，默认取当前位置。支持经纬度+名称, 名称括号为英文格式，中间可以有空格。例：48.883653,2.311279(中 软国际)，名称括号为英文格式，中间可以有空格，拉起地图后起终点显示中软国际。支持家或公司, 家对应参数值为home公司的参数值为company，没有设置家或公司则拉起设置页。
+daddr
+string
+是
+终点经纬度(纬度在前，经度在后), 支持经纬度+名称, 名称括号为英文格式，中间可以有空格。例：48.883653,2.311279(中 软国际)，名称括号为英文格式，中间可以有空格，拉起地图后起终点显示中软国际。支持家或公司, 家对应参数值为home公司的参数值为company，没有设置家或公司则拉起设置页。
+type
+string
+否
+交通出行工具。drive(驾车)、bus(公交)、walk(步行)、bicycle(骑行), 不填或者错误格式会默认是驾车。
+coordinateType
+string
+否
+传入的经纬度的坐标系类型。0-WGS84，1-GCJ02，默认GCJ02。
+ 效果截图示例        图5 手机   图6 平板  
+拉起Petal 地图发起导航
+import { common } from '@kit.AbilityKit';\nconst uri = 'https://www.petalmaps.com/navigation/?saddr=31.97655,118.568523(测试1)&daddr=31.8888,118.6584722(测试2)&type=drive&utm_source=ft';let context = getContext(this) as common.UIAbilityContext\ncontext.openLink(uri, {\n   appLinkingOnly: true\n})
+ Uri定义 
+参数名
+类型
+必填
+说明
+uri
+string
+是
+拉起页面地址, https://www.petalmaps.com/navigation。
+ Parameters配置参数定义 
+参数名
+类型
+必填
+说明
+utm_source
+string
+是
+Link请求来源，接入方业务名或包名。
+saddr
+string
+否
+起点经纬度(纬度在前，经度在后)，默认取当前位置。支持经纬度+名称。支持家或公司。
+daddr
+string
+是
+终点经纬度(纬度在前，经度在后)，支持经纬度+名称。支持家或公司。
+type
+string
+否
+交通出行工具。drive(驾车)、bus(公交)、walk(步行)、bicycle(骑行), 不填或者错误格式会默认是驾车。如果填bus拉起地图后会停留在路线规划页面，不会发起导航。
+coordinateType
+string
+否
+传入的经纬度的坐标系类型。0-WGS84，1-GCJ02，默认GCJ02 。
+ 效果截图示例        图7 手机   图8 平板  
+拉起Petal 地图进行位置搜索
+import { common } from '@kit.AbilityKit';\nconst uri = 'www.petalmaps.com/search/?q=coffee&utm_source=fb';\nlet context = getContext(this) as common.UIAbilityContext;\ncontext.openLink(uri, {\n  appLinkingOnly: true\n})
+ Uri定义 
+参数名
+类型
+必填
+说明
+uri
+string
+是
+拉起页面地址，https://www.petalmaps.com/search。
+ Parameters配置参数定义 
+参数名
+类型
+必填
+说明
+utm_source
+string
+是
+Link请求来源，接入方业务名或包名。
+q
+string
+是
+位置名称。
+ 效果截图示例        图9 手机   图10 平板  

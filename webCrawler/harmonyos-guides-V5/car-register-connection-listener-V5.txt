@@ -1,0 +1,9 @@
+注册智慧出行连接状态的监听
+注册智慧出行连接状态的监听，用于获取业务连接状态的变更。
+接口说明
+接口名
+描述
+on(type: 'smartMobilityStatus', smartMobilityTypes: SmartMobilityType[], callback: Callback<SmartMobilityInfo>): void
+注册智慧出行连接状态的监听。
+开发步骤
+ 导入Car Kit模块。import { smartMobilityCommon } from '@kit.CarKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';  获取SmartMobilityStatusAwareness实例。let awareness: smartMobilityCommon.SmartMobilityAwareness = smartMobilityCommon.getSmartMobilityAwareness();  注册智慧出行连接状态的监听。// 业务类型\nlet types: smartMobilityCommon.SmartMobilityType[] = [smartMobilityCommon.SmartMobilityType.HICAR];\n// 出行连接状态回调函数\nconst callBack = (info: smartMobilityCommon.SmartMobilityInfo) => {\n  hilog.info(0x0000, 'Received smart mobility info: ', JSON.stringify(info));\n};\n// 注册智慧出行连接状态的监听\nawareness.on('smartMobilityStatus', types, callBack);  

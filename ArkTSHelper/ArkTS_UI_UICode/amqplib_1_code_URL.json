@@ -1,0 +1,14 @@
+{
+    "https://box.nju.edu.cn/seafhttp/files/4ce81bb0-20a0-4620-9432-3bc78cd7a439/Index.png": [
+        {
+            "function_name": "build",
+            "content": "build() {\n\n    Column({ space: 20 }) {\n      ForEach(this.routes, (item: routeBean) => {\n        Text(item.name)\n          .fontSize(30)\n          .fontWeight(FontWeight.Bold)\n          .onClick(() => {\n            router.pushUrl({ url: item.path } as router.RouterOptions);\n          })\n      })\n    }\n    .width('100%')\n  }"
+        }
+    ],
+    "https://box.nju.edu.cn/seafhttp/files/fd367edc-e4d0-4c81-8701-7811b202013c/Topics.png": [
+        {
+            "function_name": "build",
+            "content": "build() {\n    Row() {\n      Column() {\n        Console({ model: $consoleSend }).height('40%')\n        Button($r('app.string.Publish_a_message')).onClick(async () => {\n          // 发布消息\n          const publishOptions: Options.Publish = { persistent: true };\n          this.channel?.sendToQueue(firstName, Buffer.from('both queues 1'), publishOptions);\n          this.channel?.sendToQueue(firstName, Buffer.from('both queues 2'), publishOptions);\n          this.channel?.sendToQueue(firstName, Buffer.from('first queue 1'), publishOptions);\n          this.channel?.sendToQueue(secondName, Buffer.from('second queue 3'), publishOptions);\n          this.channel?.sendToQueue(secondName, Buffer.from('second queue 1'), publishOptions);\n          this.channel?.sendToQueue(secondName, Buffer.from('second queue 2'), publishOptions);\n          this.channel?.sendToQueue(secondName, Buffer.from('discarded 1'), publishOptions);\n          let isPush =  this.channel?.sendToQueue(firstName, Buffer.from('discarded 2'), publishOptions);\n          this.consoleSend.info('publish message:' + isPush)\n        })\n        Console({ model: $consoleReceive }).height('40%')\n        Button($r('app.string.Consumer_News')).onClick(async () => {\n          // 消费消息\n          await this.channel?.consume('first', (msg: ConsumeMessage | null) => {\n              this.consoleReceive.log('First:' + Unit8ArrayUtils.Uint8ArrayToString(msg?.content));\n              this.channel?.ack(msg);\n            },{ exclusive: true });\n\n          await this.channel?.consume('second', (msg: ConsumeMessage | null) => {\n              this.consoleReceive.log('Second: ' + Unit8ArrayUtils.Uint8ArrayToString(msg?.content));\n              this.channel?.ack(msg);\n            },{ exclusive: true });\n        })\n      }.width('100%')\n    }.height('100%')\n  }"
+        }
+    ]
+}

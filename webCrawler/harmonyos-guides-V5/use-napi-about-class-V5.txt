@@ -1,0 +1,44 @@
+使用Node-API进行class相关开发
+简介
+使用Node-API接口进行class相关开发，处理ArkTS中的类，例如定义类、构造实例等。
+基本概念
+在使用Node-API接口进行class相关开发时，需要理解以下基本概念：
+类：类是用于创建对象的模板。它提供了一种封装数据和行为的方式，以便于对数据进行处理和操作。类在ArkTS中是建立在原型（prototype）的基础上的，并且还引入了一些类独有的语法和语义。实例：实例是通过类创建具体的对象。类定义了对象的结构和行为，而实例则是类的具体表现。通过实例化类，我们可以访问类中定义的属性和方法，并且每个实例都具有自己的属性值。
+场景和功能介绍
+以下Node-API接口主要用于处理class。他们的使用场景如下：
+使用示例
+Node-API接口开发流程参考使用Node-API实现跨语言交互开发流程，本文仅对接口对应C++及ArkTS相关代码进行展示。
+[h2]napi_new_instance
+通过给定的构造函数实例化一个对象，将这个对象返回ArkTS侧使用。
+参数constructor不是function类型则返回napi_function_expected。
+cpp部分代码
+static napi_value NewInstance(napi_env env, napi_callback_info info)\n{\n    // 传入并解析参数，第一个参数为传入的构造函数，第二个参数为需要传入构造函数的参数\n    size_t argc = 2;\n    napi_value args[2] = {nullptr};\n    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);\n    // 调用napi_new_instance接口，实例化一个对象，将这个对象返回\n    napi_value result = nullptr;\n    napi_new_instance(env, args[0], 1, &args[1], &result);\n    return result;\n}
+接口声明
+// index.d.ts\nexport const newInstance: (obj: Object, param: string) => Object
+ArkTS侧示例代码
+import hilog from '@ohos.hilog'\nimport testNapi from 'libentry.so'\nclass Fruit {\n  name: string;\n  constructor(name: string) {\n    this.name = name;\n  }\n}\n// 调用函数，用变量obj接收函数返回的实例化对象\nlet obj = testNapi.newInstance(Fruit, 'test');\n// 打印实例化对象obj的信息\nhilog.info(0x0000, 'Node-API', 'napi_new_instance %{public}s', JSON.stringify(obj));
+[h2]napi_get_new_target
+用于获取构造函数的new.target值。在ArkTS中，new.target是一个特殊的元属性，用于在构造函数中判断是否通过new关键字调用了该构造函数。
+示例代码可以参考链接：
+Native与ArkTS对象绑定
+[h2]napi_define_class
+用于定义一个ArkTS类。该函数允许在Node-API模块中创建一个ArkTS类，并将类的方法和属性与相应的Node-API模块关联起来。
+示例代码可以参考链接：
+Native与ArkTS对象绑定
+[h2]napi_wrap
+在ArkTS object上绑定一个native对象实例。
+参数js_object不为object类型或function类型时返回napi_object_expected。
+[h2]napi_unwrap
+从一个被包装的对象中解除包装并获取与之关联的数据指针。
+参数js_object不为object类型或function类型时返回napi_object_expected。
+[h2]napi_remove_wrap
+从ArkTS object上获取先前绑定的native对象实例，并解除绑定。
+参数js_object不为object类型或function类型时返回napi_object_expected。
+cpp部分代码
+#include <hilog/log.h>\n#include <string>\n#include \"napi/native_api.h\"\n\nstruct Object {\n    std::string name;\n    int32_t age;\n};\n\nstatic void DerefItem(napi_env env, void *data, void *hint) {\n    // 可选的原生回调，用于在ArkTS对象被垃圾回收时释放原生实例\n    OH_LOG_INFO(LOG_APP, \"Node-API DerefItem\");\n    (void)hint;\n}\n\nstatic napi_value Wrap(napi_env env, napi_callback_info info)\n{\n    OH_LOG_INFO(LOG_APP, \"Node-API wrap\");\n    // 初始化Node-API模块的object\n    struct Object *obj = new struct Object();\n    obj->name = \"liLei\";\n    obj->age = 18;\n    size_t argc = 1;\n    napi_value toWrap;\n    // 调用napi_wrap将Node-API模块的object绑定到ArkTS object上\n    napi_get_cb_info(env, info, &argc, &toWrap, NULL, NULL);\n    napi_status status = napi_wrap(env, toWrap, reinterpret_cast<void *>(obj), DerefItem, NULL, NULL);\n    if (status != napi_ok) {\n        // 主动释放内存\n        delete obj;\n    }\n\n    return toWrap;\n}\n\nstatic napi_value RemoveWrap(napi_env env, napi_callback_info info)\n{\n    OH_LOG_INFO(LOG_APP, \"Node-API removeWrap\");\n    size_t argc = 1;\n    napi_value wrapped = nullptr;\n    void *data = nullptr;\n    // 调用napi_remove_wrap从一个被包装的对象中解除包装\n    napi_get_cb_info(env, info, &argc, &wrapped, nullptr, nullptr);\n    napi_remove_wrap(env, wrapped, &data);\n\n    return nullptr;\n}\n\nstatic napi_value UnWrap(napi_env env, napi_callback_info info)\n{\n    OH_LOG_INFO(LOG_APP, \"Node-API unWrap\");\n    size_t argc = 1;\n    napi_value wrapped = nullptr;\n    napi_get_cb_info(env, info, &argc, &wrapped, nullptr, nullptr);\n    // 调用napi_unwrap取出绑定在ArkTS object中的数据并打印\n    struct Object *data;\n    napi_unwrap(env, wrapped, reinterpret_cast<void **>(&data));\n    OH_LOG_INFO(LOG_APP, \"Node-API name: %{public}s\", data->name.c_str());\n    OH_LOG_INFO(LOG_APP, \"Node-API age: %{public}d\", data->age);\n    return nullptr;\n}
+接口声明
+// index.d.ts\nexport const wrap: (obj: Object) => Object;\nexport const unWrap: (obj: Object) => void;\nexport const removeWrap: (obj: Object) => void;
+ArkTS侧示例代码
+import hilog from '@ohos.hilog'\nimport testNapi from 'libentry.so'\ntry {\n    class Obj {}\n    let obj: Obj = {};\n    testNapi.wrap(obj)\n    testNapi.unWrap(obj)\n    testNapi.removeWrap(obj)\n} catch (error) {\n    hilog.error(0x0000, 'testTag', 'Test Node-API error: %{public}s', error.message);\n}
+以上代码如果要在native cpp中打印日志，需在CMakeLists.txt文件中添加以下配置信息（并添加头文件：#include \"hilog/log.h\"）：
+// CMakeLists.txt\nadd_definitions( \"-DLOG_DOMAIN=0xd0d0\" )\nadd_definitions( \"-DLOG_TAG=\\\"testTag\\\"\" )\ntarget_link_libraries(entry PUBLIC libhilog_ndk.z.so)

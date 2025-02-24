@@ -1,0 +1,9 @@
+获取出行业务事件信息
+获取出行业务事件信息。
+接口说明
+接口名
+描述
+getSmartMobilityEvent(type: SmartMobilityType, eventName: string): Promise<SmartMobilityEvent>
+获取出行业务事件信息。
+开发步骤
+ 导入Car Kit模块。import { smartMobilityCommon } from '@kit.CarKit';  获取SmartMobilityEventAwareness实例。let awareness: smartMobilityCommon.SmartMobilityAwareness = smartMobilityCommon.getSmartMobilityAwareness();  获取出行业务事件信息。// 业务类型\nlet type = smartMobilityCommon.SmartMobilityType.CAR_HOP;\n// 事件名称\nlet eventName = 'CAR_HOP_EVENT';\n// 获取出行业务事件信息\nlet event: smartMobilityCommon.SmartMobilityEvent = awareness.getSmartMobilityEvent(type, eventName);  

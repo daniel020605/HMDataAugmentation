@@ -1,0 +1,15 @@
+@performance/high-frequency-log-check
+不建议在高频函数中使用Hilog。
+高频函数包括：onTouch、onItemDragMove、onDragMove、onMouse、onVisibleAreaChange、onAreaChange、onScroll、onActionUpdate。
+高耗时函数处理场景下，建议优先修改。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@performance/high-frequency-log-check\": \"warn\",\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+// Test.ets\n@Entry\n@Component\nstruct Index {\n  build() {\n      Column() {\n        Scroll()\n          .onScroll(() => {\n            const TAG = 'onScroll';\n          })\n      }\n  }\n}
+反例
+// Test.ets\nimport hilog from '@ohos.hilog';\n@Entry\n@Component\nstruct Index {\n    build() {\n            Column() {\n                Scroll()\n                    .onScroll(() => {\n                        // Avoid printing logs\n                        hilog.info(1001, 'Index', 'onScroll')\n                })\n            }\n    }\n}
+规则集
+plugin:@performance/recommended\nplugin:@performance/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

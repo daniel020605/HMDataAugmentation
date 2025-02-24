@@ -1,0 +1,9 @@
+设置日历和历法
+使用场景
+不同地区的用户使用不同的日历，大多数地区使用公历，也有些地区的用户使用其他日历，例如农历、伊斯兰历或希伯来历。此外，日历上的时间和日期也会随着时区和夏令时的不同而改变。因此，用户应设置符合本地习惯的日历。国际化提供了Calendar类，可以设置日历类型、日期、年月日、时区、一周的起始日期、一年中第一周的最小天数、判断具体某一天在日历中是否为周末、计算相差天数等。在应用开发过程中，开发者可以根据业务需求选择使用不同功能。
+开发步骤
+以查看公历对应的农历日期为例，说明Calendar类接口使用方法。
+ 导入模块。  import { i18n } from '@kit.LocalizationKit'; 公历相关用法。   let calendar : i18n.Calendar = i18n.getCalendar(\"zh-Hans\", \"gregory\");\n  // 设置日历对象的时间日期为2022.06.13 08:00:00\n  calendar.setTime(new Date(2022, 5, 13, 8, 0, 0));\n  calendar.setTime(10540800000);\n\n  // 设置日历对象的时间日期为2022.06.13 08:00:00\n  calendar.set(2022, 5, 13, 8, 0, 0);\n\n  // 设置日历对象的时区\n  calendar.setTimeZone(\"Asia/Shanghai\");\n\n  // 获取日历对象的时区\n  let timezone: string = calendar.getTimeZone(); // Asia/Shanghai\n\n  // 获取日历对象的一周起始日\n  let firstDayOfWeek : number = calendar.getFirstDayOfWeek(); // 1\n\n  // 设置每一周的起始日\n  calendar.setFirstDayOfWeek(1);\n\n  // 获取一年中第一周的最小天数\n  let minimalDaysInFirstWeek : number = calendar.getMinimalDaysInFirstWeek(); // 1\n\n  // 设置一年中第一周的最小天数\n  calendar.setMinimalDaysInFirstWeek(3);\n\n  // 获取日历对象中与field相关联的值\n  let value: number = calendar.get(\"year\"); // 2022\n\n  // 获取日历对象本地化名称\n  let calendarName: string = calendar.getDisplayName(\"zh-Hans\"); // 公历\n\n  // 判断指定的日期在日历中是否为周末\n  let isWeekend : boolean= calendar.isWeekend(new Date(2023, 9, 15)); // true\n\n  // 在日历的给定字段进行加减操作\n  calendar.set(2023, 10, 15);\n  calendar.add(\"date\", 2);\n  calendar.get(\"date\"); // 17\n\n  // 比较日历和指定日期相差的天数\n  calendar.compareDays(new Date(2023, 10, 15)); // -3 获取公历对应的农历日期。   let calendar : i18n.Calendar = i18n.getCalendar(\"zh-Hans\", \"chinese\");\n  //将公历信息设置到calendar对象，时间日期为2023.07.25 08:00:00\n  calendar.setTime(new Date(2023, 6, 25, 8, 0, 0));\n  //获取农历年月日\n  calendar.get(\"year\"); // 返回干支纪年40，范围1-60\n  calendar.get(\"month\"); // 返回值为5，指6月\n  calendar.get(\"date\"); // 8日 
+表1 支持的日历类型
+示例代码
+ 国际化-日历 

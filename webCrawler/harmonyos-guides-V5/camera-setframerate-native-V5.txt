@@ -1,0 +1,18 @@
+动态调整预览帧率(C/C++)
+动态调整帧率是直播、视频等场景下控制预览效果的重要能力之一。应用可通过此能力，显性地控制流输出帧率，以适应不同帧率下的业务目标。
+某些场景下降低帧率可在相机设备启用时降低功耗。
+约束与限制
+支持的帧率范围及帧率的设置依赖于硬件能力的实现，不同的硬件平台可能拥有不同的默认帧率。
+开发流程
+相机使用预览功能前，均需要创建相机会话。完成会话配置后，应用提交和开启会话，才可以开始调用相机相关功能。
+流程图如下所示：
+与普通的预览流程相比，动态调整预览帧率的注意点如图上标识：
+调用OH_CameraManager_CreateCaptureSession创建会话（Session）时，需要指定模式为NORMAL_PHOTO或NORMAL_VIDEO。仅当Session处于NORMAL_PHOTO或NORMAL_VIDEO模式时，支持调整预览流帧率。调整帧率的创建会话方式见创建Session会话并指定模式。 动态调整帧率的操作，可在启动预览前后任意时刻调用。动态调整帧率在预览里属于可选操作，可以完成：查询当前支持调整的帧率范围设置当前帧率获取当前生效的帧率设置 
+如何配置会话（Session）、释放资源，请参考会话管理 > 预览。
+创建Session会话并指定模式
+相机使用预览等功能前，均需创建相机会话，调用OH_CameraManager_CreateCaptureSession创建一个会话。
+创建会话时调用OH_CaptureSession_SetSessionMode指定Camera_SceneMode为NORMAL_PHOTO或NORMAL_VIDEO，创建出的Session处于拍照或录像模式。
+以创建Session会话并指定为NORMAL_PHOTO模式为例：
+Camera_Manager *cameraManager = nullptr;\nCamera_CaptureSession* captureSession = nullptr;\nCamera_ErrorCode ret = OH_CameraManager_CreateCaptureSession(cameraManager, &captureSession);\nif (captureSession == nullptr || ret != CAMERA_OK) {\n    OH_LOG_ERROR(LOG_APP, \"OH_CameraManager_CreateCaptureSession failed.\");\n}\n// 设置会话模式为拍照或录像模式，此处以拍照模式为例\nret = OH_CaptureSession_SetSessionMode(captureSession, Camera_SceneMode::NORMAL_PHOTO);
+动态调整帧率
+调用OH_PreviewOutput_GetSupportedFrameRates，查询当前previewOutput支持的帧率范围。 需要在Session调用OH_CaptureSession_CommitConfig完成配流之后调用。  Camera_ErrorCode PreviewOutputGetSupportedFrameRates(Camera_PreviewOutput* previewOutput,\n    Camera_FrameRateRange** frameRateRange, uint32_t* size) {\n    Camera_ErrorCode ret = OH_PreviewOutput_GetSupportedFrameRates(previewOutput, frameRateRange, size);\n\n    if (ret != CAMERA_OK) {\n        OH_LOG_ERROR(LOG_APP, \"OH_PreviewOutput_GetSupportedFrameRates failed.\");\n        return CAMERA_INVALID_ARGUMENT;\n    }\n    for (uint32_t i = 0; i < *size; i++) {\n        OH_LOG_DEBUG(LOG_APP, \"PreviewOutputGetSupportedFrameRates: SupportedFrameRates min %{public}d\", (*frameRateRange)[i].min);\n        OH_LOG_DEBUG(LOG_APP, \"PreviewOutputGetSupportedFrameRates: SupportedFrameRates max %{public}d\", (*frameRateRange)[i].max);\n    }\n    return ret;\n} 根据实际开发需求，调用OH_PreviewOutput_SetFrameRate接口对帧率进行动态调整。  需要在Session调用OH_CaptureSession_CommitConfig完成配流之后调用。可在Session调用OH_PreviewOutput_Start启动预览前后任意时刻调用。  Camera_ErrorCode PreviewOutputSetFrameRate(Camera_PreviewOutput* previewOutput,\n    uint32_t minFps, uint32_t maxFps){\n    Camera_ErrorCode ret = OH_PreviewOutput_SetFrameRate(previewOutput, minFps, maxFps);\n    if (ret != CAMERA_OK) {\n        return CAMERA_INVALID_ARGUMENT;\n    }\n    return ret;\n} （可选）通过OH_PreviewOutput_GetActiveFrameRate接口查询已设置过并生效的帧率。 仅通过OH_PreviewOutput_SetFrameRate接口显性设置过帧率才可查询当前生效帧率信息。 Camera_ErrorCode PreviewOutputGetActiveFrameRate(Camera_PreviewOutput* previewOutput,\n    Camera_FrameRateRange* frameRateRange){\n    Camera_ErrorCode ret = OH_PreviewOutput_GetActiveFrameRate(previewOutput, frameRateRange);\n    if (ret != CAMERA_OK) {\n        return CAMERA_INVALID_ARGUMENT;\n    }\n    OH_LOG_DEBUG(LOG_APP, \"PreviewOutputGetActiveFrameRate: ActiveFrameRate frameRateRange_ min %{public}d\", (*frameRateRange).min);\n    OH_LOG_DEBUG(LOG_APP, \"PreviewOutputGetActiveFrameRate: ActiveFrameRate frameRateRange_ max %{public}d\", (*frameRateRange).max);\n    return ret;\n} 

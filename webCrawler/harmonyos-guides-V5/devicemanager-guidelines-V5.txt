@@ -1,0 +1,51 @@
+分布式设备管理开发指南
+分布式设备管理简介
+随着用户不同种类的终端设备数量不断增多，将不同设备作为本端设备能力的扩展，使设备之间协同合作完成各种复杂场景即为设备的分布式业务。
+分布式设备管理是分布式业务入口，在分布式业务中对周边可信和非可信设备进行统一管理。
+分布式设备管理提供如下四大功能：
+ 发现 发现周围终端设备并上报。周围设备需要连接同局域网或者同时打开蓝牙，可以根据设备类型、距离、设备是否可信等进行筛选。 绑定 不同设备协同合作完成分布式业务的前提是设备间可信，对于周边发现的不可信设备，可通过绑定使彼此建立可信关系，提供pin码、碰、扫、靠等设备认证框架，支持对接各种认证交互接口。 查询 查询功能包含：查询本机设备信息、查询周围的在线的可信设备、查询可信设备信息。 监听 监听设备上、下线。设备上线表示设备间已经可信，业务可以发起分布式操作；设备下线表示分布业务不可用。 
+[h2]运作机制
+设备管理作为分布式业务入口，需要应用在所使用的业务场景，向发现设备主动发起绑定建立可信关系；业务结束后由业务自主判断是否解除绑定关系，设备间可信关系的解除由业务自己控制。
+[h2]约束与限制
+使用设备管理能力，需要用户确认不同设备已连接同一局域网或者蓝牙开关已开启，否则该能力不可用。
+设备信息属于用户敏感数据，所以即使用户已连接同一局域网或者蓝牙开关已开启，应用在获取设备位置前仍需向用户申请数据同步权限。在用户确认允许后，系统才会向应用提供设备管理能力。
+申请分布式数据同步权限开发指导
+[h2]场景概述
+应用在使用分布式设备管理系统能力前，需要检查是否已经获取用户授权访问分布式数据同步信息。如未获得授权，可以向用户申请需要的分布式数据同步权限。
+ohos.permission.DISTRIBUTED_DATASYNC：分布式数据同步权限
+使用设备管理能力，必须申请权限，并且获得用户授权。
+[h2]开发步骤
+适用于Stage应用模型。
+ 在module.json5配置文件中配置分布式数据同步权限ohos.permission.DISTRIBUTED_DATASYNC。 {\n  \"module\" : {\n    \"requestPermissions\":[\n      {\n        \"name\" : \"ohos.permission.DISTRIBUTED_DATASYNC\",\n        \"reason\": \"$string:distributed_permission\",\n        \"usedScene\": {\n          \"abilities\": [\n            \"MainAbility\"\n          ],\n          \"when\": \"inuse\"\n        }\n      }\n    ]\n  }\n} 导入common和abilityAccessCtrl模块，用于获取权限申请的能力。 import { common, abilityAccessCtrl } from '@kit.AbilityKit'; 分布式数据同步权限的授权方式为user_grant，因此需要调用requestPermissionsFromUser接口，以动态弹窗的方式向用户申请授权。 let context = getContext(this) as common.UIAbilityContext;\nlet atManager = abilityAccessCtrl.createAtManager();\ntry {\n  atManager.requestPermissionsFromUser(context, ['ohos.permission.DISTRIBUTED_DATASYNC']).then((data) => {\n    console.log('data: ' + JSON.stringify(data));\n  }).catch((err: object) => {\n    console.log('err: ' + JSON.stringify(err));\n  })\n} catch (err) {\n  console.log('catch err->' + JSON.stringify(err));\n} 
+设备发现开发指导
+[h2]场景概述
+开发者可以调用DeviceManager设备发现相关接口，获取周边可用的设备。
+[h2]接口说明
+startDiscovering(discoverParam: {[key: string]: Object;} , filterOptions?: {[key: string]: Object;} ): void;
+发现周边同局域网或者开启蓝牙的设备。详细信息参见：startDiscovering。
+[h2]开发步骤
+ 申请分布式数据同步权限。 导入distributedDeviceManager模块，所有与设备管理相关的功能API，都是通过该模块提供的。 import { distributedDeviceManager } from '@kit.DistributedServiceKit'; 导入BusinessError模块，用于获取distributedDeviceManager模块相关接口抛出的错误码。 import { BusinessError } from '@kit.BasicServicesKit'; 创建设备管理实例，设备管理实例是分布式设备管理方法的调用入口，并注册发现设备的回调。 try {\n  let dmInstance = distributedDeviceManager.createDeviceManager('ohos.samples.jsHelloWorld');\n  dmInstance.on('discoverSuccess', data => console.log('discoverSuccess on:' + JSON.stringify(data)));\n  dmInstance.on('discoverFailure', data => console.log('discoverFailure on:' + JSON.stringify(data)));\n} catch(err) {\n  let e: BusinessError = err as BusinessError;\n  console.error('createDeviceManager errCode:' + e.code + ',errMessage:' + e.message);\n} 发现周边设备。发现状态持续两分钟，超过两分钟，会停止发现，最大发现数量99个。 interface DiscoverParam {\n  discoverTargetType: number;\n}\ninterface FilterOptions {\n  availableStatus: number;\n  discoverDistance: number;\n  authenticationStatus: number;\n  authorizationType: number;\n}\nlet discoverParam: Record<string, number> = {\n  'discoverTargetType': 1\n};\nlet filterOptions: Record<string, number> = {\n  'availableStatus': 0\n};\ntry {\n  dmInstance.startDiscovering(discoverParam, filterOptions);\n} catch (err) {\n  let e: BusinessError = err as BusinessError;\n  console.error('startDiscovering errCode:' + e.code + ',errMessage:' + e.message);\n} 
+设备绑定开发指导
+[h2]场景概述
+开发者发现周边不可信设备后，通过绑定接口建立可信关系。
+[h2]接口说明
+bindTarget(deviceId: string, bindParam: {[key: string]: Object;} , callback: AsyncCallback<{deviceId: string;}>): void;
+设备绑定。详细信息参见：bindTarget。
+[h2]开发步骤
+ 申请分布式数据同步权限。 发现周边不可信设备。 选择不可信设备id，发起设备绑定。 class Data {\n  deviceId: string = '';\n}\nlet deviceId = 'XXXXXXXX';\nlet bindParam: Record<string, string | number> = {\n  'bindType': 1, \n  'targetPkgName': 'xxxx',\n  'appName': 'xxxx',\n  'appOperation': 'xxxx',\n  'customDescription': 'xxxx'\n};\ntry {\n  dmInstance.bindTarget(deviceId, bindParam, (err: BusinessError, data: Data) => {\n    if (err) {\n      console.error('bindTarget errCode:' + err.code + ',errMessage:' + err.message);\n      return;\n    }\n    console.info('bindTarget result:' + JSON.stringify(data));\n  });\n} catch (err) {\n  let e: BusinessError = err as BusinessError;\n  console.error('bindTarget errCode:' + e.code + ',errMessage:' + e.message);\n} 
+设备信息查询开发指导
+[h2]场景概述
+设备与周边设备建立可信关系后，通过设备信息查询接口可以获取所有上线并且可信的设备。
+[h2]接口说明
+getAvailableDeviceListSync(): Array<DeviceBasicInfo>;
+设备信息查询。详细信息参见：getAvailableDeviceListSync。
+[h2]开发步骤
+ 申请分布式数据同步权限。 发现周边不可信设备。 建立设备间的可信关系。 查询周围上线并且可信的设备。 try {\n  let deviceInfoList: Array<distributedDeviceManager.DeviceBasicInfo> = dmInstance.getAvailableDeviceListSync();\n} catch (err) {\n  let e: BusinessError = err as BusinessError;\n  console.error('getAvailableDeviceListSync errCode:' + e.code + ',errMessage:' + e.message);\n} 
+设备上下线监听开发指导
+[h2]场景概述
+周边可信设备可用后会给业务报上线通知，当设备不可用时会给业务报下线通知。
+[h2]接口说明
+on(type: 'deviceStateChange', callback: Callback<{ action: DeviceStateChange; device: DeviceBasicInfo; }>): void;
+设备上下线监听。详细信息参见：on('deviceStateChange')。
+[h2]开发步骤
+ 申请分布式数据同步权限。 导入distributedDeviceManager模块，所有与设备管理相关的功能API，都是通过该模块提供的。 import { distributedDeviceManager } from '@kit.DistributedServiceKit'; 导入BusinessError模块，用于获取distributedDeviceManager模块相关接口抛出的错误码。 import { BusinessError } from '@kit.BasicServicesKit'; 创建设备管理实例，设备管理实例是分布式设备管理方法的调用入口，并注册设备上下线回调。 try {\n  let dmInstance = distributedDeviceManager.createDeviceManager('ohos.samples.jsHelloWorld');\n  dmInstance.on('deviceStateChange', data => console.log('deviceStateChange on:' + JSON.stringify(data)));\n} catch(err) {\n  let e: BusinessError = err as BusinessError;\n  console.error('createDeviceManager errCode:' + e.code + ',errMessage:' + e.message);\n} 

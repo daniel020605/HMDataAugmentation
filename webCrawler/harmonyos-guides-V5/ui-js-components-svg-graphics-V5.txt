@@ -1,0 +1,5 @@
+绘制图形
+Svg组件可以用来绘制常见图形和线段，如矩形（<rect>）、圆形（<circle>）、线条(<line>）等，具体支持图形样式还请参考Svg组件。
+在本场景中，绘制各种图形拼接组成一个小房子。
+<!-- xxx.hml -->\n<div class=\"container\">\n  <svg width=\"1000\" height=\"1000\">\n    <polygon points=\"100,400 300,200 500,400\" fill=\"red\"></polygon>     //屋顶\n    <polygon points=\"375,275 375,225 425,225 425,325\" fill=\"orange\"></polygon>   //烟囱\n    <rect width=\"300\" height=\"300\" x=\"150\" y=\"400\" fill=\"orange\">      //房子\n    </rect>\n    <rect width=\"100\" height=\"100\" x=\"180\" y=\"450\" fill=\"white\">    //窗户\n    </rect>\n    <line x1=\"180\" x2=\"280\" y1=\"500\" y2=\"500\" stroke-width=\"4\" fill=\"white\" stroke=\"black\"></line>     //窗框\n    <line x1=\"230\" x2=\"230\" y1=\"450\" y2=\"550\" stroke-width=\"4\" fill=\"white\" stroke=\"black\"></line>     //窗框\n    <polygon points=\"325,700 325,550 400,550 400,700\" fill=\"red\"></polygon>     //门\n    <circle cx=\"380\" cy=\"625\" r=\"20\" fill=\"black\"></circle>      //门把手\n  </svg>\n</div>
+/* xxx.css */\n.container {\n  width: 100%;\n  height: 100%;\n  flex-direction: column;\n  justify-content: center;\n  align-items: center;\n  background-color: #F1F3F5;\n}

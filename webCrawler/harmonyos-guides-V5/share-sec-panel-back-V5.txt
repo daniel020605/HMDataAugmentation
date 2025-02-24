@@ -1,0 +1,5 @@
+二级面板关闭分享面板
+从二级面板返回分享面板时，可通过设置resultCode值为特定的ShareAbilityResultCode，以告知分享面板做出不同的处理，具体处理方式如下：
+ ERROR：返回分享面板，并提示用户发生错误。 BACK：正常返回分享面板。 CLOSE：关闭分享面板。 
+开发步骤
+ 导入相关模块。import { ShareExtensionAbility, UIExtensionContentSession, Want } from '@kit.AbilityKit';\nimport { systemShare } from '@kit.ShareKit'; 目标应用可以通过terminateSelfWithResult接口，设置resultCode值为systemShare.ShareAbilityResultCode.CLOSE，以关闭分享面板。export default class TestShareAbility extends ShareExtensionAbility {\n  async onSessionCreate(want: Want, session: UIExtensionContentSession) {\n    session.terminateSelfWithResult({\n      resultCode: systemShare.ShareAbilityResultCode.CLOSE\n    });\n  }\n} 

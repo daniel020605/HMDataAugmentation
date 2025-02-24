@@ -1,0 +1,17 @@
+URL检测
+场景介绍
+应用通过调用Device Security Kit的checkUrlThreat接口检测URL是否为恶意的，并且根据检测结果来提示或拦截该URL。
+典型场景：用户访问网址时，判断用户访问的URL是否为恶意网址，对于恶意网址，提示或拦截用户的访问风险。
+约束与限制
+ 每个应用在每个设备上每天最多可以调用1万次接口。 每个设备上最多支持5个并发调用。 
+业务流程
+流程说明：
+ 开发者应用调用URL检测（checkUrlThreat）接口，传入待检测的URL，并获得URL检测结果。Device Security kit将请求发送到华为服务器检测URL风险，并将检测结果返回给您的应用（NORMAL、PHISHING、MALWARE、OTHERS）。 开发者应用可以根据检测结果来决定业务处理策略。 
+接口说明
+以下是URL检测相关接口，包括ArkTS API，更多接口及使用方法请参见API参考。
+接口名
+描述
+checkUrlThreat(req: UrlCheckRequest): Promise<UrlCheckResponse>
+检测URL风险
+开发步骤
+ 导入Device Security Kit模块及相关公共模块。import { safetyDetect } from '@kit.DeviceSecurityKit';\nimport { BusinessError} from '@kit.BasicServicesKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';  调用接口获取URL检测结果。const TAG = \"SafetyDetectJsTest\";\n\n// 请求URL检测，并处理结果\nlet req : safetyDetect.UrlCheckRequest = {\n  urls : ['https://test1.com']\n};\ntry {\n  hilog.info(0x0000, TAG, 'CheckUrlThreat begin.');\n  const data: safetyDetect.UrlCheckResponse = await safetyDetect.checkUrlThreat(req);\n  hilog.info(0x0000, TAG, 'Succeeded in checkUrlThreat: %{public}s %{public}d', data.results[0].url, data.results[0].threat);\n} catch (err) {\n  let e: BusinessError = err as BusinessError;\n  hilog.error(0x0000, TAG, 'CheckUrlThreat failed: %{public}d %{public}s', e.code, e.message);\n}  

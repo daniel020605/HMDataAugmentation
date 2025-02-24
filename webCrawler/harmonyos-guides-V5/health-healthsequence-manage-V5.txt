@@ -1,0 +1,42 @@
+健康记录
+场景介绍
+健康记录，记录健康记录的基本信息，包括健康记录的起止时间，数据类型，字段值，明细数据等，支持写入、读取和删除，每条健康记录需要关联数据源。
+接口说明
+接口名
+描述
+saveData(healthSequence: HealthSequence[] | HealthSequence): Promise<void>
+保存健康记录，入参为单个HealthSequence或HealthSequence数组。
+readData<T extends HealthSequence>(request: HealthSequenceReadRequest): Promise<T[]>
+查询健康记录，通过HealthSequenceReadRequest设置查询条件，可按数据类型，字段、时间范围等条件查询。
+deleteData(healthSequence: HealthSequence | HealthSequence[]): Promise<void>
+删除健康记录，按入参删除指定的健康记录，可传入单个HealthSequence或HealthSequence数组。
+deleteData(request: HealthSequenceDeleteRequest | HealthSequenceDeleteRequest[]): Promise<void>
+删除健康记录，按HealthSequenceDeleteRequest删除，可设置数据类型、时间范围、数据源等删除条件。
+开发前检查
+ 完成申请运动健康服务与配置Client ID。 接口首次调用前，需先使用init方法进行初始化。 需先通过用户授权接口引导用户授权，用户授权对应数据类型权限后，才有权限调用接口操作相关数据类型数据。 错误码参考ArkTS API错误码，常见问题参考Health Service Kit常见问题。 
+开发步骤
+[h2]保存用户的健康记录
+1.导入运动健康服务功能模块及相关公共模块。
+import { healthStore } from '@kit.HealthServiceKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';
+2.获取dataSourceId，参考管理数据源，插入一个新的数据源或读取已有数据源。
+3.创建健康记录。
+let healthSequence: healthStore.healthSequenceHelper.sleepRecord.Model = {\n  summaries: {\n    fallAsleepTime: 1695740400000, // 2023-09-26 23:00:00\n    wakeupTime: 1695769200000, // 2023-09-27 7:00:00\n    sleepScore: 80,\n    wakeCount: 2,\n    sleepType: 1,\n    shallowDuration: 14400,\n    deepDuration: 7200,\n    dreamDuration: 7200,\n    wakeDuration: 0,\n    duration: 28800\n  },\n  dataType: healthStore.healthSequenceHelper.sleepRecord.DATA_TYPE,\n  // insertDataSource插入数据源接口返回的dataSourceId，或读取已有数据源的dataSourceId\n  dataSourceId: 'xxx',\n  localDate: '09/26/2023',\n  startTime: 1695740400000,\n  endTime: 1695769200000,\n  timeZone: '+0800',\n  modifiedTime: 1695769200000,\n  details: {\n    sleepSegment: [\n      {\n        startTime: 1695740400000, // 2023-09-26 23:00:00\n        endTime: 1695747600000, // 2023-09-27 01:00:00\n        sleepStatus: 2\n      },\n      {\n        startTime: 1695747600000, // 2023-09-27 01:00:00\n        endTime: 1695754800000, // 2023-09-27 03:00:00\n        sleepStatus: 1\n      },\n      {\n        startTime: 1695754800000, // 2023-09-27 03:00:00\n        endTime: 1695762000000, // 2023-09-27 05:00:00\n        sleepStatus: 3\n      },\n      {\n        startTime: 1695762000000, // 2023-09-27 05:00:00\n        endTime: 1695769200000, // 2023-09-27 07:00:00\n        sleepStatus: 2\n      }\n    ]\n  }\n}
+try {\n  await healthStore.saveData(healthSequence);\n  hilog.info(0x0000, 'testTag', 'Succeeded in saving data.');\n} catch (err) {\n  hilog.error(0x0000, 'testTag', `Failed to save data. Code: ${err.code}, message: ${err.message}`);\n}
+[h2]读取用户的健康记录
+1.导入运动健康服务功能模块及相关公共模块。
+import { healthStore } from '@kit.HealthServiceKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';
+2.创建查询健康记录请求。
+let healthSequenceReadRequest: healthStore.HealthSequenceReadRequest = {\n  healthSequenceDataType: healthStore.healthSequenceHelper.sleepRecord.DATA_TYPE,\n  startTime: 1695740400000,\n  endTime: 1695769200000,\n  readOptions: {\n    withDetails: true\n  }\n}
+try {\n  const healthSequences = await healthStore.readData(healthSequenceReadRequest);\n  hilog.info(0x0000, 'testTag', 'Succeeded in reading data.'); \n  healthSequences.forEach((healthSequence) => {\n    hilog.info(0x0000, 'testTag', `the start time is ${healthSequence.startTime}.`);\n    hilog.info(0x0000, 'testTag', `the end time is ${healthSequence.endTime}.`);\n    Object.keys(healthSequence.summaries).forEach((key) => {\n      hilog.info(0x0000, 'testTag', `the summaries of ${key} is ${healthSequence.summaries[key]}.`);\n    });\n  });\n} catch (err) {\n  hilog.error(0x0000, 'testTag', `Failed to read data. Code: ${err.code}, message: ${err.message}`);\n}
+[h2]删除指定的健康记录
+1.导入运动健康服务功能模块及相关公共模块。
+import { healthStore } from '@kit.HealthServiceKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';
+2.查询待删除健康记录。
+let healthSequenceReadRequest: healthStore.HealthSequenceReadRequest = {\n  healthSequenceDataType: healthStore.healthSequenceHelper.sleepRecord.DATA_TYPE,\n  startTime: 1695740400000,\n  endTime: 1695769200000\n}\nconst healthSequences = await healthStore.readData(healthSequenceReadRequest);
+try {\n  for (let index = 0; index < healthSequences.length; index++) {\n    const healthSequence = healthSequences[index];\n    await healthStore.deleteData(healthSequence);\n  }\n  hilog.info(0x0000, 'testTag', 'Succeeded in deleting data.');\n} catch (err) {\n  hilog.error(0x0000, 'testTag', `Failed to delete data. Code: ${err.code}, message: ${err.message}`);\n}
+[h2]根据请求删除用户健康记录
+1.导入运动健康服务功能模块及相关公共模块。
+import { healthStore } from '@kit.HealthServiceKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';
+2.创建删除健康记录请求。
+const healthSequenceDeleteRequest: healthStore.HealthSequenceDeleteRequest= {\n  healthSequenceDataType: healthStore.healthSequenceHelper.sleepRecord.DATA_TYPE,\n  startTime: 1695740400000,\n  endTime: 1695769200000\n}
+try {\n  await healthStore.deleteData(healthSequenceDeleteRequest);\n  hilog.info(0x0000, 'testTag', 'Succeeded in deleting data.');\n} catch (err) {\n  hilog.error(0x0000, 'testTag', `Failed to delete data. Code: ${err.code}, message: ${err.message}`);\n}

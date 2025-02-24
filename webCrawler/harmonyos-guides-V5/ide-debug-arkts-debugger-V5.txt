@@ -1,0 +1,6 @@
+使用调试器
+调试窗口
+Debug界面有两个tab页，分别是“entry”和“entry(PandaDebugger)”。
+通常第一个tab页“entry”用于展示推包安装过程。
+第二个tab页“entry(PandaDebugger)”是调试器，用于调试Debugger功能。
+Debugger窗格Debugger显示两个独立的窗格： Frames：当应用暂停时，Frames区会显示当前代码所引用的代码位置。Variables：展示当前变量。  Debugger窗格有多个按钮： 表1 调试器按钮按钮  名称  快捷键  功能      Resume Program  F9（macOS为Option+Command+R）  当程序执行到断点时停止执行，单击此按钮程序继续执行。     Step Over  F8（macOS为F8）  在单步调试时，直接前进到下一行（如果在函数中存在子函数时，不会进入子函数内单步执行，而是将整个子函数当作一步执行）。     Step Into  F7（macOS为F7）  在单步调试时，遇到子函数后，进入子函数并继续单步执行。     Force Step Into  Alt+Shift+F7（macOS为Option+Shift+F7）  在单步调试时，强制进入方法。     Step Out  Shift+F8（macOS为Shift+F8）  在单步调试执行到子函数内时，单击Step Out会执行完子函数剩余部分，并跳出返回到上一层函数。     Stop  Ctrl+F2（macOS为Command+F2）  停止调试任务。     Run To Cursor  Alt+F9（macOS为Option+F9）  断点执行到鼠标停留处。      点击Resume Program图标，如果存在断点时，命中下一个断点，并展示对应的Frames和Variables信息；如果不存在断点，设备上的应用正常运行，Frames和Variables信息会消失。 点击Pause Program图标，当有对应源代码时，应用会暂停。点击Step Over当前代码位置执行到下一行代码。 点击Step Into，当前代码进入到方法内部。 代码进入add方法的定义处。   点击Step Out，代码会从方法内部回到调用处。 点击Run to Cursor，代码停留在鼠标停留处。  Console窗格用于展示已加载的ets/js。  

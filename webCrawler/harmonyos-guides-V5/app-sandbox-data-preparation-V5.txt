@@ -1,0 +1,5 @@
+应用沙箱数据准备
+在开发的过程中，当开发者完成所需适配流程后，可导入提前准备好的APK应用沙箱数据，自验证HarmonyOS应用数据迁移适配结果。
+在HarmonyOS应用适配完成并上架到华为应用市场之后，开发者仍需要将终端设备从HarmonyOS升级到HarmonyOS NEXT，端到端验证应用数据迁移结果。
+自验证需要使用到APK应用沙箱数据。
+请自行构造APK应用沙箱数据，并将构造好的APK应用沙箱数据按指定格式打包成“{APK包名}.zip”。 APK应用沙箱目录  {APK包名}.zip目录    /data/user_de/{userId}/{APK包名}/  {APK包名}/de   /data/user/{userId}/{APK包名}/  {APK包名}/ce   /data/media/{userId}/Android/data/{APK包名}/  {APK包名}/A/data   /data/media/{userId}/Android/obb/{APK包名}/  {APK包名}/A/obb     如下图所示，打包好的“{APK包名}.zip”解压后，要满足包含一个“APK包名”根目录，根目录下包含对应沙箱目录文件夹。   将打包好的“{APK包名}.zip”推送到外部存储设备（U盘或者移动硬盘），连接终端设备和外部存储设备。 当前终端设备支持识别NTFS格式的外部存储设备，请使用NTFS格式的外部存储设备连接终端设备。  在终端设备中，打开“文件管理”应用，长按选中外部存储设备中的“{APK包名}.zip”。  单击“复制”按钮，将数据复制到文件管理器的“下载”目录下，作为后续自验证的测试数据源。  

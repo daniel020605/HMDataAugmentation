@@ -1,0 +1,9 @@
+卡死事件介绍
+HiAppEvent提供接口用于订阅系统卡死事件。
+订阅卡死事件（ArkTS）订阅卡死事件（C/C++）
+卡死事件信息中params属性的详细描述如下：
+params属性：
+exception属性：
+thread属性：
+frame属性：
+memory属性：

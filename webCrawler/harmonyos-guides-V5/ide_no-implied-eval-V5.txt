@@ -1,0 +1,16 @@
+@typescript-eslint/no-implied-eval
+禁止使用类似“eval()”的方法。
+setTimeout()、setInterval()、setImmediate()或者execScript()这些函数可以接受一个字符串作为其第一个参数，比如
+setTimeout('alert(`Hi!`);', 100);
+这种行为被认为是隐式“eval()”，不推荐使用。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/no-implied-eval\": \"error\"\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+function alert(arg: string) {\n  console.log(arg);\n}\n\nconst time = 100;\n\nsetTimeout(() => {\n  alert('Hi!');\n}, time);\n\nsetInterval(() => {\n  alert('Hi!');\n}, time);\n\nconst fn = () => {\n  console.info('fn');\n};\nsetTimeout(fn, time);\n\nclass Foo {\n  public static fn = () => {\n    console.info('static');\n  };\n\n  public meth() {\n    console.info('method');\n  }\n}\n\nsetTimeout(Foo.fn, time);
+反例
+const time = 100;\nsetTimeout('alert(`Hi!`);', time);\n\nsetInterval('alert(`Hi!`);', time);\n\nconst fn1 = '() = {}';\nsetTimeout(fn1, time);\n\nconst fn2 = () => {\n  return 'x = 10';\n};\nsetTimeout(fn2(), time);\n\nexport const fn3 = new Function('a', 'b', 'return a + b');
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

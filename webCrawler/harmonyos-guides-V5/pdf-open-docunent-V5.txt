@@ -1,0 +1,14 @@
+打开和保存PDF文档
+对PDF文档添加内容、页眉页脚、水印、背景图片或书签等操作前，需要打开文档，并且在文档操作完成后，保存PDF文档。
+pdfService和PdfView都可实现打开和保存文档，使用场景上有如下区别：
+ 需要对PDF文档做相关的编辑和操作，建议使用pdfService的能力打开和保存文档。 需要预览、搜索关键字、监听PDF文档回调和批注等操作，推荐使用PdfView打开。 
+接口说明
+接口名
+描述
+loadDocument(path: string, password?: string, onProgress?: Callback<number>): ParseResult
+加载指定文档路径。
+saveDocument(path: string, onProgress?: Callback<number>): boolean
+保存文档。
+示例代码
+ 调用loadDocument方法，加载PDF文档。 在【Save As】和【Save】两个按钮中调用saveDocument方法，分别实现了另存为PDF文档和保存覆盖源PDF文档的两种方式。 
+import { common } from '@kit.AbilityKit';\nimport { pdfService } from '@kit.PDFKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';\nimport { fileIo } from '@kit.CoreFileKit';\n\n@Entry\n@Component\nstruct PdfPage {\n  private pdfDocument: pdfService.PdfDocument = new pdfService.PdfDocument();\n  private context = getContext() as common.UIAbilityContext;\n  private filePath = '';\n  @State saveEnable: boolean = false;\n\n  aboutToAppear(): void {\n    this.filePath = this.context.filesDir + '/input.pdf';\n    let res = fileIo.accessSync(this.filePath);\n    if(!res) {\n      // 确保在工程目录src/main/resources/rawfile里有input.pdf文档\n      let content: Uint8Array = this.context.resourceManager.getRawFileContentSync('rawfile/input.pdf');\n      let fdSand =\n        fileIo.openSync(this.filePath, fileIo.OpenMode.WRITE_ONLY | fileIo.OpenMode.CREATE | fileIo.OpenMode.TRUNC);\n      fileIo.writeSync(fdSand.fd, content.buffer);\n      fileIo.closeSync(fdSand.fd);\n    }\n    this.pdfDocument.loadDocument(this.filePath);\n  }\n\n  build() {\n    Column() {\n      // 另存为一份PDF文档\n      Button('Save As').onClick(() => {\n        // 可以对PDF文档添加页眉页脚，水印，背景等一些内容，然后另存文档\n        let outPdfPath = this.context.filesDir + '/testSaveAsPdf.pdf';\n        let result = this.pdfDocument.saveDocument(outPdfPath);\n        this.saveEnable = true;\n        hilog.info(0x0000, 'PdfPage', 'saveAsPdf %{public}s!', result ? 'success' : 'fail');\n      })\n      // 保存覆盖源PDF文档\n      Button('Save').enabled(this.saveEnable).onClick(() => {\n        // 这里可以对PDF文档添加内容、页眉页脚、水印、背景等一些内容，然后保存文档\n        let tempDir = this.context.tempDir;\n        let tempFilePath = tempDir + `/temp${Math.random()}.pdf`;\n        fileIo.copyFileSync(this.filePath, tempFilePath);\n        let pdfDocument: pdfService.PdfDocument = new pdfService.PdfDocument();\n        // 加载临时文档\n        let loadResult = pdfDocument.loadDocument(tempFilePath, '');\n        if (loadResult === pdfService.ParseResult.PARSE_SUCCESS) {\n          let result = pdfDocument.saveDocument(this.filePath);\n          hilog.info(0x0000, 'PdfPage', 'savePdf %{public}s!', result ? 'success' : 'fail');\n        }\n      })\n    }\n  }\n}

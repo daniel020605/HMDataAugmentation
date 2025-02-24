@@ -1,0 +1,21 @@
+restart 1.0.1 版本
+重新启动ohpm-repo服务。
+命令格式
+ohpm-repo restart [options]
+功能描述
+停止当前运行时的ohpm-repo服务，重新启动一个新的ohpm-repo服务。
+选项
+[h2]listen
+默认值：\"\"类型： String
+您可以在 restart 命令后面配置 --listen <string> 参数，指定启动端口和绑定访问地址，优先级高于 config.yaml中 listen 的配置。listen 参数可以指定协议 http 或者 https，若指定为 https，config.yaml文件中必须配置证书。若不指定，默认为 http。
+[h2]config
+默认值：\"<binary_root>/conf/config.yaml\"<binary_root>：ohpm-repo 项目根目录 
+类型： String 
+您可以在 restart 命令后面配置 --config 参数，指定配置文件路径，仅支持绝对路径配置。
+执行 restart 过程中，会把读取到的配置文件拷贝至相对路径 /conf/config.yaml 内。
+其中相对路径的根目录为：
+windows系统： ~/AppData/Roaming/Huawei/ohpm-repo其他操作系统：~/ohpm-repo
+示例
+执行以下命令：
+ohpm-repo restart --config  \"D:\\config.yaml\"
+结果示例：

@@ -1,0 +1,13 @@
+@typescript-eslint/init-declarations
+禁止或者要求在变量声明中进行初始化。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/init-declarations\": \"error\"\n  }\n}
+选项
+详情请参考@typescript-eslint/init-declarations选项。
+正例
+// 默认变量必须在声明时初始化\nexport function foo() {\n  console.info('hello');\n}\n\nexport const bar = 1;\nexport const qux = 3;
+反例
+// 默认变量必须在声明时初始化\nexport function foo() {\n  console.info('hello');\n}\n\nexport const bar: string;\nexport const qux: number;
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

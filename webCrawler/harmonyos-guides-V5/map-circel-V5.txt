@@ -1,0 +1,15 @@
+圆形
+场景介绍
+本章节将向您介绍如何在地图上绘制圆形。
+接口说明
+添加圆形功能主要由MapCircleOptions、addCircle和MapCircle提供，更多接口及使用方法请参见接口文档。
+接口名
+描述
+MapCircleOptions
+圆形参数。
+addCircle(options: mapCommon.MapCircleOptions): Promise<MapCircle>
+在地图上添加一个圆，指定圆心经纬度和圆的半径，用于表示某个位置的周边范围。
+MapCircle
+圆形，支持更新和查询相关属性。
+开发步骤
+ 导入相关模块。import { MapComponent, mapCommon, map } from '@kit.MapKit';\nimport { AsyncCallback } from '@kit.BasicServicesKit'; 添加圆，在Callback方法中创建初始化参数并新建Circle。@Entry\n@Component\nstruct MapCircleDemo {\n  private mapOptions?: mapCommon.MapOptions;\n  private mapController?: map.MapComponentController;\n  private callback?: AsyncCallback<map.MapComponentController>;\n  private mapCircle?: map.MapCircle;\n\n  aboutToAppear(): void {\n    // 地图初始化参数\n    this.mapOptions = {\n      position: {\n        target: {\n           latitude: 39.918,\n           longitude: 116.397\n        },\n        zoom: 14\n      }\n    };\n\n    this.callback = async (err, mapController) => {\n      if (!err) {\n        this.mapController = mapController;\n        // Circle初始化参数\n        let mapCircleOptions: mapCommon.MapCircleOptions = {\n          center: {\n             latitude: 39.918,\n             longitude: 116.397\n          },\n          radius: 500,\n          clickable: true,\n          fillColor: 0XFFFFC100,\n          strokeColor: 0xFFFF0000,\n          strokeWidth: 10,\n          visible: true,\n          zIndex: 15\n        }\n        // 创建Circle\n        this.mapCircle = await this.mapController.addCircle(mapCircleOptions);\n      }\n    };\n  }\n\n  build() {\n    Stack() {\n      Column() {\n        MapComponent({ mapOptions: this.mapOptions, mapCallback: this.callback });\n      }.width('100%')\n    }.height('100%')\n  }\n}  

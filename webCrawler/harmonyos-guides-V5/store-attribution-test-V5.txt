@@ -1,0 +1,23 @@
+接入调试功能
+应用归因服务为开发者提供接入调试能力，支持开发者在接入过程中进行自助调试，通过调用调试接口验证接入的准确性及归因结果回传等基础能力，从而提升接入效率。
+场景介绍
+应用归因服务接入调试功能支持的场景如下：
+ 校验接口调用是否准确调用调试接口，校验接口请求及业务逻辑，如参数校验、签名校验等，并提示相应错误码，支持开发者自行发现问题。 主动触发归因接口回传开发者设置归因数据后，调用调试接口主动、实时触发归因结果回传，验证完整的归因流程。 
+接口说明
+应用归因服务接入调试功能提供以下接口，具体API说明详见接口文档。
+接口名
+描述
+validateSource(adSourceInfo: AdSourceInfo, publicKey: string): Promise<void>
+验证归因来源接口，用于媒体App/分发平台验证adSourceInfo入参的合法性。
+setPostback(postbackInfo: PostbackInfo): Promise<void>
+设置归因结果回传接口，用于应用生态伙伴：
+ 验证triggerData是否合法。 设置调试使用的回传数据。 
+flushPostbacks(adTechId: string): Promise<void>
+主动、实时触发归因结果回传接口，用于应用生态伙伴验证接收及处理回传的逻辑是否正确。
+开发步骤
+[h2]验证归因来源
+ 导入相关模块。import { attributionTestManager } from '@kit.StoreKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';\nimport { BusinessError } from '@kit.BasicServicesKit';  构造参数，入参为AdSourceInfo、publickey。//注册归因角色时提供给应用归因服务云侧的公钥\nlet publicKey: string = '';\nlet adSourceInfo: attributionTestManager.AdSourceInfo = {\n  //可以使用虚拟的adTechId\n  adTechId: '2******8',\n  campaignId: '1****6',\n  destinationId: '1*******8',\n  sourceType: attributionTestManager.SourceType.IMPRESSION,\n  mmpIds: ['1******8', '2******9'],\n  serviceTag: 'testServiceTag',\n  nonce: '123***2',\n  timestamp: Date.now(),\n  signature: 'MEQCIEQlmZ****zKBSE8QnhLTIHZZZ****ZpRqRxHss65Ko****JgJKjdrWdkL****juEx2RmFS7da****ZRVZ8RyMyUXg=='\n}  调用validateSource方法验证归因来源。attributionTestManager.validateSource(adSourceInfo, this.publicKey).then(() => {\n  hilog.info(0, \"testTag\", 'Succeeded in validating source.');\n}).catch((error: BusinessError) => {\n  hilog.error(0, \"testTag\", `testValidateSource failed.code is ${error.code}, message is ${error.message}`);\n})  
+[h2]设置归因结果回传
+ 导入相关模块。import { attributionTestManager } from '@kit.StoreKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';\nimport { BusinessError } from '@kit.BasicServicesKit';  构造参数，入参为PostbackInfo。let postbackInfo: attributionTestManager.PostbackInfo = {\n  adTechId: '1******8',\n  campaignId: '1****6',\n  sourceId: '1*******8',\n  destinationId: '1*******8',\n  serviceTag: 'testServiceTag',\n  businessScene: 5,\n  triggerData: 123,\n  postbackUrl: 'https://xxx.com'\n};  调用setPostback方法设置归因结果回传数据。attributionTestManager.setPostback(postbackInfo).then(() => {\n  hilog.info(0, \"testTag\", 'Succeeded in setting postback.');\n}).catch((error: BusinessError) => {\n  hilog.error(0, \"testTag\", `setPostback onError.code is ${error.code}, message is ${error.message}`);\n})   
+[h2]触发归因结果回传
+ 导入相关模块。import { attributionTestManager } from '@kit.StoreKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';\nimport { BusinessError } from '@kit.BasicServicesKit';  构造参数adTechId。let adTechId: string = '1******8';  调用flushPostbacks方法触发归因结果回传。attributionTestManager.flushPostbacks(adTechId).then(() => {\n  hilog.info(0, \"testTag\", 'Succeeded in flushing postbacks.');\n}).catch((error: BusinessError) => {\n  hilog.error(0, \"testTag\", `flushPostbacks onError.code is ${error.code}, message is ${error.message}`);\n})  

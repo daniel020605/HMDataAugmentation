@@ -1,0 +1,14 @@
+@typescript-eslint/no-unnecessary-type-assertion
+禁止不必要的类型断言。
+如果类型断言没有更改表达式的类型，也就没有必要使用。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/no-unnecessary-type-assertion\": \"error\"\n  }\n}
+选项
+详情请参考@typescript-eslint/no-unnecessary-type-assertion选项。
+正例
+const num = 3;\nexport const foo2 = num as number;\nexport const foo3 = 'foo' as string;
+反例
+const num = 3;\nexport const foo = num;\nexport const bar = foo!;
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

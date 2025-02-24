@@ -1,0 +1,10 @@
+设置系统导航状态
+设置导航状态，包含地图状态、导航类型、导航目的地、导航途径点、路线和主题等。
+接口说明
+接口无返回值，但是需要传入想要更新的系统导航状态。
+接口名
+描述
+updateNavigationStatus(navigationStatus: NavigationStatus): void
+设置导航状态，包含地图状态、导航类型、导航目的地、导航途径点、路线和主题等。
+开发步骤
+ 导入Car Kit模块。import { navigationInfoMgr } from '@kit.CarKit';  获取NavigationController实例。let navInfoController: navigationInfoMgr.NavigationController = navigationInfoMgr.getNavigationController();  设置系统导航状态。//设置位置属性\nlet location: navigationInfoMgr.Location = {\n  name: 'ceshi0',\n  coordType: navigationInfoMgr.LocationCoordType.GCJ02,\n  longitude: 30.0,\n  latitude: 30.0,\n  altitude: 30.0\n};\n//设置状态属性\nlet data: navigationInfoMgr.NavigationStatus = {\n  status: navigationInfoMgr.MapStatus.NAVIGATION,\n  naviType: navigationInfoMgr.NaviType.DRIVING,\n  destLocation: location,\n  passPoint: [location],\n  routeIndex: 0,\n  routePreference: [],\n  theme: navigationInfoMgr.ThemeType.LIGHT,\n  customData: 'customData'\n};\nnavInfoController.updateNavigationStatus(data);  

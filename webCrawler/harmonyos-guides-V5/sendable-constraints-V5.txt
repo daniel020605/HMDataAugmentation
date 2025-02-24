@@ -1,0 +1,88 @@
+Sendable使用规则与约束
+Sendable class只能继承自Sendable class
+Sendable对象布局及原型链不可变，非Sendable对象可以通过特殊方式修改布局，不允许互相继承。这里的class不包括变量。Sendable class不能继承自变量。
+正例：
+@Sendable\nclass A {\n  constructor() {\n  }\n}\n\n@Sendable\nclass B extends A {\n  constructor() {\n    super()\n  }\n}
+反例：
+class A {\n  constructor() {\n  }\n}\n\n@Sendable\nclass B extends A {\n  constructor() {\n    super()\n  }\n}
+非Sendable class只能继承自非Sendable class
+Sendable对象布局及原型链不可变，由于非Sendable对象可以通过特殊方式修改布局，因此不允许互相继承。
+正例：
+class A {\n  constructor() {\n  }\n}\n\nclass B extends A {\n  constructor() {\n    super()\n  }\n}
+反例：
+@Sendable\nclass A {\n  constructor() {\n  }\n}\n\nclass B extends A {\n  constructor() {\n    super()\n  }\n}
+非Sendable class只能实现非Sendable interface
+如果非Sendable class实现了Sendable interface，可能会被认为是Sendable的，实际是非Sendable的，导致错误使用。
+正例：
+interface I {};\n\nclass B implements I {};
+反例：
+import { lang } from '@kit.ArkTS';\n\ntype ISendable = lang.ISendable;\n\ninterface I extends ISendable {};\n\nclass B implements I {};
+Sendable class/interface成员变量必须是Sendable支持的数据类型
+Sendable数据不能持有非Sendable数据，因此Sendable数据的成员属性必须为Sendable数据。
+正例：
+@Sendable\nclass A {\n  constructor() {\n  }\n  a: number = 0;\n}
+反例：
+@Sendable\nclass A {\n  constructor() {\n  }\n  b: Array<number> = [1, 2, 3] // 需使用collections.Array\n}
+Sendable class/interface的成员变量不支持使用!断言
+Sendable对象的成员属性必须赋初值，“!”修饰的变量可以不赋初值，因此不支持使用“!” 。
+正例：
+@Sendable\nclass A {\n  constructor() {\n  }\n  a: number = 0;\n}
+反例：
+@Sendable\nclass A {\n  constructor() {\n  }\n  a!: number;\n}
+Sendable class/interface的成员变量不支持使用计算属性名
+Sendable对象的布局不可变，计算属性不能静态确定对象布局，因此不支持。
+正例：
+@Sendable\nclass A {\n    num1: number = 1;\n    num2: number = 2;\n    add(): number {\n      return this.num1 + this.num2;\n    }\n}
+反例：
+enum B {\n    b1 = \"bbb\"\n}\n@Sendable\nclass A {\n    [\"aaa\"]: number = 1; // [\"aaa\"] is allowed in other classes in ets files\n    [B.b1]: number = 2; // [B.b1] is allowed in other classes in ets files\n}
+泛型类中的Sendable class，collections.Array，collections.Map，collections.Set的模板类型必须是Sendable类型
+Sendable数据不能持有非Sendable数据，因此泛型类中的Sendable数据的模版类型必须是Sendable类型。
+正例：
+import { collections } from '@kit.ArkTS';\n\ntry {\n  let arr1: collections.Array<number> = new collections.Array<number>();\n  let num: number = 1;\n  arr1.push(num);\n} catch (e) {\n  console.error(`taskpool execute: Code: ${e.code}, message: ${e.message}`);\n}
+反例：
+import { collections } from '@kit.ArkTS';\n\ntry {\n  let arr1: collections.Array<Array<number>> = new collections.Array<Array<number>>();\n  let arr2: Array<number> = new Array<number>();\n  arr2.push(1);\n  arr1.push(arr2);\n} catch (e) {\n  console.error(`taskpool execute: Code: ${e.code}, message: ${e.message}`);\n}
+Sendable class的内部不允许使用当前模块内上下文环境中定义的变量
+由于Sendable对象在不同并发实例间的上下文环境不同，属于单个虚拟机实例，如果直接访问会有非预期行为。不支持Sendable对象使用当前模块内上下文环境中定义的变量，如果违反，编译阶段会报错。
+从API version 12开始，sendable class的内部支持使用top level的sendable class对象。
+正例：
+import { lang } from '@kit.ArkTS';\n\ntype ISendable = lang.ISendable;\n\ninterface I extends ISendable {}\n\n@Sendable\nclass B implements I {\n  static o: number = 1;\n  static bar(): B {\n    return new B();\n  }\n}\n\n@Sendable\nclass C {\n  v: I = new B();\n  u: number = B.o;\n\n  foo() {\n    return B.bar();\n  }\n}
+反例：
+import { lang } from '@kit.ArkTS';\n\ntype ISendable = lang.ISendable;\n\ninterface I extends ISendable {}\n\n@Sendable\nclass B implements I {}\n\nfunction bar(): B {\n  return new B();\n}\n\nlet b = new B();\n\n{\n  @Sendable\n  class A implements I {}\n\n  @Sendable\n  class C {\n    u: I = bar(); // bar不是sendable class对象，编译报错\n    v: I = new A(); // A不是定义在top level中，编译报错\n\n    foo() {\n      return b; // b不是sendable class对象，而是sendable class的实例，编译报错\n    }\n  }\n}
+Sendable class和Sendable function不能使用除了@Sendable的其它装饰器
+如果类装饰器定义在ts文件中，产生修改类的布局的行为，那么会造成运行时的错误。
+正例：
+@Sendable\nclass A {\n  num: number = 1;\n}
+反例：
+@Sendable\n@Observed\nclass C {\n  num: number = 1;\n}
+不能使用对象字面量/数组字面量初始化Sendable类型
+对象字面量/数组字面量是非Sendable类型，Sendable数据类型只能通过Sendable类型的new表达式创建。
+正例：
+import { collections } from '@kit.ArkTS';\n\nlet arr1: collections.Array<number> = new collections.Array<number>(1, 2, 3); // 是Sendable类型
+反例：
+import { collections } from '@kit.ArkTS';\n\nlet arr2: collections.Array<number> = [1, 2, 3]; // 不是Sendable类型，编译报错\nlet arr3: number[] = [1, 2, 3]; // 不是Sendable类型，正例，不报错\nlet arr4: number[] = new collections.Array<number>(1, 2, 3); // 编译报错
+非Sendable类型不可以as成Sendable类型
+除了Object类型，非Sendable类型不可以as成Sendable类型。非Sendable类型通过as强转成Sendable类型后实际是非Sendable的类型数据，会导致错误使用。Sendable类型在不违反Sendable规则的前提下需要和非Sendable类型行为兼容，因此Sendable类型可以as成非Sendable类型。
+正例：
+class A {\n  state: number = 0;\n}\n\n@Sendable\nclass SendableA {\n  state: number = 0;\n}\n\nlet a1: A = new SendableA() as A;
+反例：
+class A {\n  state: number = 0;\n}\n\n@Sendable\nclass SendableA {\n  state: number = 0;\n}\n\nlet a2: SendableA = new A() as SendableA;
+箭头函数不支持共享
+箭头函数不支持使用Sendable装饰器，是非Sendable函数，因此不支持共享。
+正例：
+@Sendable\ntype SendableFuncType = () => void;\n\n@Sendable\nfunction SendableFunc() {\n  console.info(\"Sendable func\");\n}\n\n@Sendable\nclass SendableClass {\n  constructor(f: SendableFuncType) {\n    this.func = f;\n  }\n  func: SendableFuncType;\n}\n\nlet sendableClass = new SendableClass(SendableFunc);
+反例：
+@Sendable\ntype SendableFuncType = () => void;\nlet func: SendableFuncType = () => {}; // 编译报错\n\n@Sendable\nclass SendableClass {\n  func: SendableFuncType = () => {}; // 编译报错\n}
+Sendable装饰器修饰类型时仅支持修饰函数类型
+当前仅支持声明Sendable函数类型，因此只能修饰函数类型。
+正例：
+@Sendable\ntype SendableFuncType = () => void;
+反例：
+@Sendable\ntype A = number; // 编译报错\n\n@Sendable\nclass C {}\n\n@Sendable\ntype D = C; // 编译报错
+注意事项
+在HAR中使用Sendable时，需开启编译生成TS文件的配置。详情可查编译生成TS文件。
+与TS/JS交互的规则
+[h2]ArkTS通用规则（目前只针对Sendable对象）
+此处改变属性类型不包括Sendable对象类型的改变，比如从Sendable class A 变为Sendable class B。
+[h2]NAPI规则（目前只针对Sendable对象）
+与UI交互的规则
+Sendable数据需要与makeObserved联用，才可以观察Sendable对象的数据变化，具体使用请参考makeObserved和@Sendable装饰的class配合文档。

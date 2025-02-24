@@ -1,0 +1,6 @@
+卡片使用动效能力
+ArkTS卡片开放了使用动画效果的能力，支持显式动画、属性动画、组件内转场能力。需要注意的是，ArkTS卡片使用动画效果时具有以下限制：
+表1 动效参数限制
+静态卡片不支持使用动效能力。
+以下示例代码实现了按钮旋转的动画效果：
+@Entry\n@Component\nstruct AnimationCard {\n  @State rotateAngle: number = 0;\n\n  build() {\n    Row() {\n      Button('change rotate angle')\n        .height('20%')\n        .width('90%')\n        .margin('5%')\n        .onClick(() => {\n          this.rotateAngle = (this.rotateAngle === 0 ? 90 : 0);\n        })\n        .rotate({ angle: this.rotateAngle })\n        .animation({\n          curve: Curve.EaseOut,\n          playMode: PlayMode.Normal,\n        })\n    }.height('100%').alignItems(VerticalAlign.Center)\n  }\n}

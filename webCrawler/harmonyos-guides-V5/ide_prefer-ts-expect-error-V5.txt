@@ -1,0 +1,14 @@
+@typescript-eslint/prefer-ts-expect-error
+强制使用“@ts-expect-error”而不是“@ts-ignore”。
+该规则仅支持对.js/.ts文件进行检查。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/prefer-ts-expect-error\": \"error\"\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+// @ts-expect-error: with description\nexport const str: string = 1;\n\n/**\n * Explaining comment\n *\n * @ts-expect-error: with description */\nexport const multiLine: number = 'value';\n\n/** @ts-expect-error: with description */\nexport const block: string = 1;
+反例
+// @ts-ignore\nconst str: string = 1;\n\n/**\n * Explaining comment\n *\n * @ts-ignore */\nconst multiLine: number = 'value';\n\n/** @ts-ignore */\nconst block: string = 1;\n\nconst isOptionEnabled = (key: string): boolean => {\n  // @ts-ignore: if key isn't in globalOptions it'll be undefined which is false\n  return !!globalOptions[key];\n};
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

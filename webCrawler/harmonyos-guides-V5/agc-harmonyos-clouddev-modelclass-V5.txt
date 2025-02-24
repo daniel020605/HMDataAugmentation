@@ -1,0 +1,6 @@
+(可选）一键生成Model Class
+云数据库支持从端侧或者云侧云函数访问云数据库，代码涉及调用云数据库时，需引入对应云数据库对象类型的Model Class。DevEco Studio当前支持为对象类型一键生成Server Model与Client Model，供您在端侧及云侧云函数开发时引用。
+生成Server Model
+右击需要调用的对象类型文件（以“Post.json”为例），选择“Generate Server Model”。 选择生成的Server Model文件存放的云函数目录。 点击“OK”。指定目录下生成对应对象类型的Server Model文件，后续您便可以在代码中方便地引用该Server Model 。  引入@hw-agconnect/cloud-server依赖，实现云函数访问云数据库。import { cloud } from '@hw-agconnect/cloud-server'; \nimport { BookInfo } from './BookInfo'; // BookInfo是Server Model \n\n// default是BookInfo对象类型使用的存储区名\nconst collection = cloud.database({ zoneName: 'default' }).collection(BookInfo);\n\n// BookStore云对象，实现了对BookInfo对象的查询和更新\nexport class BookStore {\n  query() {\n    return collection.query().get();\n  }\n\n  upset(bookInfos: BookInfo[]) {\n    return new Promise((resolve, reject) => {\n      collection.upsert(bookInfos.map(book => BookInfo.parseFrom(book)))\n        .then(result => resolve({ result }))\n        .catch(err => reject(err))\n    });\n  }\n}  如果定义的云数据库表字段中包含ByteArray或Date类型的字段，在插入或者更新云数据库时需要使用Server Model的parseFrom方法将入参转化成API识别的类型，例如上述示例中的BookInfo.parseFrom方法。  
+生成Client Model
+右击需要调用的对象类型文件（以“Post.json”为例），选择“Generate Client Model”。 选择生成的Client Model文件存放的端侧目录。 点击“OK”。指定目录下生成对应对象类型的Client Model文件，后续您便可以在端侧代码中方便地引用该Client Model，具体可参考端云一体化工程初始化代码中的Client Model示例（“ets/pages/CloudDb/Post.ts”）在CloudDb.ets以及DbInset.ets中的引用。  

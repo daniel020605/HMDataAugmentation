@@ -1,0 +1,13 @@
+@hw-stylistic/indent
+强制switch语句中的case和default缩进一层。该规则仅检查.ets文件类型。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@hw-stylistic/indent\": \"error\"\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+enum E {\n  a = 'a',\n  b = 'b',\n  c = 'c'\n}\n\nexport function test(e: E) {\n  switch (e) {\n    case E.a:\n      console.info('doSomething');\n      break;\n    case E.b:\n    case E.c:\n      console.info('doSomething');\n      break;\n    default:\n      console.info('doSomething');\n  }\n}
+反例
+enum E {\n  a = 'a',\n  b = 'b',\n  c = 'c'\n}\n\nexport function test(e: E) {\n  switch (e) {\n      // Expected indentation of 2 relative to switch.\n      case E.a:\n      // Expected indentation of 2 relative to case.\n      console.info('hello');\n      // Expected indentation of 2 relative to case.\n      break;\n    case E.b:\n      console.info('hello');\n      break;\n    case E.c:\n    // Expected indentation of 2 relative to case.\n    console.info('hello');\n      break;\n    default:\n    // Expected indentation of 2 relative to default.\n    console.info('hello');\n  }\n}
+规则集
+\"plugin:@hw-stylistic/recommended\"\n\"plugin:@hw-stylistic/all\"
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

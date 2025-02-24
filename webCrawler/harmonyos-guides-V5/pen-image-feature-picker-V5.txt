@@ -1,0 +1,17 @@
+接入全局取色
+接入全局取色功能，用户可以使用手指或者手写笔操作取色器在屏幕上移动，在目标位置抬手/抬起手写笔，会生成该位置色值对应的图像信息。
+场景介绍
+在应用中拉起全局取色，效果如下：
+支持获取当前屏幕上选中位置的色值和色域空间。
+接口说明
+模块名
+方法名称
+说明
+imageFeaturePicker
+pickForResult
+全局取色。
+开发步骤
+1.导入相关模块。
+import { imageFeaturePicker } from '@kit.Penkit';\nimport { BusinessError } from '@kit.BasicServicesKit';
+2.构造全局取色能力。
+@Entry\n@Component\nstruct Index {\n  @State message: string = 'Hello World';\n\n  build() {\n    Stack({ alignContent: Alignment.Center }) {\n      Column() {\n        Row() {\n          Button() {\n            Text('Call GlobalColorPicker from ets side')\n              .fontSize(18)\n              .fontWeight(FontWeight.Normal)\n          }\n          .width('50%')\n          .height('60vp')\n          .align(Alignment.Center)\n          .onClick((event) => {\n            imageFeaturePicker.pickForResult(event.displayX, event.displayY)\n              .then((colorInfo: imageFeaturePicker.PickedColorInfo) => {\n                if (colorInfo) {\n                  console.info('colorInfo=' + JSON.stringify(colorInfo));\n                }\n              }).catch((err: BusinessError) => {\n              console.error(`pickForResult failed. Code is ${err.code}, message is ${err.message}`)\n            })\n          })\n        }\n      }\n      .align(Alignment.Center)\n    }\n    .width('100%')\n    .height('100%')\n  }\n}

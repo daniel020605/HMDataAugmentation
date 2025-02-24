@@ -1,0 +1,38 @@
+使用Node-API接口注册和使用环境清理钩子
+简介
+使用Node-API接口在进程退出时处理未释放资源，在Node-API模块注册清理钩子，一旦当前环境退出，这些钩子就会运行，使所有资源都被正确释放。
+基本概念
+Node-API提供了注册和取消注册清理钩子函数的功能，以下是相关概念：
+ 资源管理：在ArkTS中，通常需要管理一些系统资源，比如内存、文件句柄、网络连接等。这些资源必须在Node-API模块的生命周期中正确地创建、使用和释放，以避免资源泄漏和程序崩溃。资源管理通常包括初始化资源、在合适的时候清理资源，以及在清理资源时执行必要的操作，比如关闭文件或断开网络连接。 钩子函数（Hook）：钩子函数是一种在特定事件或时间点自动执行的回调函数。在Node-API模块的上下文中，清理钩子函数通常用于在环境或进程退出时执行资源清理任务。这是因为环境或进程退出时，操作系统可能不会立即回收所有资源，因此需要通过清理钩子函数来确保所有资源都被正确释放。 
+以上这些基本概念是理解和使用Node-API接口注册环境清理钩子的基础，下面将介绍具体的接口和使用示例。
+场景和功能介绍
+以下Node-API接口用于注册和取消不同类型的清理钩子。他们的使用场景如下：
+使用示例
+Node-API接口开发流程参考使用Node-API实现跨语言交互开发流程，本文仅对接口对应C++及ArkTS相关代码进行展示。
+[h2]napi_add_env_cleanup_hook
+用于注册一个环境清理钩子函数，该函数将在环境退出时执行。这是确保资源在环境销毁前得到清理的重要机制。
+[h2]napi_remove_env_cleanup_hook
+用于取消之前注册的环境清理钩子函数。在某些情况下，需要在插件卸载或资源被重新分配时取消钩子函数。
+cpp部分代码
+#include <hilog/log.h>\n#include <string>\n#include \"napi/native_api.h\"\n// 定义内存结构，包含指向数据的指针和数据的大小\ntypedef struct {\n    char *data;\n    size_t size;\n} Memory;\n// 外部缓冲区清理回调函数，用于释放分配的内存\nvoid ExternalFinalize(napi_env env, void *finalize_data, void *finalize_hint) \n{\n    Memory *wrapper = (Memory *)finalize_hint;\n    free(wrapper->data);\n    free(wrapper);\n    OH_LOG_INFO(LOG_APP, \"Node-API napi_add_env_cleanup_hook ExternalFinalize\");\n}\n// 在环境关闭时执行一些清理操作，如清理全局变量或其他需要在环境关闭时处理的资源\nstatic void Cleanup(void *arg)\n{\n    // 执行清理操作\n    OH_LOG_INFO(LOG_APP, \"Node-API napi_add_env_cleanup_hook cleanuped: %{public}d\", *(int *)(arg));\n}\n// 创建外部缓冲区并注册环境清理钩子函数\nstatic napi_value NapiEnvCleanUpHook(napi_env env, napi_callback_info info) \n{\n    // 分配内存并复制字符串数据到内存中\n    std::string str(\"Hello from Node-API!\");\n    Memory *wrapper = (Memory *)malloc(sizeof(Memory));\n    wrapper->data = (char *)malloc(str.size());\n    strcpy(wrapper->data, str.c_str());\n    wrapper->size = str.size();\n    // 创建外部缓冲区对象，并指定清理回调函数\n    napi_value buffer = nullptr;\n    napi_create_external_buffer(env, wrapper->size, (void *)wrapper->data, ExternalFinalize, wrapper, &buffer);\n    // 静态变量作为钩子函数参数\n    static int hookArg = 42;\n    static int hookParameter = 1;\n    // 注册环境清理钩子函数\n    napi_status status = napi_add_env_cleanup_hook(env, Cleanup, &hookArg);\n    if (status != napi_ok) {\n        napi_throw_error(env, nullptr, \"Test Node-API napi_add_env_cleanup_hook failed.\");\n        return nullptr;\n    }\n    // 注册环境清理钩子函数，此处不移除环境清理钩子，为了在Java环境被销毁时，这个钩子函数被调用，用来模拟执行一些清理操作，例如释放资源、关闭文件等。\n    status = napi_add_env_cleanup_hook(env, Cleanup, &hookParameter);\n    if (status != napi_ok) {\n        napi_throw_error(env, nullptr, \"Test Node-API napi_add_env_cleanup_hook failed.\");\n        return nullptr;\n    }\n    // 立即移除环境清理钩子函数，确保不会在后续环境清理时被调用\n    // 通常，当为其添加此钩子的资源无论如何都被拆除时调用这个接口\n    napi_remove_env_cleanup_hook(env, Cleanup, &hookArg);\n    // 返回创建的外部缓冲区对象\n    return buffer;\n}
+接口声明
+// index.d.ts\nexport const napiEnvCleanUpHook: () => Object | void;
+ArkTS侧示例代码
+// index.ets\nimport hilog from '@ohos.hilog'\nimport worker from '@ohos.worker'\n\nlet wk = new worker.ThreadWorker(\"entry/ets/workers/worker.ts\");\n// 发送消息到worker线程\nwk.postMessage(\"test NapiEnvCleanUpHook\");\n// 处理来自worker线程的消息\nwk.onmessage = (message) => {\n  hilog.info(0x0000, 'testTag', 'Test Node-API message from worker: %{public}s', JSON.stringify(message));\n  wk.terminate();\n};
+// worker.ts\nimport hilog from '@ohos.hilog'\nimport worker from '@ohos.worker'\nimport testNapi from 'libentry.so'\n\nlet parent = worker.workerPort;\n// 处理来自主线程的消息\nparent.onmessage = function(message) {\n  hilog.info(0x0000, 'testTag', 'Test Node-API message from main thread: %{public}s', JSON.stringify(message));\n  // 发送消息到主线程\n  parent.postMessage('Test Node-API worker:' + testNapi.napiEnvCleanUpHook());\n}
+worker相关开发配置和流程参考以下链接：
+使用Worker进行线程间通信
+[h2]napi_add_async_cleanup_hook
+这个接口用于注册一个异步清理钩子函数，该函数将在环境退出时异步执行。与同步钩子不同，异步钩子允许在进程退出时进行更长时间的操作，而不会阻塞进程退出。
+[h2]napi_remove_async_cleanup_hook
+这个接口用于取消之前注册的异步清理钩子函数。与取消同步钩子类似，这通常是在不再需要钩子函数时进行的操作。
+cpp部分代码
+#include <malloc.h>\n#include <string.h>\n#include \"napi/native_api.h\"\n#include \"uv.h\"\n\n// 包含异步操作内容\ntypedef struct {\n    napi_env env;\n    void *testData;\n    uv_async_s asyncUv;\n    napi_async_cleanup_hook_handle cleanupHandle;\n} AsyncContent;\n// 删除异步工作对象并注销钩子函数\nstatic void FinalizeWork(uv_handle_s *handle)\n{\n    AsyncContent *asyncData = reinterpret_cast<AsyncContent *>(handle->data);\n    // 不再需要异步清理钩子函数的情况下，尝试将其从环境中移除\n    napi_status result = napi_remove_async_cleanup_hook(asyncData->cleanupHandle);\n    if (result != napi_ok) {\n        napi_throw_error(asyncData->env, nullptr, \"Test Node-API napi_remove_async_cleanup_hook failed\");\n    }\n    // 释放AsyncContent\n    free(asyncData);\n}\n// 异步执行环境清理工作\nstatic void AsyncWork(uv_async_s *async)\n{\n    // 执行一些清理工作,比如释放动态分配的内存\n    AsyncContent *asyncData = reinterpret_cast<AsyncContent *>(async->data);\n    if (asyncData->testData != nullptr) {\n        free(asyncData->testData);\n        asyncData->testData = nullptr;\n    }\n    // 关闭libuv句柄，并触发FinalizeWork回调清理\n    uv_close((uv_handle_s *)async, FinalizeWork);\n}\n// 异步清理钩子函数，创建异步工作对象并执行\nstatic void AsyncCleanup(napi_async_cleanup_hook_handle handle, void *info)\n{\n    AsyncContent *data = reinterpret_cast<AsyncContent *>(info);\n    // 获取libUv循环实例并初始化一个异步句柄，以便后续执行异步工作\n    uv_loop_s *uvLoop;\n    napi_get_uv_event_loop(data->env, &uvLoop);\n    uv_async_init(uvLoop, &data->asyncUv, AsyncWork);\n\n    data->asyncUv.data = data;\n    data->cleanupHandle = handle;\n    // 发送异步信号触发AsyncWork函数执行清理工作\n    uv_async_send(&data->asyncUv);\n}\n\nstatic napi_value NapiAsyncCleanUpHook(napi_env env, napi_callback_info info)\n{\n    // 分配AsyncContent内存\n    AsyncContent *data = reinterpret_cast<AsyncContent *>(malloc(sizeof(AsyncContent)));\n    data->env = env;\n    data->cleanupHandle = nullptr;\n    // 分配内存并复制字符串数据\n    const char *testDataStr = \"TestNapiAsyncCleanUpHook\";\n    data->testData = strdup(testDataStr);\n    if (data->testData == nullptr) {\n        napi_throw_error(env, nullptr, \"Test Node-API data->testData is nullptr\");\n    }\n    // 添加异步清理钩子函数\n    napi_status status = napi_add_async_cleanup_hook(env, AsyncCleanup, data, &data->cleanupHandle);\n    if (status != napi_ok) {\n        napi_throw_error(env, nullptr, \"Test Node-API napi_add_async_cleanup_hook failed\");\n    }\n    napi_value result = nullptr;\n    napi_get_boolean(env, true, &result);\n    return result;\n}
+由于需要包含“uv.h”库，所以需要在CMakeLists文件中添加配置：
+// CMakeLists.txt\ntarget_link_libraries(entry PUBLIC libuv.so)
+接口声明
+// index.d.ts\nexport const napiAsyncCleanUpHook: () => boolean | void;
+ArkTS侧示例代码
+import hilog from '@ohos.hilog'\nimport testNapi from 'libentry.so'\ntry {\n  hilog.info(0x0000, 'testTag', 'Test Node-API napi_add_async_cleanup_hook: %{public}s', testNapi.napiAsyncCleanUpHook());\n} catch (error) {\n  hilog.error(0x0000, 'testTag', 'Test Node-API napi_add_async_cleanup_hook error.message: %{public}s', error.message);\n}
+以上代码如果要在native cpp中打印日志，需在CMakeLists.txt文件中添加以下配置信息（并添加头文件：#include \"hilog/log.h\"）：
+// CMakeLists.txt\nadd_definitions( \"-DLOG_DOMAIN=0xd0d0\" )\nadd_definitions( \"-DLOG_TAG=\\\"testTag\\\"\" )\ntarget_link_libraries(entry PUBLIC libhilog_ndk.z.so)

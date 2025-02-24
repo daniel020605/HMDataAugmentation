@@ -1,0 +1,2 @@
+华为Wallet Kit服务支持哪些国家/地区？
+华为Wallet Kit服务支持的国家/地区范围和Account Kit一致。

@@ -1,0 +1,15 @@
+@typescript-eslint/triple-slash-reference
+不允许某些三斜杠引用，推荐使用ES6风格的导入声明。
+支持以下三种三斜杠引用方式的检查
+/// <reference lib=\"...\" />\n/// <reference path=\"...\" /> \n/// <reference types=\"...\" />
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/triple-slash-reference\": \"error\"\n  }\n}
+选项
+详情请参考@typescript-eslint/triple-slash-reference选项。
+正例
+import { value } from 'code';\nexport { value };
+反例
+/// <reference path=\"code\" />\n\nglobalThis.value;
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

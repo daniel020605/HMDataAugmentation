@@ -1,0 +1,10 @@
+开发准备
+申请权限
+[h2]场景概述
+应用在使用Network Boost Kit能力前需要检查是否已经获取对应权限。如未获得授权，需要声明对应权限。
+Network Boost Kit所需权限有：
+ohos.permission.GET_NETWORK_INFO：用户获取设备网络信息。
+必须手动配置上述权限后才能使用，详细配置参见申请权限步骤。
+[h2]申请权限步骤
+需要在entry/src/main路径下的module.json5中配置所需申请的权限。示例代码如下所示：
+{\n  \"module\": {\n    \"requestPermissions\": [\n      {\n        \"name\": \"ohos.permission.GET_NETWORK_INFO\"\n      }\n    ]\n  }\n}

@@ -1,0 +1,14 @@
+@typescript-eslint/no-non-null-asserted-optional-chain
+禁止在可选链表达式之后使用非空断言。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/no-non-null-asserted-optional-chain\": \"error\"\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+class CC {\n  public bar = 'hello';\n\n  public foo(): void {\n    console.info('foo');\n  }\n}
+function getInstance(): CC | undefined {\n  return new CC();\n}\n\nconst instance = getInstance();\nconsole.info(`${instance?.bar}`);\ninstance?.foo();
+反例
+class CC {\n  public bar: string = 'hello';\n\n  public foo() {\n    console.info('foo');\n  }\n}\n\nfunction getInstance(): CC | undefined {\n  return new CC();\n}\n\nconst instance = getInstance();\nconsole.info(`${instance?.bar!}`);\ninstance?.foo()!;
+规则集
+plugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

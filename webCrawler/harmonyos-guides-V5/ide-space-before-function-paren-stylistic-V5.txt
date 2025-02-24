@@ -1,0 +1,13 @@
+@hw-stylistic/space-before-function-paren
+在函数名和“(”之间强制不加空格。该规则仅检查.ets文件类型。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@hw-stylistic/space-before-function-paren\": \"error\"\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+function bar() {\n  // doSomething\n}\nbar();
+反例
+// Unexpected space before function parentheses.\nfunction bar () {\n  // doSomething\n}\n// Unexpected space before function parentheses.\nbar  ();
+规则集
+\"plugin:@hw-stylistic/recommended\"\n\"plugin:@hw-stylistic/all\"
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。

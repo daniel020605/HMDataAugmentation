@@ -1,0 +1,14 @@
+@typescript-eslint/no-unsafe-call
+禁止调用“any”类型的表达式。
+该规则仅支持对.js/.ts文件进行检查。
+规则配置
+// code-linter.json5\n{\n  \"rules\": {\n    \"@typescript-eslint/no-unsafe-call\": \"error\"\n  }\n}
+选项
+该规则无需配置额外选项。
+正例
+declare const typedVar: () => void;\ndeclare const typedNested: { prop: { a: () => void } };\n\ntypedVar();\ntypedNested.prop.a();\n\n((): void => {\n  console.info('hello');\n})();\n\nnew Map();\n\nexport const raw = String.raw`foo`;
+反例
+declare const anyVar: any;\ndeclare const nestedAny: { prop: any };\n// anyVar为any类型，禁止调用\nanyVar();\nanyVar.a.b();\n// nestedAny中的prop属性为any类型，禁止调用\nnestedAny.prop();
+规则集
+plugin:@typescript-eslint/recommended\nplugin:@typescript-eslint/all
+Code Linter代码检查规则的配置指导请参考代码Code Linter检查。
