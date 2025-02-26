@@ -695,6 +695,7 @@ def guarantee_extract(soup):
             # 2. 将删除 table 后的 next_div 转换成文本
             div_text = next_div.get_text(strip=True)
             # 3. 处理 table 数据
+
             table_text = str(table2json(removed_table))
             # 4. 将处理后的 table 数据放回原位置
             new_table_tag = soup.new_tag("div")
