@@ -27,7 +27,34 @@ def delete_empty_files_and_dirs(path):
                 print(f"Deleted empty directory: {dir_path}")
 
 
+import os
+import json
+
+
+def count_functions_in_json_files(folder_path):
+    total_count = 0
+
+    # 遍历文件夹中的所有文件
+    for filename in os.listdir(folder_path):
+        if filename.endswith('.json'):
+            file_path = os.path.join(folder_path, filename)
+
+            # 打开并读取JSON文件
+            with open(file_path, 'r', encoding='utf-8') as file:
+                data = json.load(file)
+
+                # 统计每个JSON文件中function数据的条数
+                for functions in data.values():
+                    total_count += len(functions)
+
+    return total_count
+
+
+
 if __name__ == "__main__":
     # functions_folder = './functions'
     # check_files_in_functions_folder(functions_folder)
-    delete_empty_files_and_dirs("./UI/")
+    # delete_empty_files_and_dirs("./UI/")
+    # 示例用法
+    folder_path = './functions'
+    print(f'Total function count: {count_functions_in_json_files(folder_path)}')
