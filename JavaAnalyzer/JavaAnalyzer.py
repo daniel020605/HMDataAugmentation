@@ -129,7 +129,7 @@ if __name__ == '__main__':
         relative_path = os.path.relpath(r['file'], project_path)
         print(f"Class: {r['class']}, Method: {r['method']}, Line: {r['line']}, File: {relative_path}")
 
-    # project_path = '/Users/daniel/Desktop/Projects/HMDataAugmentation/Analyzer/ActivityLifecycleManager.java'
+    # project_path = '/Users/daniel/Desktop/Projects/HMDataAugmentation/JavaAnalyzer/ActivityLifecycleManager.java'
     # res = find_android_method_calls(project_path)
     # for r in res:
     #     print(r)
