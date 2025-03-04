@@ -2,6 +2,13 @@ import os
 import re
 import json
 
+from ArkTSAbstractor.logger import setup_logger, log_directory
+from tool import load_reserved_words
+
+
+reserved_words = load_reserved_words()
+logger = setup_logger('file_analyzer_logger', os.path.join(log_directory, 'file_analyzer.log'))
+
 class ETSFileAnalysis:
     def __init__(self, file_path):
         self.file_path = file_path
@@ -58,6 +65,9 @@ def analyze_ets_file(file_contents):
     # Extract variable declarations
     variable_pattern = re.compile(r'(@\w+\s)?((private|public)\s)?((static)\s)?((const|let|val|var)\s)?(\w+)\s?:\s?([^=\s]+)(\s?=\s?([^;\n{]+))?;?\n')
     for match in variable_pattern.finditer(file_contents):
+        if match.group(8) in reserved_words:
+            # 记录这个错误到文件
+            logger.error("Reserved word used as variable name: " + match.group(8) + " in file: " + analysis.file_path)
         variable = {
             'modifier': match.group(1).strip() if match.group(1) else None,
             'name': match.group(8).strip(),

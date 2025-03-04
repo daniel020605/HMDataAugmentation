@@ -49,8 +49,11 @@ def process_projects(projects_path):
         analyze_ets_project(project_path)
 
 if __name__ == '__main__':
-    # projects_path = '/Users/liuxuejin/Downloads/github_cloned_repos_1min_stars'
-    # process_projects(projects_path)
 
-    project_path = '/Users/liuxuejin/Downloads/github_cloned_repos_1min_stars/19-CialloOpenHarmony'
-    analyze_ets_project(project_path)
+    # projects_path = '/Users/liuxuejin/Downloads/gitee_cloned_repos_5min_stars'
+    # process_projects(projects_path)
+    projects_path = '/Users/liuxuejin/Downloads/github_cloned_repos_1min_stars'
+    process_projects(projects_path)
+
+    # project_path = '/Users/liuxuejin/Downloads/github_cloned_repos_1min_stars/19-CialloOpenHarmony'
+    # analyze_ets_project(project_path)
