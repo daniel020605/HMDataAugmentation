@@ -80,7 +80,7 @@ def analyze_ets_file(file_contents):
     for match in variable_pattern.finditer(file_contents):
         if match.group(8) in reserved_words:
             # 记录这个错误到文件
-            logger.error("Reserved word used as variable name: " + match.group(8) + " in file: " + analysis.file_path)
+            # logger.error("Reserved word used as variable name: " + match.group(8) + " in file: " + analysis.file_path)
             continue
         variable = {
             'modifier': match.group(1).strip() if match.group(1) else None,
@@ -92,9 +92,13 @@ def analyze_ets_file(file_contents):
 
     # Extract function declarations, ignoring build() and @Builder functions
     # function_pattern = re.compile(r'(\w+\s+)?(\w+)\s*\([^)]*\)\s*\{')
-    function_pattern = re.compile(r'(\w+\s)?(\w+\s?)(=\s?)?\(\s?\)\s?(=>\s?)?\{|\w+\s*\([^)]*\)\s*\{|\w+\s*\([^)]*\)\s*\{')
+    function_pattern = re.compile(r'(\w+\s)?(\w+\s?)(=\s?)?\(\s?((\.\.\.)?((\w+\??\s?:\s?[^)]+\s?)(,\s?\w+\??\s?:\s?[^)]+)*)?)\)\s*?\s?(=>\s?)?(:\s?\w+\s?)?\{')
     for match in function_pattern.finditer(file_contents):
         function_name = match.group(2).strip() if match.group(2) else None
+        if function_name in reserved_words:
+            # 记录这个错误到文件
+            # logger.error("Reserved word used as function name: " + function_name + " in file: " + analysis.file_path)
+            continue
         if function_name != 'build':
             start_pos = match.end() - 1
             end_pos = find_balanced_braces(file_contents, start_pos)
