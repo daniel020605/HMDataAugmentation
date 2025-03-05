@@ -52,15 +52,28 @@ def analyze_ets_file(file_contents):
         analysis.set_file_type("Service")
 
     # Extract UI code blocks
-    ui_code_patterns = [r'build\s*\(\)\s*\{', r'@Builder\s*\w+\s*\(\)\s*\{']
+    ui_code_patterns = [r'build\s*\(\)\s*\{', r'@Builder\s*\w+\s?\((\w+\s?:+\s?\w+)?\)\s*\{']
+    matches = []
+
+    # 收集所有匹配项及其对应的起始和结束位置
     for pattern in ui_code_patterns:
         for match in re.finditer(pattern, file_contents):
+            match_start = match.start()
             start_pos = match.end() - 1
             end_pos = find_balanced_braces(file_contents, start_pos)
             if end_pos != -1:
-                analysis.add_ui_code(file_contents[match.start():end_pos + 1].strip())
-                # Remove UI code from file content
-                file_contents = file_contents[:match.start()] + file_contents[end_pos + 1:]
+                # 提取并保存UI代码到分析对象
+                ui_code = file_contents[match_start:end_pos + 1].strip()
+                analysis.add_ui_code(ui_code)
+                # 记录需要删除的区间（起始和结束位置）
+                matches.append((match_start, end_pos + 1))
+
+    # 按起始位置逆序排序，确保从后往前处理
+    matches.sort(reverse=True, key=lambda x: x[0])
+
+    # 从文件内容中删除所有记录的UI代码块
+    for start, end in matches:
+        file_contents = file_contents[:start] + file_contents[end:]
 
     # Extract variable declarations
     variable_pattern = re.compile(r'(@\w+\s)?((private|public)\s)?((static)\s)?((const|let|val|var)\s)?(\w+)\s?:\s?([^=\s]+)(\s?=\s?([^;\n{]+))?;?\n')
@@ -68,6 +81,7 @@ def analyze_ets_file(file_contents):
         if match.group(8) in reserved_words:
             # 记录这个错误到文件
             logger.error("Reserved word used as variable name: " + match.group(8) + " in file: " + analysis.file_path)
+            continue
         variable = {
             'modifier': match.group(1).strip() if match.group(1) else None,
             'name': match.group(8).strip(),

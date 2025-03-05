@@ -50,10 +50,13 @@ def process_projects(projects_path):
 
 if __name__ == '__main__':
 
-    # projects_path = '/Users/liuxuejin/Downloads/gitee_cloned_repos_5min_stars'
-    # process_projects(projects_path)
+    projects_path = '/Users/liuxuejin/Downloads/gitee_cloned_repos_5min_stars'
+    process_projects(projects_path)
     projects_path = '/Users/liuxuejin/Downloads/github_cloned_repos_1min_stars'
     process_projects(projects_path)
 
-    # project_path = '/Users/liuxuejin/Downloads/github_cloned_repos_1min_stars/19-CialloOpenHarmony'
+    # project_path = '/Users/liuxuejin/Downloads/github_cloned_repos_1min_stars/harmony-netease'
+    # analyze_ets_project(project_path)
+
+    # project_path = '/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/test'
     # analyze_ets_project(project_path)
