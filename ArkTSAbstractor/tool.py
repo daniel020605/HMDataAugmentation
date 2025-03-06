@@ -25,6 +25,19 @@ def count_ui_code_and_functions(folder_path):
 
     return total_ui_code_count, total_function_count
 
+def count_json_items_in_folder(folder_path):
+    total_json_items = 0
+    for filename in os.listdir(folder_path):
+        if filename.endswith('.json'):
+            file_path = os.path.join(folder_path, filename)
+            try:
+                with open(file_path, 'r', encoding='utf-8') as file:
+                    data = json.load(file)
+                    total_json_items += len(data)
+            except Exception as e:
+                print(f"Error reading {file_path}: {e}")
+    return total_json_items
+
 def load_reserved_words():
     reserved_words = set()
     with open("./reserved_word.txt", "r") as file:
@@ -32,8 +45,74 @@ def load_reserved_words():
             reserved_words.add(line.strip())
     return reserved_words
 
+import shutil
+
+
+def extract_and_rename_folders(base_folder):
+    for folder_b in os.listdir(base_folder):
+        path_b = os.path.join(base_folder, folder_b)
+        if os.path.isdir(path_b):
+            for folder_c in os.listdir(path_b):
+                path_c = os.path.join(path_b, folder_c)
+                if os.path.isdir(path_c):
+                    new_name = f"{folder_b}_{folder_c}"
+                    new_path = os.path.join(base_folder, new_name)
+                    shutil.move(path_c, new_path)
+
+def delete_empty_folders(base_folder):
+    for folder in os.listdir(base_folder):
+        path = os.path.join(base_folder, folder)
+        if os.path.isdir(path):
+            if not os.listdir(path):
+                os.rmdir(path)
+
+
+def find_file_by_name(directory, filename):
+    for root, dirs, files in os.walk(directory):
+        if filename in files:
+            return os.path.join(root, filename)
+    return None
+
+import re
+def remove_comments(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        content = file.read()
+
+    # 移除双斜杠注释
+    content = re.sub(r'//.*', '', content)
+    # 移除星号注释
+    content = re.sub(r'/\*.*?\*/', '', content, flags=re.DOTALL)
+
+    with open(file_path, 'w', encoding='utf-8') as file:
+        file.write(content)
+
+def check_project_version(directory):
+    profile = find_file_by_name(directory, 'build-profile.json5')
+    if profile:
+        with open(profile, 'r', encoding='utf-8') as file:
+            content = file.read()
+            version_pattern = re.compile(r'(("compileSdkVersion")|("compatibleSdkVersion"))\s?:\s*((\d+)|"([\d.()]+)")')
+            for match in version_pattern.finditer(content):
+                if match.group(5) and match.group(5).strip().isnumeric():
+                    if int(match.group(5)) < 10:
+                        return False
+                    else:
+                        return True
+                elif match.group(6) and match.group(6).strip():
+                    if match.group(6).strip() == '5.0.0(12)' or match.group(6).strip() == '5.0.1(13)' or match.group(6).strip() == '5.0.2(14)' or match.group(6).strip() == '5.0.3(15)':
+                        return True
+                    else:
+                        return False
+    return False
+
 if __name__ == "__main__":
     folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/analysis_results"
     ui_code_count, function_count = count_ui_code_and_functions(folder_path)
     print(f"总的 ui_code 数量: {ui_code_count}")
     print(f"总的 functions 数量: {function_count}")
+
+    folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/code_classification/function"
+    print(count_json_items_in_folder(folder_path))
+
+    # folder_path = "/Users/liuxuejin/Downloads/github_cloned_repos_1min_stars/19-CialloOpenHarmony"
+    # print(check_project_version(folder_path))
