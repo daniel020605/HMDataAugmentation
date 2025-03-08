@@ -1,8 +1,0 @@
-{
-    "entry\\src\\main\\ets\\pages\\Index.ets": [
-        {
-            "function_name": "build",
-            "content": "build() {\n    Column({ space: 10 }) {\n      Row() {\n        SaveButton()\n          .onClick((event, result: SaveButtonOnClickResult) => {\n            if (result === SaveButtonOnClickResult.SUCCESS) {\n              this.saveImgToAssets()\n            }\n          })\n      }\n      .justifyContent(FlexAlign.Center)\n      .width('100%')\n\n      GridRow({ columns: 2 }) {\n        ForEach(this.list, (item: string) => {\n          GridCol() {\n            Image(item)\n              .height(150)\n              .height(150)\n              .borderRadius(4)\n          }\n          .margin({\n            top: 10\n          })\n        })\n      }\n\n    }\n\n  }"
-        }
-    ]
-}

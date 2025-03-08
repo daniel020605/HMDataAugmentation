@@ -1,8 +1,0 @@
-{
-    "https://box.nju.edu.cn/seafhttp/files/f9e59ad8-333a-40f1-8148-35ac3014e12f/index.png": [
-        {
-            "function_name": "build",
-            "content": "build() {\n    Row() {\n      Column() {\n        TextInput({ placeholder: $r('app.string.Please_enter'), text: $r('app.string.Default_testWorld') })\n          .placeholderColor('rgb(0, 0, 255)')\n          .placeholderFont({ size: 15, weight: 100, family: 'cursive', style: FontStyle.Italic })\n          .caretColor(Color.Blue)\n          .height(50)\n          .width('50%')\n          .fontSize(20)\n          .fontWeight(FontWeight.Bold)\n          .fontFamily(\"sans-serif\")\n          .fontStyle(FontStyle.Normal)\n          .fontColor(Color.Red)\n          .onChange((value: string) => {\n            this.onChangeText = value\n          })\n\n        Button($r('app.string.Test_cbor_codec'), { type: ButtonType.Normal, stateEffect: true })\n          .borderRadius(8)\n          .backgroundColor(0x317aff)\n          .width('50%')\n          .margin('10')\n          .onClick(() => {\n            if (this.onChangeText == '') {\n              prompt.showToast({ message: this.getResourceString($r('app.string.Test_cbor_codec')), duration: 200 })\n              return\n            } else {\n              this.testCbor(this.onChangeText)\n            }\n          })\n      }\n      .width('100%')\n    }\n    .height('100%')\n  }"
-        }
-    ]
-}

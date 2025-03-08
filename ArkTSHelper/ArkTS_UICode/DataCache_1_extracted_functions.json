@@ -1,8 +1,0 @@
-{
-    "entry\\src\\main\\ets\\pages\\Index.ets": [
-        {
-            "function_name": "build",
-            "content": "build() {\n    Column() {\n      TabBar()\n    }\n    .height(FULL_HEIGHT)\n    .width(FULL_WIDTH)\n    .backgroundColor($r('app.color.app_background'))\n  }"
-        }
-    ]
-}

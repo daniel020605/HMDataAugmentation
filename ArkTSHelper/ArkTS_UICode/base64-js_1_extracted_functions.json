@@ -1,8 +1,0 @@
-{
-    "entry\\src\\main\\ets\\pages\\Index.ets": [
-        {
-            "function_name": "build",
-            "content": "build() {\n    Row() {\n      Column() {\n        TextInput({ placeholder: getContext().resourceManager.getStringByNameSync('Text_String1')  })\n          .onChange((v) => {\n            this.encode(v)\n          })\n        Row() {\n          Text('length:')\n          Text(this.length + '')\n        }.width('90%')\n\n        Row() {\n          Text('toByteArray:')\n          Text(Unit8ArrayUtils.Uint8ArrayToString(this.toByteArray))\n        }.width('90%')\n\n        Row() {\n          Text('fromByteArray:')\n          Text(this.fromByteArray)\n        }.width('90%')\n      }.justifyContent(FlexAlign.Start)\n      .width('100%')\n      .height('85%')\n    }\n    .height('100%')\n  }"
-        }
-    ]
-}
