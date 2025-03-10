@@ -1,8 +1,0 @@
-{
-    "entry\\src\\main\\ets\\pages\\Index.ets": [
-        {
-            "function_name": "build",
-            "content": "build() {\n    Column() {\n      Row() {\n        Text($r(\"app.string.text_version_a\"))\n        TextInput({ placeholder: $r(\"app.string.placeholder_input\"), text: this.versionA, })\n          .width(\"50%\")\n          .onChange((value: string) => {\n            this.versionA = value;\n          })\n          .onBlur(() => {\n            this.currentEdit = ECurrentEdit.B\n            console.log(`vvvv---${this.currentEdit}}`)\n          })\n      }.margin({ bottom: 20 })\n\n      Row() {\n        Text($r(\"app.string.text_version_b\"))\n        TextInput({ placeholder: $r('app.string.placeholder_input'), text: this.versionB })\n          .width(\"50%\")\n          .onChange((value: string) => {\n            this.versionB = value;\n          })\n          .onBlur(() => {\n            this.currentEdit = ECurrentEdit.A\n            console.log(`vvvv---${this.currentEdit}}`)\n          })\n      }"
-        }
-    ]
-}

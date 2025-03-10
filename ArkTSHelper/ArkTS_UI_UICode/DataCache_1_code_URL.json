@@ -1,8 +1,0 @@
-{
-    "https://box.nju.edu.cn/seafhttp/files/94f223df-540d-403d-90da-570f9b7e372f/Index.png": [
-        {
-            "function_name": "build",
-            "content": "build() {\n    Column() {\n      TabBar()\n    }\n    .height(FULL_HEIGHT)\n    .width(FULL_WIDTH)\n    .backgroundColor($r('app.color.app_background'))\n  }"
-        }
-    ]
-}

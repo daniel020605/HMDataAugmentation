@@ -54,6 +54,7 @@ def take_screenshot(output_folder,timeout=600, interval=0.5):
 
         if new_files:
             # 假设只有一个新文件
+            time.sleep(0.5)
             new_file = new_files.pop()
             new_file_path = os.path.join(output_folder, new_file)
             print(f"检测到新截图")
