@@ -4,7 +4,6 @@ from tqdm import tqdm
 
 from ArkTSAbstractor.fileAnalyzer import analyze_ets_file
 from ArkTSAbstractor.tool import check_project_version
-from importAnalyzer import analyze_imports
 
 def get_ets_files(project_path):
     ets_files = []
@@ -38,7 +37,8 @@ def analyze_ets_project(project_path):
                 'file_type': analysis.file_type,
                 'ui_code': analysis.ui_code,
                 'variables': analysis.variables,
-                'functions': analysis.functions
+                'functions': analysis.functions,
+                'imports': analysis.imports
             })
 
     with open(output_file, 'w', encoding='utf-8') as json_file:

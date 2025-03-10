@@ -116,3 +116,14 @@ if __name__ == "__main__":
 
     # folder_path = "/Users/liuxuejin/Downloads/github_cloned_repos_1min_stars/19-CialloOpenHarmony"
     # print(check_project_version(folder_path))
+    folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/complete_function"
+    print(count_json_items_in_folder(folder_path))
+
+    folder_path = "/Users/liuxuejin/Desktop/Data/out"
+    print(count_json_items_in_folder(folder_path))
+
+    folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/code_classification/UI"
+    print(count_json_items_in_folder(folder_path))
+
+    folder_path = "/Users/liuxuejin/Desktop/Projects/PythonTools/test/UIOut"
+    print(count_json_items_in_folder(folder_path))
