@@ -2,6 +2,7 @@ import os
 import re
 import json
 
+from ArkTSAbstractor.importAnalyzer import analyze_imports
 from ArkTSAbstractor.logger import setup_logger, log_directory
 from tool import load_reserved_words
 
@@ -17,6 +18,7 @@ class ETSFileAnalysis:
         self.ui_code = []
         self.variables = []
         self.functions = []
+        self.imports = []
 
     def set_file_type(self, file_type):
         self.file_type = file_type
@@ -29,6 +31,15 @@ class ETSFileAnalysis:
 
     def add_function(self, function):
         self.functions.append(function)
+
+    def add_import(self, import_type, module_name, component_name=None, alias=None):
+        reference = {
+            'import_type': import_type,
+            'module_name': module_name,
+            'component_name': component_name,
+            'alias': alias
+        }
+        self.imports.append(reference)
 
 def find_balanced_braces(content, start_pos):
     brace_count = 0
@@ -47,6 +58,8 @@ def analyze_ets_file(file_path):
             file_contents = file.read()
             file_basename = os.path.basename(file_path)
             analysis = ETSFileAnalysis(file_contents)
+            references = analyze_imports(file_contents)
+            analysis.imports = references.references
             complete_functions = []
             # Determine file type
             if re.search(r'@Entry\s*@Component\s*struct', file_contents):
@@ -120,11 +133,16 @@ def analyze_ets_file(file_path):
                             }
                             analysis.add_function(function)
                         if file_contents[match.start():end_pos + 1].strip():
-                            complete_functions.append((file_path, file_contents[match.start():end_pos + 1].strip()))
+                            complete_functions.append((str(references.references), file_contents[match.start():end_pos + 1].strip()))
             if not os.path.exists(function_folder):
                 os.makedirs(function_folder)
             if complete_functions:
-                with open(os.path.join(function_folder, file_basename + '.json'), 'a+') as f:
+                file_path = os.path.join(function_folder, file_basename + '.json')
+                if os.path.exists(file_path):
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        existing_functions = json.load(f)
+                    complete_functions.extend(existing_functions)
+                with open(file_path, 'w', encoding='utf-8') as f:
                     json.dump(complete_functions, f, indent=4, ensure_ascii=False)
 
             return analysis
