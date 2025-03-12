@@ -1,10 +1,10 @@
 import os
 import shutil
 
-SINGLE_FILE_PROJECTS_DIR = r"C:\Users\sunguyi\Desktop\repos\singleFileProjects"
-EMPTY_PROJECT_INDEX_PATH = r"C:\Users\sunguyi\Desktop\repos\emptyProject\entry\src\main\ets\pages\Index.ets"
-SCREENSHOT_OUTPUT_DIR = r"C:\Users\sunguyi\Desktop\repos\UIPictures"
-IMG_PATH = r"C:\Users\sunguyi\Desktop\repos\emptyProject\entry\src\main\resources\base\media"
+SINGLE_FILE_PROJECTS_DIR = r"/Users/jiaoyiyang/harmonyProject/repos/mutationProjects"
+EMPTY_PROJECT_INDEX_PATH = r"/Users/jiaoyiyang/harmonyProject/repos/emptyProject/entry/src/main/ets/pages/Index.ets"
+SCREENSHOT_OUTPUT_DIR = r"/Users/jiaoyiyang/harmonyProject/repos/UIPictures"
+IMG_PATH = r"/Users/jiaoyiyang/harmonyProject/repos/emptyProject/entry/src/main/resources/base/media"
 
 import os
 import subprocess
@@ -15,14 +15,13 @@ def run_deveco_project():
     """运行Deveco项目的示例函数（需要根据实际环境修改）"""
     print("正在运行Deveco项目...")
     try:
-        # 示例命令1: 构建项目（假设使用npm）
+        # 示例命令1: 构建项目
         # subprocess.run(["npm", "run", "build"], check=True, cwd=project_dir)
 
         # 示例命令2: 使用hdc安装并启动HarmonyOS应用
         # subprocess.run(["hdc", "install", "path/to/your_app.hap"], check=True)
         # subprocess.run(["hdc", "shell", "aa start -p your.package.name -n .MainAbility"], check=True)
 
-        # 如果无法通过命令行运行，可以提示用户手动操作
         print("请手动运行项目（如按Shift+F10）并等待应用启动...")
     except subprocess.CalledProcessError as e:
         print(f"运行失败: {e}")
@@ -70,10 +69,8 @@ def take_screenshot(output_folder,timeout=600, interval=0.5):
 def list_subdirectories(root_dir):
     """只遍历指定目录的直接子文件夹"""
     try:
-        # 获取root_dir目录中的所有文件和文件夹
         entries = os.listdir(root_dir)
 
-        # 筛选出子文件夹
         subdirs = [entry for entry in entries if os.path.isdir(os.path.join(root_dir, entry))]
 
         return subdirs
