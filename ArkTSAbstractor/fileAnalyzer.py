@@ -32,10 +32,11 @@ class ETSFileAnalysis:
     def add_function(self, function):
         self.functions.append(function)
 
-    def add_import(self, import_type, module_name, component_name=None, alias=None):
+    def add_reference(self, import_type, module_name, full_import, component_name=None, alias=None):
         reference = {
             'import_type': import_type,
             'module_name': module_name,
+            'full_import': full_import,
             'component_name': component_name,
             'alias': alias
         }
@@ -133,7 +134,7 @@ def analyze_ets_file(file_path):
                             }
                             analysis.add_function(function)
                         if file_contents[match.start():end_pos + 1].strip():
-                            complete_functions.append((str(references.references), file_contents[match.start():end_pos + 1].strip()))
+                            complete_functions.append((references.references, file_contents[match.start():end_pos + 1].strip()))
             if not os.path.exists(function_folder):
                 os.makedirs(function_folder)
             if complete_functions:
