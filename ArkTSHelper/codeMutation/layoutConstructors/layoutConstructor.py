@@ -20,7 +20,7 @@ def generate_example(comp1, comp2):
 {layout_code}
 }}"""
 
-        return full_code
+        return full_code , imports
 
 
 
@@ -30,4 +30,5 @@ if __name__ == "__main__":
         # 生成示例
         print(f"示例{i}：")
         print(
-            generate_example("Button('Submit').type(ButtonType.Capsule)", "Button('Submit').type(ButtonType.Capsule)"))
+            generate_example("Button('Submit').type(ButtonType.Capsule)", "Button('Submit').type(ButtonType.Capsule)")
+        )

@@ -105,7 +105,12 @@ class BaseLayout(ABC):
         children = []
 
         # 生成额外组件（0-3个）
-        extra_components = [create_generator().generate() for _ in range(random.randint(0, 3))]
+        extra_components = []
+        imports = []
+        for _ in range(random.randint(0, 3)):
+            generator = create_generator()
+            extra_components.append(generator.generate())
+            imports.extend(generator.imports)
 
         if len(extra_components) > 0:
             # 确保主组件被分隔的插入策略
@@ -136,7 +141,7 @@ class BaseLayout(ABC):
             layout_code.append(".width('100%')")
         if random.random() < 0.5:
             layout_code.append(".padding(10)")
-        if random.random() < 0.5:
+        if random.random() < 0.20:
             layout_code.append(f".backgroundColor({random_color()})")
         return '\n'.join(layout_code), imports
 

@@ -1,4 +1,4 @@
-import os
+
 import shutil
 
 SINGLE_FILE_PROJECTS_DIR = r"/Users/jiaoyiyang/harmonyProject/repos/mutationProjects"
@@ -6,23 +6,25 @@ EMPTY_PROJECT_INDEX_PATH = r"/Users/jiaoyiyang/harmonyProject/repos/emptyProject
 SCREENSHOT_OUTPUT_DIR = r"/Users/jiaoyiyang/harmonyProject/repos/UIPictures"
 IMG_PATH = r"/Users/jiaoyiyang/harmonyProject/repos/emptyProject/entry/src/main/resources/base/media"
 
+import pyautogui
 import os
 import subprocess
 import time
 
+BUTTON_COORDINATES = [
+    (805, 52),
+    (1420,495),
+    (1300, 523)
+]
 
 def run_deveco_project():
     """运行Deveco项目的示例函数（需要根据实际环境修改）"""
     print("正在运行Deveco项目...")
     try:
-        # 示例命令1: 构建项目
-        # subprocess.run(["npm", "run", "build"], check=True, cwd=project_dir)
+        print()
+        # pyautogui.click(BUTTON_COORDINATES[0][0], BUTTON_COORDINATES[0][1])
+        # time.sleep(3)
 
-        # 示例命令2: 使用hdc安装并启动HarmonyOS应用
-        # subprocess.run(["hdc", "install", "path/to/your_app.hap"], check=True)
-        # subprocess.run(["hdc", "shell", "aa start -p your.package.name -n .MainAbility"], check=True)
-
-        print("请手动运行项目（如按Shift+F10）并等待应用启动...")
     except subprocess.CalledProcessError as e:
         print(f"运行失败: {e}")
     except FileNotFoundError:
@@ -42,7 +44,9 @@ def take_screenshot(output_folder,timeout=600, interval=0.5):
     initial_files = set(os.listdir(output_folder))
 
     print(f"开始轮询，等待新截图出现...")
-
+    # pyautogui.click(BUTTON_COORDINATES[1][0], BUTTON_COORDINATES[1][1])
+    # time.sleep(0.5)
+    # pyautogui.click(BUTTON_COORDINATES[2][0], BUTTON_COORDINATES[2][1])
     start_time = time.time()
     while time.time() - start_time < timeout:
         # 获取当前文件夹中的文件列表
@@ -158,6 +162,8 @@ def process_ets_files(root_dir, index_ets_path):
     print(f"共处理 {count} 个文件夹")
 
 def main():
+    print("请打开Deveco运行界面")
+    #time.sleep(5)
     process_ets_files(SINGLE_FILE_PROJECTS_DIR, EMPTY_PROJECT_INDEX_PATH)
 
 if __name__ == "__main__":
