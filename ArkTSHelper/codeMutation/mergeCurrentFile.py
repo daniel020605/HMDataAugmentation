@@ -72,6 +72,12 @@ def merge_ets_files(file1_path: str, file2_path: str, output_path: str):
     imports1, pre1, comp1, post1 = parse_file(file1_path)
     imports2, pre2, comp2, post2 = parse_file(file2_path)
 
+    build_contents, build_imports = build_content_merge(comp1, comp2)
+    if imports1.__contains__("@@kit.ArkUI"):
+        imports1["@kit.ArkUI"] = imports1["@kit.ArkUI"].union(build_imports)
+    else:
+        imports1["@kit.ArkUI"] = set(build_imports)
+
     # 合并imports
     merged_imports = {}
     for lib in set(itertools.chain(imports1.keys(), imports2.keys())):
@@ -81,13 +87,14 @@ def merge_ets_files(file1_path: str, file2_path: str, output_path: str):
     merged_pre = '\n\n'.join(filter(None, [pre1, pre2]))
     merged_post = '\n\n'.join(filter(None, [post1, post2]))
 
+
     # 生成最终内容
     final_content = f"""
 {generate_imports(merged_imports)}
 
 {merged_pre}
 
-{build_content_merge(comp1, comp2)}
+{build_contents}
 
 {merged_post}
 """.strip()
@@ -158,7 +165,7 @@ def build_content_merge(comp1, comp2):
     # 提取build方法内容
     before_build1, build1, after_build1 = extract_build_parts(comp1)
     before_build2, build2, after_build2 = extract_build_parts(comp2)
-    merged_build = generate_example(build1, build2)
+    merged_build, imports = generate_example(build1, build2)
     res = before_build1+ '\n' +before_build2 + '\n'+ merged_build+ '\n' + after_build1 + '\n'+ after_build2
     return f"""
 @Entry
@@ -166,7 +173,7 @@ def build_content_merge(comp1, comp2):
 struct Index {{
 {res}
 }}
-""".strip()
+""".strip() , imports
 
 
 if __name__ == "__main__":

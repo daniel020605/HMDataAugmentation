@@ -100,6 +100,6 @@ def create_subfolder_and_file(target_dir, file_name):
     return subfolder_path , file_path
 
 if __name__ == "__main__":
-    for i in range(50):
+    for i in range(20):
         selectedEts, targetFile = get_ets_files(SOURCE_FILE_DIR)
         merge_ets_files(selectedEts[0], selectedEts[1], targetFile)
