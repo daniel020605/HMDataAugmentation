@@ -119,11 +119,14 @@ if __name__ == "__main__":
     folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/complete_function"
     print(count_json_items_in_folder(folder_path))
 
-    folder_path = "/Users/liuxuejin/Desktop/Data/out"
-    print(count_json_items_in_folder(folder_path))
+    # folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/function_with_import"
+    # print(count_json_items_in_folder(folder_path))
 
     folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/code_classification/UI"
     print(count_json_items_in_folder(folder_path))
 
     folder_path = "/Users/liuxuejin/Desktop/Projects/PythonTools/test/UIOut"
+    print(count_json_items_in_folder(folder_path))
+
+    folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/function_with_import_plain_ORIGIN_ONLY"
     print(count_json_items_in_folder(folder_path))
