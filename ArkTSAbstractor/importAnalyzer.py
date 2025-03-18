@@ -23,7 +23,7 @@ def analyze_imports(file_content):
     for line in file_content.splitlines():
         match = import_pattern.match(line)
         if match:
-            full_import = match.group(0)
+            full_import = match.group(0).replace('{', '{').replace('}', '}')
             imports, module_name = match.groups()
             if imports.startswith('{'):
                 named_imports = [imp.strip() for imp in imports[1:-1].split(',')]

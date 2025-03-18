@@ -21,12 +21,16 @@ def get_generation(func):
         "messages": [{"content": f'''### 你是谁
 你是一个鸿蒙移动端开发专家，主要使用的开发语言是ArkTS。
 ### 你要做什么
-1. 你需要阅读一段「ArkTS代码」，理解这段代码的含义，详细分析这段代码的意图和需求点。
-2. 在理解代码后生成描述「生成代码的指令」，描述这个要求时，假设你并不知道其对应的代码实现，并比较凝练地描述代码生成的需求，但不需要描述代码细节，即“请你为我生成一个……的代码”，Solution是「原始代码」本身。
+1. 你需要认真阅读一段「ArkTS代码」，理解代码的内涵，并分析代码中的关键部分。
+2. 为代码中的关键部分添加注释。
 ### 要求
-1. 不要在思考时就写指令，仅在思考后完成你的指令。
-2. 你的回答格式**必须** **有且只有** 生成代码的指令。
-待理解代码：「{func}」
+1. 不能修改代码原来的内容。
+2. 不要在思考时就添加注释，在完全思考后再为代码添加注释。
+3. 你最后的输出要求为
+    ```typescript
+        添加注释后的代码
+    ```
+待注释代码：「{func}」
 ''',
                       "role": "system"}]
     }
@@ -49,8 +53,8 @@ def process_file(file_path, output_path):
                 results = []
                 for data in tqdm(datas):
                     results.append({
-                        "query" : get_generation(data),
-                        "solution" : data
+                        "comment_code" : get_generation(data),
+                        "origin_code" : data
                     })
                 if results:
                     with open(output_path, 'w', encoding='utf-8') as output_file:
@@ -67,5 +71,5 @@ def process_folder(folder_path, output_folder):
 
 if __name__ == '__main__':
     # result = get_generation("function listStyle() {\n  .width(CommonConstants.FULL_WIDTH_PERCENT)\n  .borderRadius($r('app.float.radius_16'))\n  .backgroundColor(Color.White)\n  .padding({ left: $r('app.float.scan_tip_margin_top'), right: $r('app.float.scan_tip_margin_top') })\n  .margin({ bottom: $r('app.float.scan_tip_margin_top') })\n}")
-    process_file("./test_data.json", "output_data_002.json")
-    # process_file("/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/function_with_import_plain_ORIGIN_ONLY/Index.ets.json", "./output_data_index.json")
+    process_file("./test_data.json", "./data/comment/output_data_002.json")
+    # process_file("/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/function_with_import_plain_ORIGIN_ONLY/Index.ets.json", "./comment/output_data_index.json")
