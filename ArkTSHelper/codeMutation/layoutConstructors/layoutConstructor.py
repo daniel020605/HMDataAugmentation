@@ -9,7 +9,7 @@ from ArkTSHelper.codeMutation.layoutConstructors.stackLayout import StackLayout
 def generate_example(comp1, comp2):
 
         # 随机选择布局类型
-        layout = random.choice([FlexLayout(), RowLayout(), ColumnLayout(), StackLayout()])
+        layout = random.choice([FlexLayout(), RowLayout(), ColumnLayout(), StackLayout(), ColumnLayout(), FlexLayout()])
 
         # 生成布局代码
         layout_code, imports = layout.wrap_children(comp1, comp2)

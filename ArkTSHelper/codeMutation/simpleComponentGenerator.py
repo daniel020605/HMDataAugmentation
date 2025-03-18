@@ -113,7 +113,7 @@ class EditableTitleBarGenerator(ComponentGenerator):
                 "$r('sys.media.ohos_ic_normal_white_grid_image')",
                 "$r('app.media.app_icon')"
             ])
-            is_enabled = random.choice([True, False])
+            is_enabled = random.choice(['true', 'false'])
             action = "() => { promptAction.showToast({ message: '头像点击' }) }"
             image_item = f"{{ value: {image_value}, isEnabled: {str(is_enabled).lower()}, action: {action} }}"
             params.append(f"imageItem: {image_item}")
@@ -127,7 +127,7 @@ class EditableTitleBarGenerator(ComponentGenerator):
                 "$r('sys.media.ohos_ic_public_add')"
             ])
             label = random.choice(["删除", "取消", "添加"]) if random.random() < 0.5 else None
-            is_enabled = random.choice([True, False])
+            is_enabled = random.choice(['true', 'false'])
             action = "() => { promptAction.showToast({ message: '菜单项点击' }) }"
             menu_item = "{ value: " + value
             if label:
@@ -201,6 +201,85 @@ def apply_styles(base: str, styles: List[str]) -> str:
     return base
 
 
+class SelectTitleBarGenerator(ComponentGenerator):
+    @property
+    def imports(self):
+        return [
+            "SelectTitleBar",
+            "promptAction",
+            "SelectTitleBarMenuItem"
+        ]
+
+    def generate(self):
+        params = []
+
+        # 必填参数
+        # options生成
+        option_templates = [
+            ["所有照片", "本地（设备）", "本地储存卡）"],
+            ["最新消息", "未读消息", "已归档"],
+            ["全部文件", "图片", "视频", "文档"]
+        ]
+        options = [f"{{ value: '{item}' }}"
+                   for item in random.choice(option_templates)]
+        params.append(f"options: [{', '.join(options)}]")
+
+        # selected生成（基于options长度）
+        selected_index = random.randint(0, len(options) - 1)
+        params.append(f"selected: {selected_index}")
+
+        # 可选参数
+        # subtitle
+        if random.random() < 0.4:
+            subtitles = [
+                "example@example.com",
+                "未读消息 5条",
+                f"最后更新：2024-0{random.randint(1, 9)}-0{random.randint(1, 9)}",
+                "存储空间 85%"
+            ]
+            params.append(f"subtitle: '{random.choice(subtitles)}'")
+
+        # menuItems
+        if random.random() < 0.6:
+            icons = [
+                "$r('sys.media.ohos_save_button_filled')",
+                "$r('sys.media.ohos_ic_public_copy')",
+                "$r('sys.media.ohos_ic_public_edit')",
+                "$r('sys.media.ohos_ic_public_remove')"
+            ]
+            menu_items = []
+            for _ in range(random.randint(1, 3)):
+                menu_item = [
+                    f"value: {random.choice(icons)}",
+                    f"isEnabled: {random.choice(['true', 'false'])}"
+                ]
+                if random.random() < 0.3:
+                    menu_item.append("action: () => promptAction.showToast({ message: '菜单点击' })")
+                menu_items.append("{ " + ", ".join(menu_item) + " }")
+            params.append(f"menuItems: [{', '.join(menu_items)}]")
+
+        # badgeValue
+        if random.random() < 0.3:
+            badge = random.choice([
+                random.randint(1, 99),
+                random.randint(100, 200),  # 测试超大数值情况
+                random.choice([0, -1])  # 测试不显示情况
+            ])
+            params.append(f"badgeValue: {badge}")
+
+        # hidesBackButton
+        if random.random() < 0.4:
+            params.append(f"hidesBackButton: {random.choice(['true', 'false'])}")
+
+        # 事件处理
+        if random.random() < 0.7:
+            params.append(
+                "onSelected: (index) => promptAction.showToast({ message: `选中索引: ${index}` })"
+            )
+
+        return f"SelectTitleBar({{ {', '.join(params)} }})"
+
+
 # --------------------------
 # 组件注册表
 # --------------------------
@@ -208,14 +287,23 @@ GENERATOR_CLASSES = [
     BlankGenerator,
     TextGenerator,
     TextGenerator,
-    DividerGenerator,
+    DividerGenerator
+]
+TOP_GENERATOR_CLASSES = [
+    BlankGenerator,
+    TextGenerator,
+    TextGenerator,
     EditableTitleBarGenerator,
+    SelectTitleBarGenerator
 ]
 
 
-def create_generator() -> ComponentGenerator:
+def create_generator(pos = 'normal') -> ComponentGenerator:
     """创建随机组件生成器"""
-    return random.choice(GENERATOR_CLASSES)()
+    if pos == 'Top':
+        return random.choice(TOP_GENERATOR_CLASSES)()
+    else:
+        return random.choice(GENERATOR_CLASSES)()
 
 
 

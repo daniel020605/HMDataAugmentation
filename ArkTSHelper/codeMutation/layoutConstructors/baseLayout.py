@@ -107,17 +107,19 @@ class BaseLayout(ABC):
         # 生成额外组件（0-3个）
         extra_components = []
         imports = []
-        for _ in range(random.randint(0, 3)):
-            generator = create_generator()
+        for i in range(random.randint(0, 3)):
+            if i == 0:
+                generator = create_generator('Top')
+            else:
+                generator = create_generator()
             extra_components.append(generator.generate())
             imports.extend(generator.imports)
 
         if len(extra_components) > 0:
-            # 确保主组件被分隔的插入策略
             children = (
-                    extra_components[1:2]
+                    extra_components[:1]
                     + [comp1]
-                    + extra_components[:1]
+                    + extra_components[1:2]
                     + [comp2]
                     + extra_components[2:]
             )
