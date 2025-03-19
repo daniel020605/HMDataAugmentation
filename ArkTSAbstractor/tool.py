@@ -95,6 +95,7 @@ def check_project_version(directory):
             for match in version_pattern.finditer(content):
                 if match.group(5) and match.group(5).strip().isnumeric():
                     if int(match.group(5)) < 10:
+                        print(f"跳过项目 {directory}: 不支持的版本 {match.group(5)}")
                         return False
                     else:
                         return True
