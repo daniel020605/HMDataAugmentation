@@ -16,22 +16,44 @@ class ETSFileAnalysis:
     def __init__(self, file_path):
         self.file_path = file_path
         self.file_type = None
-        self.ui_code = []
+        self.ui_code = []  # 现在存储的是包含完整信息的字典
         self.variables = []
-        self.functions = []
+        self.functions = []  # 现在存储的是包含完整信息的字典
         self.imports = []
+        self.classes = []
+        self.structs = []
+        self.modules = []
 
     def set_file_type(self, file_type):
         self.file_type = file_type
 
-    def add_ui_code(self, ui_code):
-        self.ui_code.append(ui_code)
+    def add_ui_code(self, ui_code, imports=None, variables=None):
+        ui_info = {
+            'content': ui_code,
+            'imports': imports or [],
+            'variables': variables or []
+        }
+        self.ui_code.append(ui_info)
 
     def add_variable(self, variable):
         self.variables.append(variable)
 
-    def add_function(self, function):
-        self.functions.append(function)
+    def add_function(self, function, imports=None, variables=None):
+        function_info = {
+            'content': function,
+            'imports': imports or [],
+            'variables': variables or []
+        }
+        self.functions.append(function_info)
+
+    def add_class(self, class_info):
+        self.classes.append(class_info)
+
+    def add_struct(self, struct_info):
+        self.structs.append(struct_info)
+
+    def add_module(self, module_info):
+        self.modules.append(module_info)
 
     def add_reference(self, import_type, module_name, full_import, component_name=None, alias=None):
         reference = {
@@ -95,31 +117,69 @@ def find_component_or_function(file_path, component_name):
         logger.error(f"Error finding component/function in {file_path}: {str(e)}")
         return None
 
-def process_resource_references(content):
-    """处理资源引用，将$r()替换为字符串常量"""
+def process_resource_references(content, resource_dir):
+    """处理资源引用
+    Args:
+        content: 文件内容
+        resource_dir: 资源目录路径
+    Returns:
+        处理后的内容
+    """
     try:
-        # 匹配$r()模式的正则表达式
-        resource_pattern = re.compile(r'\$r\([\'"]([^\'"]+)[\'"]\)')
+        # 处理media资源引用
+        # media_pattern = r'\$r\([\'"](app\.media\.[^\'"]+)[\'"]\)'
+        # content = re.sub(media_pattern, r'$r("app.media.startIcon")', content)
+
+        # 处理element资源引用
+        element_pattern = r'\$r\([\'"](app\.[^\'"]+)[\'"]\)'
         
-        # 用于存储已处理的资源引用
-        processed_resources = {}
-        
-        def replace_resource(match):
-            resource_path = match.group(1)
-            # 生成资源引用的常量名
-            constant_name = f"RESOURCE_{resource_path.replace('.', '_').replace('/', '_').upper()}"
-            # 存储资源引用信息
-            processed_resources[constant_name] = resource_path
-            # 返回替换后的字符串
-            return f'"{constant_name}"'
-        
-        # 替换所有资源引用
-        processed_content = resource_pattern.sub(replace_resource, content)
-        
-        return processed_content, processed_resources
+        def replace_element_value(match):
+            try:
+                resource_path = match.group(1)
+                # 从路径中提取键名和name
+                _, key_name, name = resource_path.split('.')
+                if key_name == 'media':
+                    return f'$r("app.media.startIcon")'
+                # 构建json文件路径
+                json_path = os.path.join(resource_dir, 'element', f'{key_name}.json')
+                print(json_path)
+                if os.path.exists(json_path):
+                    with open(json_path, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                        # 查找匹配的键名和name
+                        for item in data.get(key_name, []):
+                            if item.get('name') == name:
+                                print(item.get("value"))
+                                return f'"{item.get("value")}"'
+                # print(json_path)
+                return match.group(0)  # 如果找不到对应的value，保持原样
+
+            except Exception as e:
+                logger.error(f"Error processing element resource: {str(e)}")
+                return match.group(0)
+
+        content = re.sub(element_pattern, replace_element_value, content)
+        return content
     except Exception as e:
         logger.error(f"Error processing resource references: {str(e)}")
-        return content, {}
+        return content
+
+def remove_comments(content):
+    """移除代码中的注释"""
+    try:
+        # 移除多行注释 /* ... */
+        content = re.sub(r'/\*[\s\S]*?\*/', '', content)
+        
+        # 移除单行注释 // ...
+        content = re.sub(r'//.*$', '', content, flags=re.MULTILINE)
+        
+        # 移除空行
+        content = re.sub(r'^\s*$\n', '', content, flags=re.MULTILINE)
+        
+        return content
+    except Exception as e:
+        logger.error(f"Error removing comments: {str(e)}")
+        return content
 
 def analyze_ets_file(file_path):
     # 尝试不同的编码方式
@@ -142,98 +202,97 @@ def analyze_ets_file(file_path):
         return None
         
     try:
+        # 移除注释
+        file_contents = remove_comments(file_contents)
         file_basename = os.path.basename(file_path)
         analysis = ETSFileAnalysis(file_contents)
-        references = analyze_imports(file_contents)
-        
+        references = analyze_imports(file_contents, file_path)
+
+        # 获取资源目录路径
+        file_dir = os.path.dirname(file_path)
+        if 'entry/src/main' in file_dir:
+            # 找到entry/src/main的位置
+            main_pos = file_dir.find('entry/src/main')
+            # 截取到entry/src/main/resources/base
+            resource_dir = file_dir[:main_pos] + 'entry/src/main/resources/base'
+        else:
+            resource_dir = os.path.join(file_dir, '..', '..', 'resources', 'base')
+
+        # 处理资源引用
+        file_contents = process_resource_references(file_contents, resource_dir)
+
         # 优化导入语句
-        optimized_imports = []
-        for ref in references.references:
+        analysis.imports = references.references
+
+        # 提取类、结构体和导出模块
+        # 1. 提取类定义
+        class_pattern = re.compile(r'class\s+(\w+)(?:\s+extends\s+(\w+))?(?:\s+implements\s+([^{]+))?\s*\{')
+        for match in class_pattern.finditer(file_contents):
             try:
-                if not ref.get('component_name'):  # 如果component_name为None或不存在
-                    optimized_imports.append(ref)
-                    continue
-                    
-                if ref['import_type'] == 'named':
-                    module_name = ref['module_name']
-                    # 检查是否为相对路径导入
-                    if not module_name.startswith('@'):
-                        # 解析相对路径
-                        resolved_path = resolve_relative_path(file_path, module_name)
-                        if resolved_path:
-                            # 查找对应的组件或函数
-                            component_content = find_component_or_function(resolved_path, ref['component_name'])
-                            if component_content:
-                                # 将找到的内容添加到导入中
-                                ref['component_content'] = component_content
-                    
-                    # 检查是否包含多个组件
-                    if ',' in ref['component_name']:
-                        # 处理多个命名导入的情况
-                        components = [c.strip() for c in ref['component_name'].split(',')]
-                        for component in components:
-                            if component:  # 确保组件名不为空
-                                optimized_imports.append({
-                                    'import_type': 'named',
-                                    'module_name': module_name,
-                                    'full_import': f"import {{ {component} }} from '{module_name}';",
-                                    'component_name': component,
-                                    'alias': None,
-                                    'component_content': ref.get('component_content')
-                                })
-                    else:
-                        # 单个命名导入
-                        optimized_imports.append({
-                            'import_type': 'named',
-                            'module_name': module_name,
-                            'full_import': f"import {{ {ref['component_name']} }} from '{module_name}';",
-                            'component_name': ref['component_name'],
-                            'alias': None,
-                            'component_content': ref.get('component_content')
-                        })
-                elif ref['import_type'] == 'default' and '{' in ref['component_name']:
-                    # 处理默认导入和命名导入混合的情况
-                    module_name = ref['module_name']
-                    # 分离默认导入和命名导入
-                    parts = ref['component_name'].split(',')
-                    if not parts:  # 如果parts为空，跳过这个导入
-                        continue
-                        
-                    default_import = parts[0].strip()
-                    if not default_import:  # 如果默认导入为空，跳过这个导入
-                        continue
-                        
-                    # 添加默认导入
-                    optimized_imports.append({
-                        'import_type': 'default',
-                        'module_name': module_name,
-                        'full_import': f"import {default_import} from '{module_name}';",
-                        'component_name': default_import,
-                        'alias': None
-                    })
-                    
-                    # 处理命名导入
-                    if len(parts) > 1:  # 确保有命名导入部分
-                        named_imports = parts[1].strip('{} ').split(',')
-                        for named_import in named_imports:
-                            named_import = named_import.strip()
-                            if named_import:  # 确保命名导入不为空
-                                optimized_imports.append({
-                                    'import_type': 'named',
-                                    'module_name': module_name,
-                                    'full_import': f"import {{ {named_import} }} from '{module_name}';",
-                                    'component_name': named_import,
-                                    'alias': None
-                                })
-                else:
-                    optimized_imports.append(ref)
+                class_name = match.group(1)
+                parent_class = match.group(2)
+                interfaces = [i.strip() for i in match.group(3).split(',')] if match.group(3) else []
+
+                # 找到类的结束位置
+                start_pos = match.end() - 1
+                end_pos = find_balanced_braces(file_contents, start_pos)
+                if end_pos != -1:
+                    class_content = file_contents[match.start():end_pos + 1].strip()
+                    class_info = {
+                        'name': class_name,
+                        'parent_class': parent_class,
+                        'interfaces': interfaces,
+                        'content': class_content
+                    }
+                    analysis.add_class(class_info)
             except Exception as e:
-                logger.error(f"Error processing import in {file_path}: {str(e)}")
+                logger.error(f"Error processing class in {file_path}: {str(e)}")
                 continue
 
-        analysis.imports = optimized_imports
-        complete_functions = []
-        ui_with_imports = []
+        # 2. 提取结构体定义
+        struct_pattern = re.compile(r'@Component\s*(export)?\s*struct\s+(\w+)(?:\s+implements\s+([^{]+))?\s*\{')
+        for match in struct_pattern.finditer(file_contents):
+            try:
+                struct_name = match.group(2)
+                interfaces = [i.strip() for i in match.group(3).split(',')] if match.group(3) else []
+                is_export = bool(match.group(1))
+
+                # 找到结构体的结束位置
+                start_pos = match.end() - 1
+                end_pos = find_balanced_braces(file_contents, start_pos)
+                if end_pos != -1:
+                    struct_content = file_contents[match.start():end_pos + 1].strip()
+                    struct_info = {
+                        'name': struct_name,
+                        'interfaces': interfaces,
+                        'is_export': is_export,
+                        'content': struct_content
+                    }
+                    analysis.add_struct(struct_info)
+            except Exception as e:
+                logger.error(f"Error processing struct in {file_path}: {str(e)}")
+                continue
+
+        # 3. 提取导出模块
+        module_pattern = re.compile(r'export\s+module\s+(\w+)\s*\{')
+        for match in module_pattern.finditer(file_contents):
+            try:
+                module_name = match.group(1)
+
+                # 找到模块的结束位置
+                start_pos = match.end() - 1
+                end_pos = find_balanced_braces(file_contents, start_pos)
+                if end_pos != -1:
+                    module_content = file_contents[match.start():end_pos + 1].strip()
+                    module_info = {
+                        'name': module_name,
+                        'content': module_content
+                    }
+                    analysis.add_module(module_info)
+            except Exception as e:
+                logger.error(f"Error processing module in {file_path}: {str(e)}")
+                continue
+
         # Determine file type
         if re.search(r'@Entry\s*@Component\s*struct', file_contents):
             analysis.set_file_type("Page")
@@ -241,8 +300,6 @@ def analyze_ets_file(file_path):
             analysis.set_file_type("Component")
         else:
             analysis.set_file_type("Service")
-            # Extract variable declarations
-
 
         # Extract UI code blocks
         ui_code_patterns = [r'build\s*\(\)\s*\{', r'@Builder\s*\w+\s?\((\w+\s?:+\s?\w+)?\)\s*\{']
@@ -260,44 +317,24 @@ def analyze_ets_file(file_path):
                         ui_code = file_contents[match_start:end_pos + 1].strip()
                         if not ui_code:  # 如果UI代码为空，跳过
                             continue
-                            
-                        # 补全UI代码
-                        used_imports = set()
-                        used_variables = set()
-                        
+
+                        # 检查UI代码中使用的导入和变量
+                        used_imports = []
+                        used_variables = []
+
                         # 检查UI代码中使用的导入
                         for imp in analysis.imports:
                             if imp.get('component_name') and imp['component_name'] in ui_code:
-                                used_imports.add(imp['full_import'])
-                        
+                                used_imports.append(imp)
+
                         # 检查UI代码中使用的变量
                         for var in analysis.variables:
                             if var.get('name') and var['name'] in ui_code:
-                                # 构建变量声明
-                                var_declaration = []
-                                if var.get('modifiers'):
-                                    var_declaration.extend(var['modifiers'])
-                                if var.get('type'):
-                                    var_declaration.append(f"{var['name']}: {var['type']}")
-                                else:
-                                    var_declaration.append(var['name'])
-                                if var.get('value'):
-                                    var_declaration.append(f"= {var['value']}")
-                                used_variables.add(' '.join(var_declaration))
-                        
-                        # 组合补全后的UI代码
-                        if used_imports or used_variables:
-                            complete_ui = []
-                            if used_imports:
-                                complete_ui.extend(used_imports)
-                            if used_variables:
-                                complete_ui.extend(used_variables)
-                            complete_ui.append(ui_code)
-                            ui_code = '\n'.join(complete_ui)
-                        
-                        # 保存UI代码到分析对象
-                        analysis.add_ui_code(ui_code)
-                        # 记录需要删除的区间（起始和结束位置）
+                                used_variables.append(var)
+
+                        # 保存UI代码及其依赖信息
+                        analysis.add_ui_code(ui_code, used_imports, used_variables)
+                        # 记录需要删除的区间
                         matches.append((match_start, end_pos + 1))
                 except Exception as e:
                     logger.error(f"Error processing UI code in {file_path}: {str(e)}")
@@ -335,6 +372,11 @@ def analyze_ets_file(file_path):
                 if re.search(r'class\s+\w+\s*{|interface\s+\w+\s*{', context):
                     continue
 
+                # 检查是否在函数调用参数中
+                context = file_contents[max(0, match.start() - 100):match.start()]
+                if re.search(r'\w+\s*\([^)]*$', context):  # 检查是否在函数调用的括号内
+                    continue
+
                 # 提取所有修饰符
                 modifiers = []
                 full_match = match.group(0)
@@ -365,7 +407,7 @@ def analyze_ets_file(file_path):
                 logger.error(f"Error processing variable in {file_path}: {str(e)}")
                 continue
 
-        # Extract function declarations and complete them with imports and variables
+        # Extract function declarations
         function_pattern = re.compile(
             r'(\w+\s)?(\w+\s?)(=\s?)?\(\s?((\.\.\.)?((\w+\??\s?:\s?[^)]+\s?)(,\s?\w+\??\s?:\s?[^)]+)*)?)\)\s*?\s?(=>\s?)?(:\s?\w+\s?)?\{')
         for match in function_pattern.finditer(file_contents):
@@ -373,7 +415,7 @@ def analyze_ets_file(file_path):
                 function_name = match.group(2).strip() if match.group(2) else None
                 if not function_name or function_name in reserved_words:
                     continue
-                    
+
                 if function_name != 'build':
                     start_pos = match.end() - 1
                     end_pos = find_balanced_braces(file_contents, start_pos)
@@ -382,121 +424,33 @@ def analyze_ets_file(file_path):
                     if end_pos != -1:
                         if function_name and file_contents[start_pos:end_pos + 1].strip():
                             function = file_contents[match.start():end_pos + 1].strip()
-                            
-                            # 补全函数
-                            function_content = function
-                            if not function_content:  # 如果函数内容为空，跳过
-                                continue
-                                
-                            used_imports = set()
-                            used_variables = set()
-                            
+
+                            # 检查函数中使用的导入和变量
+                            used_imports = []
+                            used_variables = []
+
                             # 检查函数中使用的导入
                             for imp in analysis.imports:
-                                if imp.get('component_name') and imp['component_name'] in function_content:
-                                    used_imports.add(imp['full_import'])
-                            
+                                if imp.get('component_name') and imp['component_name'] in function:
+                                    used_imports.append(imp)
+
                             # 检查函数中使用的变量
                             for var in analysis.variables:
-                                if var.get('name') and var['name'] in function_content:
-                                    # 构建变量声明
-                                    # var_declaration = []
-                                    # if var.get('modifiers'):
-                                    #     var_declaration.extend(var['modifiers'])
-                                    # if var.get('type'):
-                                    #     var_declaration.append(f"{var['name']}: {var['type']}")
-                                    # else:
-                                    #     var_declaration.append(var['name'])
-                                    # if var.get('value'):
-                                    #     var_declaration.append(f"= {var['value']}")
-                                    # used_variables.add(' '.join(var_declaration))
-                                    used_variables.add(var['full_variable'])
+                                if var.get('name') and var['name'] in function:
+                                    used_variables.append(var)
 
-                            # 组合补全后的函数
-                            # if used_imports or used_variables:
-                            #     complete_function = []
-                            #     if used_imports:
-                            #         complete_function.extend(used_imports)
-                            #     if used_variables:
-                            #         complete_function.extend(used_variables)
-                            #     complete_function.append(function)
-                            #     function = '\n'.join(complete_function)
-                            
-                            analysis.add_function(function)
+                            # 保存函数及其依赖信息
+                            analysis.add_function(function, used_imports, used_variables)
             except Exception as e:
                 logger.error(f"Error processing function in {file_path}: {str(e)}")
                 continue
 
-        # 处理UI代码和函数的补全
-        def complete_code_with_imports(code_content):
-            if not code_content:
-                return code_content
-                
-            used_imports = set()
-            used_variables = set()
-            used_components = set()
-            
-            # 处理资源引用
-            processed_content, resource_constants = process_resource_references(code_content)
-            
-            # 检查代码中使用的导入
-            for imp in analysis.imports:
-                if imp.get('component_name') and imp['component_name'] in processed_content:
-                    used_imports.add(imp['full_import'])
-                    # 如果有组件内容，添加到used_components
-                    if imp.get('component_content'):
-                        used_components.add(imp['component_content'])
-            
-            # 检查代码中使用的变量
-            for var in analysis.variables:
-                if var.get('name') and var['name'] in processed_content:
-                    # 构建变量声明
-                    # var_declaration = []
-                    # if var.get('modifiers'):
-                    #     var_declaration.extend(var['modifiers'])
-                    # if var.get('type'):
-                    #     var_declaration.append(f"{var['name']}: {var['type']}")
-                    # else:
-                    #     var_declaration.append(var['name'])
-                    # if var.get('value'):
-                    #     var_declaration.append(f"= {var['value']}")
-                    # used_variables.add(' '.join(var_declaration))
-                    used_variables.add(var['full_variable'])
-            
-            # 组合补全后的代码
-            if used_imports or used_variables or used_components or resource_constants:
-                complete_code = []
-                if used_imports:
-                    complete_code.extend(used_imports)
-                if used_variables:
-                    complete_code.extend(used_variables)
-                if used_components:
-                    complete_code.extend(used_components)
-                if resource_constants:
-                    # 添加资源常量声明
-                    resource_declarations = []
-                    for constant_name, resource_path in resource_constants.items():
-                        resource_declarations.append(f"const {constant_name} = '{resource_path}';")
-                    complete_code.extend(resource_declarations)
-                complete_code.append(processed_content)
-                return '\n'.join(complete_code)
-            
-            return processed_content
-
-        # 补全UI代码
-        # for i, ui_code in enumerate(analysis.ui_code):
-        #     analysis.ui_code[i] = complete_code_with_imports(ui_code)
-
-        # 补全函数
-        # for i, function in enumerate(analysis.functions):
-        #     analysis.functions[i] = complete_code_with_imports(function)
-
         return analysis
     except Exception as e:
         logger.error(f"Error reading {file_path}: {str(e)}")
-        return None  # 返回None而不是抛出异常
+        return None
 
 
 
 if __name__ == '__main__':
-    print(analyze_ets_file("/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/test/tt/Index.ets").variables)
+    print(analyze_ets_file("/Users/liuxuejin/Downloads/gitee_cloned_repos_5min_stars/Duke_hrouter/entry/src/ohosTest/ets/testability/TestAbility.ets").imports)
