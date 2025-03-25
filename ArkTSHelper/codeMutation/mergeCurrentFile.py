@@ -14,10 +14,22 @@ def merge_ets_files(file1_path: str, file2_path: str, output_path: str):
     :param output_path: 输出文件路径
     """
     # 定义正则表达式模式（增强版）
+    import re
+    from typing import Dict, Tuple, Set
+
+    # 增强版正则表达式（精确匹配三种导入类型）
     import_pattern = re.compile(
-        r'import\s+{([\w\s,]+)}\s+from\s+[\'"](.+?)[\'"];',  # 匹配具名导入
+        r'import\s+'
+        r'(?:'
+        r'({[\w\s,]+})'  # 情况1：纯命名导入 {A, B}
+        r'|'  # 或
+        r'((?:\w+)(?:\s*,\s*{[\w\s,]+})?)'  # 情况2：默认导入或混合导入
+        r')'
+        r'\s+from\s+["\']([^"\']+)["\']\s*;?',
         re.MULTILINE
     )
+
+
     component_pattern = re.compile(
         r'@Entry\s*'  
         r'@Component\w*\s*'  
@@ -28,33 +40,91 @@ def merge_ets_files(file1_path: str, file2_path: str, output_path: str):
         flags=re.DOTALL | re.MULTILINE | re.VERBOSE
     )
 
-    def parse_imports(content: str) -> Dict[str, Set[str]]:
-        """解析import语句为结构化字典"""
+    def parse_imports(content: str) -> Dict[str, Tuple[Set[str], Set[str]]]:
+        """解析导入语句，返回结构：{lib: (default_imports, named_imports)}"""
         imports_dict = {}
+
         for match in import_pattern.finditer(content):
-            members = {m.strip() for m in match.group(1).split(',') if m.strip()}
-            lib = match.group(2).strip()
-            if lib in imports_dict:
-                imports_dict[lib].update(members)
-            else:
-                imports_dict[lib] = members
+            # 正则捕获组解包
+            pure_named = match.group(1)  # 纯命名导入捕获组
+            default_mixed = match.group(2)  # 默认/混合导入捕获组
+            lib = match.group(3).strip()  # 库路径
+
+            # 初始化存储
+            default_imports = set()
+            named_imports = set()
+
+            # 情况1：处理纯命名导入 {A, B}
+            if pure_named:
+                named_str = pure_named.strip('{}').strip()
+                if named_str:
+                    named_imports.update(s.strip() for s in named_str.split(','))
+
+            # 情况2：处理默认/混合导入
+            elif default_mixed:
+                # 分离默认导入和可能的命名部分（例如："a, {B, C}"）
+                parts = [p.strip() for p in default_mixed.split(',', 1)]
+
+                # 处理默认导入部分
+                if parts[0] and not parts[0].startswith('{'):
+                    default_imports.add(parts[0])
+
+                # 处理混合的命名导入部分
+                if len(parts) > 1 and parts[1].startswith('{'):
+                    named_str = parts[1].strip('{}').strip()
+                    if named_str:
+                        named_imports.update(s.strip() for s in named_str.split(','))
+
+            # 合并到字典
+            if lib:
+                existing = imports_dict.get(lib, (set(), set()))
+                imports_dict[lib] = (
+                    existing[0].union(default_imports),
+                    existing[1].union(named_imports)
+                )
+
         return imports_dict
 
-    def generate_imports(imports_dict: Dict[str, Set[str]]) -> str:
-        """生成合并后的import语句"""
+    def generate_imports(imports_dict: Dict[str, Tuple[Set[str], Set[str]]]) -> str:
+        """生成合并后的import语句（支持默认/命名导入分离）"""
         output = []
         for lib in sorted(imports_dict.keys()):
-            members = sorted(imports_dict[lib])
-            output.append(f"import {{ {', '.join(members)} }} from '{lib}';")
-        return '\n'.join(output)
+            default_members, named_members = imports_dict[lib]
 
-    def parse_file(file_path: str) -> Tuple[Dict[str, Set[str]], str, str, str]:
+            # 处理默认导入（最多一个有效）
+            default_part = ""
+            if default_members:
+                sorted_default = sorted(default_members)
+                if len(sorted_default) > 1:
+                    print(f"警告: 库 {lib} 存在多个默认导入，仅保留第一个")
+                default_part = sorted_default[0]
+
+            # 处理命名导入
+            named_part = ""
+            if named_members:
+                sorted_named = sorted(named_members)
+                named_part = "{ " + ", ".join(sorted_named) + " }"
+
+            # 组合语句逻辑
+            if default_part and named_part:
+                line = f"import {default_part}, {named_part} from '{lib}';"
+            elif default_part:
+                line = f"import {default_part} from '{lib}';"
+            elif named_part:
+                line = f"import {named_part} from '{lib}';"
+            else:
+                continue  # 跳过空导入
+
+            output.append(line)
+
+        return "\n".join(output)
+
+    def parse_file(file_path: str) -> tuple[dict[str, tuple[set[str], set[str]]], str, str, str]:
         """解析文件返回结构化数据"""
         content = Path(file_path).read_text(encoding='utf-8')
 
         # 解析imports
         imports_dict = parse_imports(content)
-
         # 处理组件内容
         component_match = component_pattern.search(content)
         if not component_match:
@@ -73,16 +143,25 @@ def merge_ets_files(file1_path: str, file2_path: str, output_path: str):
     imports2, pre2, comp2, post2 = parse_file(file2_path)
 
     build_contents, build_imports = build_content_merge(comp1, comp2)
-    if imports1.__contains__("@@kit.ArkUI"):
-        imports1["@kit.ArkUI"] = imports1["@kit.ArkUI"].union(build_imports)
-    else:
-        imports1["@kit.ArkUI"] = set(build_imports)
+    existing = imports1.get("@kit.ArkUI", (set(), set()))
+    imports1["@kit.ArkUI"] = (
+        existing[0],
+        existing[1].union(build_imports)
+    )
 
-    # 合并imports
     merged_imports = {}
     for lib in set(itertools.chain(imports1.keys(), imports2.keys())):
-        merged_imports[lib] = imports1.get(lib, set()) | imports2.get(lib, set())
+        # 分别获取两个字典中的默认和具名导入集合（若无则用空集合）
+        default1, named1 = imports1.get(lib, (set(), set()))
+        default2, named2 = imports2.get(lib, (set(), set()))
 
+        # 合并集合（使用并集操作符 |）
+        merged_default = default1 | default2
+        merged_named = named1 | named2
+
+        merged_imports[lib] = (merged_default, merged_named)
+
+    print(generate_imports(merged_imports))
     # 合并其他内容
     merged_pre = '\n\n'.join(filter(None, [pre1, pre2]))
     merged_post = '\n\n'.join(filter(None, [post1, post2]))
@@ -178,7 +257,7 @@ struct Index {{
 
 if __name__ == "__main__":
     merge_ets_files(
-        "/Users/jiaoyiyang/harmonyProject/repos/singleFileProjects/ColorExample/index.ets",
-        "/Users/jiaoyiyang/harmonyProject/repos/singleFileProjects/DividerCustomizationExample/DividerCustomizationExample.ets",
-        "/Users/jiaoyiyang/harmonyProject/repos/mutationProjects/merged.ets"
+        "/Users/jiaoyiyang/harmonyProject/repos/singleFileProjects/Youtube-MusicRankList/RankList.ets",
+        "/Users/jiaoyiyang/harmonyProject/repos/singleFileProjects/Word-Check_1CalendarPage/CalendarPage.ets",
+        "/Users/jiaoyiyang/harmonyProject/repos/merged.ets"
     )

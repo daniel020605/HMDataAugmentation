@@ -6,9 +6,9 @@ import imagehash
 # ====================== 参数配置区域 ======================
 # 在这里直接修改参数值
 reference_image = "/Users/jiaoyiyang/harmonyProject/code/HMDataAugmentation/ArkTSHelper/autoRunner/targetButton/failed.png"  # 参考图片路径
-target_dir = "/Users/jiaoyiyang/harmonyProject/repos/mutationProjects"  # 要扫描的目标文件夹
+target_dir = "/Users/jiaoyiyang/harmonyProject/repos/collected"  # 要扫描的目标文件夹
 hash_size = 8  # 哈希尺寸 (8/16/32)
-hash_threshold = 2  # 允许的哈希差异阈值
+hash_threshold = 5  # 允许的哈希差异阈值
 dry_run = False
 
 

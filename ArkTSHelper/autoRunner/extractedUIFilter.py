@@ -54,28 +54,65 @@ def process_all_subfolders(root_folder):
             continue
 
         original_path = ets_files[0]
+        content = Path(original_path).read_text(encoding='utf-8')
+        positions = find_onclick_positions(content)
+
+        # 从后往前删除避免影响索引
+        for start, end in reversed(positions):
+            content = content[:start] + content[end:]
+        #print(original_path, content)
+        Path(original_path).write_text(content, encoding='utf-8')
 
 
-        try:
-            content = Path(original_path).read_text(encoding='utf-8')
-            before_build, build = extract_build(content)
+def find_onclick_positions(content):
+    """通过栈匹配闭合的)定位所有onClick事件的起止索引"""
+    positions = []
+    i = 0
+    length = len(content)
+    target = '.onClick('
 
-            new_content = f"""{before_build}
-@Entry
-@Component
-struct Index {{
-{build}
-}}
-""".strip()
-            Path(original_path).write_text(new_content)
+    while i < length:
+        # 查找目标字符串.onClick(
+        if content[i:i + len(target)] == target:
+            start = i
+            i += len(target)  # 移动到左括号(之后
+            stack = [')']  # 初始化栈，用于追踪闭合括号
+            in_string = False
+            string_char = None
 
-        except Exception as e:
-            print(f"处理失败 {subdir_name}: {str(e)}")
+            # 开始扫描闭合括号
+            while i < length:
+                char = content[i]
 
+                # 处理字符串中的转义字符
+                if not in_string and char in ('"', "'", '`'):
+                    in_string = True
+                    string_char = char
+                elif in_string:
+                    if char == string_char and (i == 0 or content[i - 1] != '\\'):
+                        in_string = False
+
+                # 仅在非字符串中处理括号
+                if not in_string:
+                    if char == '(':
+                        stack.append(')')
+                    elif char == ')':
+                        if stack and stack[-1] == ')':
+                            stack.pop()
+                            if not stack:  # 栈空，找到闭合位置
+                                positions.append((start, i + 1))
+                                break
+                        else:
+                            break  # 括号不匹配，提前结束
+                i += 1
+        else:
+            i += 1
+
+    return positions
 
 if __name__ == "__main__":
     # 配置根目录路径
-    ROOT_FOLDER = "/Users/jiaoyiyang/harmonyProject/repos/extractedUIProjects"  # 修改为你的实际路径
+    ROOT_FOLDER = "/Users/jiaoyiyang/harmonyProject/repos/newExtracted"  # 修改为你的实际路径
 
     # 执行处理
     process_all_subfolders(ROOT_FOLDER)
