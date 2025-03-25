@@ -74,7 +74,6 @@ class ProjectAbstractor:
             output_file = self.output_dir / f'{project_name}.json'
 
             if not check_project_version(str(project_path)):
-                self.version_logger.error(f"跳过项目 {project_name}: 不支持的版本")
                 return False
 
             ets_files = self.get_ets_files(project_path)
