@@ -161,7 +161,6 @@ def merge_ets_files(file1_path: str, file2_path: str, output_path: str):
 
         merged_imports[lib] = (merged_default, merged_named)
 
-    print(generate_imports(merged_imports))
     # 合并其他内容
     merged_pre = '\n\n'.join(filter(None, [pre1, pre2]))
     merged_post = '\n\n'.join(filter(None, [post1, post2]))
