@@ -1,7 +1,7 @@
 
 import shutil
 
-SINGLE_FILE_PROJECTS_DIR = r"/Users/jiaoyiyang/harmonyProject/repos/mutationProjects"
+SINGLE_FILE_PROJECTS_DIR = r"/Users/jiaoyiyang/harmonyProject/repos/newExtracted"
 EMPTY_PROJECT_INDEX_PATH = r"/Users/jiaoyiyang/harmonyProject/repos/emptyProject/entry/src/main/ets/pages/Index.ets"
 SCREENSHOT_OUTPUT_DIR = r"/Users/jiaoyiyang/harmonyProject/repos/UIPictures"
 IMG_PATH = r"/Users/jiaoyiyang/harmonyProject/repos/emptyProject/entry/src/main/resources/base/media"
@@ -11,19 +11,20 @@ import os
 import subprocess
 import time
 
+AUTO = False
 BUTTON_COORDINATES = [
-    (875, 52),
-    (1400,375),
-    (1300, 510)
+    (670, 15),
+    (1230,238),
+    (1111, 375)
 ]
 
 def run_deveco_project():
     """运行Deveco项目的示例函数（需要根据实际环境修改）"""
     print("正在运行Deveco项目...")
     try:
-        print()
-        pyautogui.click(BUTTON_COORDINATES[0][0], BUTTON_COORDINATES[0][1])
-        time.sleep(3)
+        if AUTO:
+            pyautogui.click(BUTTON_COORDINATES[0][0], BUTTON_COORDINATES[0][1])
+            time.sleep(3)
 
     except subprocess.CalledProcessError as e:
         print(f"运行失败: {e}")
@@ -44,9 +45,10 @@ def take_screenshot(output_folder,timeout=600, interval=0.5):
     initial_files = set(os.listdir(output_folder))
 
     print(f"开始轮询，等待新截图出现...")
-    pyautogui.click(BUTTON_COORDINATES[1][0], BUTTON_COORDINATES[1][1])
-    time.sleep(0.5)
-    pyautogui.click(BUTTON_COORDINATES[2][0], BUTTON_COORDINATES[2][1])
+    if AUTO:
+        pyautogui.click(BUTTON_COORDINATES[1][0], BUTTON_COORDINATES[1][1])
+        time.sleep(0.5)
+        pyautogui.click(BUTTON_COORDINATES[2][0], BUTTON_COORDINATES[2][1])
     start_time = time.time()
     while time.time() - start_time < timeout:
         # 获取当前文件夹中的文件列表
@@ -87,6 +89,8 @@ def process_ets_files(root_dir, index_ets_path):
     """处理ETS文件并执行自动化流程"""
     count = -1
     for subdir, _, files in os.walk(root_dir):
+        if subdir == root_dir:
+            continue
         count += 1
         ets_files = [f for f in files if f.endswith('.ets')]
         target_screenshot = os.path.join(subdir, f"{os.path.basename(subdir)}_screenshot.png")
@@ -158,12 +162,35 @@ def process_ets_files(root_dir, index_ets_path):
                     print(f"清理临时文件失败: {e}")
             print(f"已清理临时图片文件")
         else:
+            try:
+                target_root = '/Users/jiaoyiyang/harmonyProject/repos/collected'
+                # 提取子目录名称
+                subdir_name = os.path.basename(subdir)
+
+                # 构建目标路径
+                target_path = os.path.join(target_root, subdir_name)
+
+                # 检查目标是否存在
+                if not os.path.exists(target_path):
+                    # 复制整个目录（包含所有子目录和文件）
+                    shutil.copytree(subdir, target_path)
+                    print(f"已复制 {subdir_name} 到 {target_root}")
+                else:
+                    print(f"已存在 {target_path}")
+
+            except FileNotFoundError as e:
+                print(f"源目录不存在: {subdir}")
+            except PermissionError:
+                print(f"权限不足，无法操作 {subdir}")
+            except Exception as e:
+                print(f"未知错误: {str(e)}")
             print(f"跳过文件夹 {subdir}")
     print(f"共处理 {count} 个文件夹")
 
 def main():
     print("请打开Deveco运行界面")
-    time.sleep(5)
+    if AUTO:
+        time.sleep(5)
     process_ets_files(SINGLE_FILE_PROJECTS_DIR, EMPTY_PROJECT_INDEX_PATH)
 
 if __name__ == "__main__":
