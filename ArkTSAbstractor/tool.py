@@ -106,6 +106,83 @@ def check_project_version(directory):
                         return False
     return False
 
+def process_out_json_file(json_file, origin = False):
+    try:
+        with open(json_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        imports = data.get('imports', [])
+        variables = data.get('variables', [])
+        ui_code = data.get('ui_code', [])
+        functions = data.get('functions', [])
+
+        ui_res = []
+        func_res = []
+
+        def merge_imports(import_list):
+            import_dict = {}
+            for imp in import_list:
+                module_name = imp['module_name']
+                component_name = imp['component_name']
+                if module_name not in import_dict:
+                    import_dict[module_name] = []
+                import_dict[module_name].append(component_name)
+            merged_imports = []
+            for module_name, components in import_dict.items():
+                merged_imports.append(f"import {{ {', '.join(components)} }} from '{module_name}';")
+            return merged_imports
+
+        # Check ui_code for matches
+        for code in ui_code:
+            import_statements = []
+            variable_statements = []
+            origin_flag = True
+            for imp in imports:
+                if imp['component_name'] in code:
+                    if origin:
+                        if imp["module_name"].startswith("."):
+                            origin_flag = False
+                    import_statements.append(imp)
+            if origin and not origin_flag:
+                continue
+            for var in variables:
+                if var['name'] in code:
+                    variable_statements.append(var['full_variable'])
+            if import_statements or variable_statements:
+                ui_res.append({
+                    'content': code,
+                    'imports': merge_imports(import_statements),
+                    'variables': variable_statements
+                })
+
+        # Check functions for matches
+        for func in functions:
+            import_statements = []
+            variable_statements = []
+            origin_flag = True
+            for imp in imports:
+                if imp['component_name'] in func:
+                    if origin:
+                        if imp["module_name"].startswith("."):
+                            origin_flag = False
+                    import_statements.append(imp)
+            if origin and not origin_flag:
+                continue
+            for var in variables:
+                if var['name'] in func:
+                    variable_statements.append(var['full_variable'])
+            if import_statements or variable_statements:
+                func_res.append({
+                    'content': func,
+                    'imports': merge_imports(import_statements),
+                    'variables': variable_statements
+                })
+
+        return ui_res, func_res
+    except Exception as e:
+        print(f"Error processing file {json_file}: {str(e)}")
+        return None, None
+
 if __name__ == "__main__":
     folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/analysis_results"
     ui_code_count, function_count = count_ui_code_and_functions(folder_path)
