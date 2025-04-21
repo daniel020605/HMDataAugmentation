@@ -1,12 +1,15 @@
 import os
+import re
 import shutil
+
+
 from PIL import Image
 import imagehash
 
 # ====================== 参数配置区域 ======================
 # 在这里直接修改参数值
 reference_image = "/Users/jiaoyiyang/harmonyProject/code/HMDataAugmentation/ArkTSHelper/autoRunner/targetButton/failed.png"  # 参考图片路径
-target_dir = "/Users/jiaoyiyang/harmonyProject/repos/collected"  # 要扫描的目标文件夹
+target_dir = "/Users/jiaoyiyang/harmonyProject/repos/combined_failed"  # 要扫描的目标文件夹
 hash_size = 8  # 哈希尺寸 (8/16/32)
 hash_threshold = 5  # 允许的哈希差异阈值
 dry_run = False
@@ -27,6 +30,7 @@ def calculate_phash(image_path):
 def find_matching_folders():
     """查找匹配文件夹"""
     matches = []
+
     ref_hash = calculate_phash(reference_image)
 
     if ref_hash is None:
@@ -38,18 +42,25 @@ def find_matching_folders():
     for root, dirs, files in os.walk(target_dir):
         folder_name = os.path.basename(root)
         print(f"\n扫描文件夹: {root}")
-
+        # pattern = r'\d{6}$'
+        # if bool(re.search(pattern, folder_name)):
+        #     matches.append(root)
+        #     continue
         for f in files:
             if f.lower().startswith(folder_name.lower()) and f.lower().endswith('.png'):
                 file_path = os.path.join(root, f)
                 file_hash = calculate_phash(file_path)
 
                 if file_hash and (ref_hash - file_hash) <= hash_threshold:
-                    matches.append(root)
+                    matches.append(file_path)
                     print(f"❗ 匹配到目标文件夹: {root}")
                     break  # 找到即停止检查其他文件
     return matches
 
+def is_fail(file_path):
+    file_hash = calculate_phash(file_path)
+    ref_hash = calculate_phash(reference_image)
+    return file_hash and (ref_hash - file_hash) <= hash_threshold
 
 def main():
     if not os.path.isfile(reference_image):
@@ -82,6 +93,8 @@ def main():
         try:
             # 二次验证：确保文件夹仍然存在
             if not os.path.isdir(folder):
+                if os.path.isfile(folder):
+                    os.remove(folder)
                 print(f"警告: 文件夹已不存在 {folder}")
                 continue
 
@@ -97,6 +110,7 @@ def main():
                 continue
 
             # 执行删除
+            #shutil.move(folder, "/Users/jiaoyiyang/harmonyProject/repos/mutationProjects")
             shutil.rmtree(folder)  # 使用 shutil 递归删除
             print(f"成功删除: {folder}")
             success += 1

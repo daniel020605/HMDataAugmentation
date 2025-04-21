@@ -1,7 +1,7 @@
 
 import shutil
 
-SINGLE_FILE_PROJECTS_DIR = r"/Users/jiaoyiyang/harmonyProject/repos/newExtracted"
+SINGLE_FILE_PROJECTS_DIR = r"/Users/jiaoyiyang/harmonyProject/repos/combined_failed"
 EMPTY_PROJECT_INDEX_PATH = r"/Users/jiaoyiyang/harmonyProject/repos/emptyProject/entry/src/main/ets/pages/Index.ets"
 SCREENSHOT_OUTPUT_DIR = r"/Users/jiaoyiyang/harmonyProject/repos/UIPictures"
 IMG_PATH = r"/Users/jiaoyiyang/harmonyProject/repos/emptyProject/entry/src/main/resources/base/media"
@@ -11,11 +11,11 @@ import os
 import subprocess
 import time
 
-AUTO = False
+AUTO = True
 BUTTON_COORDINATES = [
-    (670, 15),
-    (1230,238),
-    (1111, 375)
+    (800, 52),
+    (1370, 375),
+    (1300, 520)
 ]
 
 def run_deveco_project():
@@ -24,7 +24,7 @@ def run_deveco_project():
     try:
         if AUTO:
             pyautogui.click(BUTTON_COORDINATES[0][0], BUTTON_COORDINATES[0][1])
-            time.sleep(3)
+            time.sleep(3.5)
 
     except subprocess.CalledProcessError as e:
         print(f"运行失败: {e}")
@@ -161,30 +161,6 @@ def process_ets_files(root_dir, index_ets_path):
                 except Exception as e:
                     print(f"清理临时文件失败: {e}")
             print(f"已清理临时图片文件")
-        else:
-            try:
-                target_root = '/Users/jiaoyiyang/harmonyProject/repos/collected'
-                # 提取子目录名称
-                subdir_name = os.path.basename(subdir)
-
-                # 构建目标路径
-                target_path = os.path.join(target_root, subdir_name)
-
-                # 检查目标是否存在
-                if not os.path.exists(target_path):
-                    # 复制整个目录（包含所有子目录和文件）
-                    shutil.copytree(subdir, target_path)
-                    print(f"已复制 {subdir_name} 到 {target_root}")
-                else:
-                    print(f"已存在 {target_path}")
-
-            except FileNotFoundError as e:
-                print(f"源目录不存在: {subdir}")
-            except PermissionError:
-                print(f"权限不足，无法操作 {subdir}")
-            except Exception as e:
-                print(f"未知错误: {str(e)}")
-            print(f"跳过文件夹 {subdir}")
     print(f"共处理 {count} 个文件夹")
 
 def main():

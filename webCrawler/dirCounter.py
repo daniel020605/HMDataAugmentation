@@ -12,6 +12,6 @@ def count_files_and_folders(directory_path):
     return len(items)
 
 if __name__ == "__main__":
-    directory_path =  r"/Users/jiaoyiyang/harmonyProject/repos/collected"
+    directory_path =  r"/Users/jiaoyiyang/harmonyProject/repos/combined_collected"
     total_items = count_files_and_folders(directory_path)
     print(f"Total number of files and folders in {directory_path}: {total_items}")

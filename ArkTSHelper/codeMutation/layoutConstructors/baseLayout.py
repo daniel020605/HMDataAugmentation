@@ -147,7 +147,96 @@ class BaseLayout(ABC):
             layout_code.append(f".backgroundColor({random_color()})")
         return '\n'.join(layout_code), imports
 
+    def wrap_children_array(
+            self,
+            children: List[str],
+            *,
+            delete_rate: float = 0.20,  # 删除概率 0-1
+            swap_rate: float = 0.35,  # 换位概率
+            max_add: int = 3,  # 最大添加数量
+            layout_intensity: float = 0.3  # 布局样式强度
+    ) -> Tuple[str, List[str]]:
+        """包装子元素数组并实现随机操作"""
+        imports = []
+        extra_components = []
+
+        # 生成基础额外组件
+        num_extras = random.randint(0, max_add)
+        for i in range(num_extras):
+            generator = create_generator('Top' if i == 0 else None)
+            comp = generator.generate()
+            extra_components.append(comp)
+            imports.extend(generator.imports)
+
+        # 合并原始组件和额外组件
+        all_components = children + extra_components
+
+        # 随机删除 (保留至少1个元素)
+        if len(all_components) > 1:
+            all_components = [c for c in all_components
+                              if (not c.startswith('this.')  # 保护 this. 组件
+                              and random.random() > delete_rate) or c.startswith('this.')]
+
+        # 随机换位
+        if len(all_components) >= 2 and random.random() < swap_rate:
+            idx1, idx2 = random.sample(range(len(all_components)), 2)
+            all_components[idx1], all_components[idx2] = all_components[idx2], all_components[idx1]
+
+        # 添加动态生成的组件
+        new_generator = create_generator()
+        for _ in range(random.randint(0, max_add)):
+            new_component = new_generator.generate()
+            insert_pos = random.randint(0, len(all_components))
+            all_components.insert(insert_pos, new_component)
+            imports.extend(new_generator.imports)
+
+        # 处理布局样式
+        styled_components = []
+        for comp in self.distribute_space(all_components):
+            if comp.startswith('this.'):
+                styled_components.append(comp)
+                continue
+
+            # 随机添加组件级样式
+            if random.random() < layout_intensity:
+                comp = self._add_component_style(comp)
+            styled_components.append(comp)
+
+        # 构建布局代码
+        layout_code = [f"{self._get_component_name()}{{"]
+
+        # 添加带缩进的子组件
+        layout_code.extend(f"  {comp}" for comp in styled_components)
+        layout_code.append("}")
+
+        # 添加容器级布局样式
+        if not any(c.startswith('this.') for c in all_components):
+            layout_code.extend(self._get_layout_styles(layout_intensity))
+
+        return '\n'.join(layout_code), imports
+
+    # 新增辅助方法
+    def _add_component_style(self, comp: str) -> str:
+        """为单个组件添加样式"""
+        styles = []
+        if random.random() < 0.2:
+            styles.append(f".padding({random.randint(10, 20)})")
+        if random.random() < 0.25:
+            styles.append(f".width('{random.choice(['100%', '50%', '200px'])}')")
+        if random.random() < 0.15:
+            styles.append(f".backgroundColor({random_color()})")
+        return comp + ''.join(styles)
+
+    def _get_layout_styles(self, intensity: float) -> List[str]:
+        """生成容器级布局样式"""
+        styles = []
+        if random.random() < intensity:
+            styles.append(".width('100%')")
+        if random.random() < intensity * 0.7:
+            styles.append(f".padding({random.randint(5, 20)})")
+        return styles
+
+
     @abstractmethod
     def _get_component_name(self):
         pass
-
