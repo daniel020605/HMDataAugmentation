@@ -1,4 +1,0 @@
-发布共享包
-发布打包的HAR，可供其他开发者安装和引用。接下来将介绍如何发布HAR共享包。
-OpenHarmony三方库中心仓仅支持HAR共享包发布，不支持HSP共享包发布。如需在应用内共享HSP，可将HSP共享包发布至私仓使用，请参考ohpm私仓搭建工具。
- 在库模块中（与src文件夹同一级目录下），添加如下文件：  新建README.md文件：在README.md文件中必须包含包的介绍和引用方式，还可以根据包的内容添加更详细介绍。 新建CHANGELOG.md文件：填写HAR的版本更新记录。 添加LICENSE文件：LICENSE许可文件。   重新编译库模块，生成*.har文件。 利用工具ssh-keygen生成公、私钥，可执行以下命令：ssh-keygen -m PEM -t RSA -b 4096 -f ~/.ssh_ohpm/mykey       ~/.ssh_ohpm/mykey 为私钥文件 mykey 的文件路径，按照实际情况指定。指定的私钥存储目录必须存在。 追加了.pub后缀的相应公钥文件会存放在和私钥相同的目录下。 OHPM包管理器只支持加密密钥认证，请在生成公私钥时输入密码。     登录OpenHarmony三方库中心仓官网，单击主页右上角的个人中心， 新增OHPM公钥，将公钥文件（mykey.pub）的内容粘贴到公钥输入框中。  打开命令行工具，将对应私钥文件路径配置到 .ohpmrc 文件中 key_path 字段上，可执行以下命令进行配置：ohpm config set key_path  ~/.ssh_ohpm/mykey  登录OpenHarmony三方库中心仓官网，单击主页右上角的个人中心，复制发布码，获取发布码并配置到 .ohpmrc 文件中，可执行如下命令：ohpm config set publish_id your_publish_id  执行如下命令发布HAR，<HAR路径>需指定为.har文件的具体路径。ohpm publish <HAR路径>    

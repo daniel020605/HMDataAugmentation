@@ -1,6 +1,0 @@
-密钥导出(ArkTS)
-业务需要获取持久化存储的非对称密钥的公钥时使用，当前支持ECC/RSA/ED25519/X25519/SM2的公钥导出。
-轻量级设备仅支持RSA公钥导出。
-开发步骤
- 指定密钥别名keyAlias，密钥别名最大长度为64字节。 调用接口exportKeyItem，传入参数keyAlias和options。 options为预留参数，当前可传入空。 返回值为HuksReturnResult类型对象，获取的公钥明文在outData字段中，以标准的X.509规范的DER格式封装，具体请参考公钥材料格式。 
-import { huks } from '@kit.UniversalKeystoreKit';\n\n/* 1. 设置密钥别名 */\nlet keyAlias = 'keyAlias';\n/* option对象传空 */\nlet emptyOptions: huks.HuksOptions = {\n  properties: []\n};\ntry {\n  /* 2. 导出密钥 */\n  huks.exportKeyItem(keyAlias, emptyOptions, (error, data) => {\n    if (error) {\n      console.error(`callback: exportKeyItem failed, ` + error);\n    } else {\n      console.info(`callback: exportKeyItem success, data = ${JSON.stringify(data)}`);\n    }\n  });\n} catch (error) {\n  console.error(`callback: exportKeyItem input arg invalid, ` + JSON.stringify(error));\n}

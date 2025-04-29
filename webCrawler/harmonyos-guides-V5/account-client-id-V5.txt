@@ -1,4 +1,0 @@
-配置Client ID
-请先参考“应用开发准备”完成基本准备工作，再继续进行以下开发活动。
-应用接入华为账号服务时，暂不支持使用模拟器进行开发调试。
-登录AppGallery Connect平台，在“项目设置 > 常规 > 应用”区域获取“OAuth 2.0客户端ID（凭据）”处的Client ID。 在工程中entry模块的module.json5文件中，新增metadata，配置name为client_id，value为上一步获取的Client ID的值，如下所示：\"module\": {\n  \"name\": \"<name>\",\n  \"type\": \"entry\",\n  \"description\": \"<description>\",\n  \"mainElement\": \"<mainElement>\",\n  \"deviceTypes\": [],\n  \"pages\": \"<pages>\",\n  \"abilities\": [],\n  \"metadata\": [ // 配置信息如下\n    {\n      \"name\": \"client_id\",\n      \"value\": \"<上一步获取的Client ID>\"\n    }\n  ]\n} 

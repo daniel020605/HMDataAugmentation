@@ -1,6 +1,0 @@
-多进程调试
-开发者可通过修改编译构建配置项来让指定 Ability 以独立进程的方式运行并进行调试。
-编译构建配置
-新建一个 Ability，该 Abiility 继承 AbilityStage，作为独立进程的入口。 右键 ets 目录，新建其它需要作为独立进程启动的 UI Ability。 修改 module.json5 配置文件，增加独立进程入口及 isolationProcess 配置项。 
-调试
-编写跳转 UI Ability 的代码。 在跳转的 UI Ability 中或独立进程入口处设置断点，启动调试。 跳转到以独立进程启动的 UI Ability 时将会新启动一个调试会话窗口。  

@@ -1,6 +1,0 @@
-Subpass Shading
-随着游戏场景的复杂化，越来越多的光照效果被应用到游戏场景中，随之也带来大量的光照计算以及带宽消耗。目前通过Tile-Based Deferred Rendering（TBDR）和Forward+等方法可以解决大量光照的渲染时间消耗，但是大量带宽的占用问题还是没有解决，Subpass Shading能力主要减少计算过程中的读写从而减少带宽的占用。
-下图说明Subpass Shading节省渲染通道1和Compute Pass从Device memory上面的一次读写带宽。
-接口说明
-通过Vulkan扩展接口VK_HUAWEI_subpass_shading提供Subpass Shading API，该扩展支持在Subpass中使用Compute Shader，并在Compute Shader中使用SubpassLoad从Tile buffer中直接读取数据，可用于降低DDR带宽，适用于TBDR和Forward+管线。
-Subpass Shading能力具体使用请参见Demo（GPU加速引擎-Subpass Shading）。

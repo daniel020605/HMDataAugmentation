@@ -1,6 +1,0 @@
-在端侧调用云对象
-云对象开发完成后，您可以为其生成端侧模型文件，供后续端侧工程调用云对象使用。
-前提条件
-请确保云对象已正确开发并部署。
-操作步骤
-右击云对象（以“my-cloud-object”为例），选择“Generate Invoke Interface”。 在弹出的“Generate Invoke Interface”窗口，选择生成端侧模型文件的目录。默认目录为“/Application/entry/src/main/ets”，支持修改。  前往刚刚指定的端侧目录，可看到生成的“cloudobject”子目录，其中包含了“importObject.ts”文件和“my-cloud-object”文件夹。“importObject.ts”文件定义了importObject方法，可以通过该方法来实例化一个云对象的代理。“my-cloud-object”文件夹包含了该云对象在端侧可能用到的所有模型。示例中只有一个“myCloudObject.ts”文件，如果有其它的模型也将生成在该文件夹下。“myCloudObject.ts”文件中定义了MyCloudObject class，并且定义了add和subtract两个方法。  在代码文件中引入云对象。import { importObject } from '../cloudobject/importObject';\nimport { MyCloudObject } from '../cloudobject/my-cloud-object/myCloudObject'; 调用云对象中的方法。let myCloudObject = importObject(MyCloudObject); // 使用importObject实例化MyCloudObject的代理\nmyCloudObject.add(1, 2).then(addResult => {\n  console.log(`1 + 2 = ${addResult.result}`);\n}); // 忽略异常处理\nmyCloudObject.subtract(6, 3).then(subtractResult => {\n  console.log(`6 - 3 = ${subtractResult.result}`);\n}); 由于“Generate Invoke Interface”时已经生成所需要的模型以及importObject方法，因此在编码时可以很方便地使用联想、自动引入等DevEco Studio提供的高阶能力，如下图所示。  

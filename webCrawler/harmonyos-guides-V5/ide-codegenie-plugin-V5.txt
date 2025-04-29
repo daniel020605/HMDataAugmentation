@@ -1,3 +1,0 @@
-安装插件
-访问下载中心获取CodeGenie工具，并根据下载中心页面工具完整性指导进行完整性校验。安装包存放路径不能包含中文字符。安装包无需解压，可直接依照下方步骤进行安装。
-在DevEco Studio菜单栏，点击File > Settings（macOS为DevEco Studio > Preferences）> Plugins，点击 Install Plugin from Disk…，在弹出的文件选择窗口中，选择插件安装包的存放位置，点击Accept确认使用插件。 点击Restart IDE，重新启动DevEco Studio。 在DevEco Studio右侧边栏点击CodeGenie进入DevEco CodeGenie，插件安装成功。 

@@ -1,9 +1,0 @@
-注册出行业务事件监听
-注册出行业务事件监听，用于接收业务发送事件的通知。
-接口说明
-接口名
-描述
-on(type: 'smartMobilityEvent', smartMobilityTypes: SmartMobilityType[],callback: Callback<SmartMobilityEvent>): void
-应用注册出行业务事件监听。
-开发步骤
- 导入Car Kit模块。import { smartMobilityCommon } from '@kit.CarKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';  获取SmartMobilityEventAwareness实例。let awareness: smartMobilityCommon.SmartMobilityAwareness = smartMobilityCommon.getSmartMobilityAwareness();  注册出行业务事件监听。// 业务类型\nlet types: smartMobilityCommon.SmartMobilityType[] = [smartMobilityCommon.SmartMobilityType.CAR_HOP];\n// 出行业务事件回调函数\nconst callBack = (event: smartMobilityCommon.SmartMobilityEvent) => {\n  hilog.info(0x0000, 'Received smart mobility event: ', JSON.stringify(event));\n};\n// 注册出行业务事件监听\nawareness.on('smartMobilityEvent', types, callBack);  

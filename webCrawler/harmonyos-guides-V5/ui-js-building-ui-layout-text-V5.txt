@@ -1,5 +1,0 @@
-添加标题行和文本区域
-实现标题和文本区域最常用的是基础组件text。text组件用于展示文本，可以设置不同的属性和样式，文本内容需要写在标签内容区，完整属性和样式信息请参考text。在页面中插入标题和文本区域的示例如下：
-<!-- xxx.hml -->\n<div class=\"container\">\n  <text class=\"title-text\">{{headTitle}}</text>\n  <text class=\"paragraph-text\">{{paragraphFirst}}</text>\n  <text class=\"paragraph-text\">{{paragraphSecond}}</text>\n</div>
-/* xxx.css */\n.container {\n  flex-direction: column;\n  margin-top: 20px;\n  margin-left: 30px;\n}\n.title-text {\n  color: #1a1a1a;\n  font-size: 50px;\n  margin-top: 40px;\n  margin-bottom: 20px;\n  font-weight: 700;\n}\n.paragraph-text {\n  width: 95%;\n  color: #000000;\n  font-size: 35px;\n  line-height: 60px;\n}
-// xxx.js\nexport default {\n  data: {\n    headTitle: 'Capture the Beauty in Moment',\n    paragraphFirst: 'Capture the beauty of light during the transition and fusion of ice and water. At the instant of movement and stillness, softness and rigidity, force and beauty, condensing moving moments.',\n    paragraphSecond: 'Reflecting the purity of nature, the innovative design upgrades your visual entertainment and ergonomic comfort. Effortlessly capture what you see and let it speak for what you feel.',\n  },\n}

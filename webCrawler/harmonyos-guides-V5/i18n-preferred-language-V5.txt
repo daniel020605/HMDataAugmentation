@@ -1,7 +1,0 @@
-设置应用偏好语言
-功能介绍
-对于多语言用户，很多情况下会将系统语言设置为一种语言（如中文），将特定APP应用的语言设置为另一种语言（如英语）。当界面加载应用资源时，依据应用设置的语言进行显示。开发过程中，开发者需将应用国际化特性区域设置为应用偏好语言，使应用界面的国际化特性与界面加载的资源保持一致。当前，应用仅支持设置一种语言。
-开发步骤
-接口具体使用方法和说明请参考getAppPreferredLanguage的API接口文档。
-以时间日期格式化为例说明。
- 导入模块。 import { i18n } from '@kit.LocalizationKit';\nimport { BusinessError } from '@kit.BasicServicesKit'; 需要获取应用的偏好语言。   let appPreferredLanguage: string = i18n.System.getAppPreferredLanguage(); // 获取应用偏好语言 设置应用的偏好语言。将应用偏好语言设置为目标语言后，该应用的界面会切换为目标语言。设置应用的偏好语言仅影响应用本身，不会影响系统语言设置。  try {  \n   i18n.System.setAppPreferredLanguage(\"zh-Hans\"); // 设置应用偏好语言为zh-Hans\n } catch(error) {\n   let err: BusinessError = error as BusinessError;\n   console.error(`call System.setAppPreferredLanguage failed, error code: ${err.code}, message: ${err.message}.`);\n } 清除应用的偏好语言。将应用偏好语言设置为\"default\"后，该应用的界面会跟随系统语言变化，该特性将在应用重新启动后生效。  try {  \n   i18n.System.setAppPreferredLanguage(\"default\"); // 清除应用的偏好语言\n } catch(error) {\n   let err: BusinessError = error as BusinessError;\n   console.error(`call System.setAppPreferredLanguage failed, error code: ${err.code}, message: ${err.message}.`);\n } 

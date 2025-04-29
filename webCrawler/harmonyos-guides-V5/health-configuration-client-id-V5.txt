@@ -1,2 +1,0 @@
-配置Client ID
-登录AppGallery Connect平台，在“我的项目”中选择目标应用，获取“项目设置 > 常规 > 应用”的Client ID。 在工程中entry模块的module.json5文件中，新增metadata，配置name为client_id，value为上一步获取的Client ID的值，如下所示：\"module\": {\n  \"name\": \"xxxx\",\n  \"type\": \"entry\",\n  \"description\": \"xxxx\",\n  \"mainElement\": \"xxxx\",\n  \"deviceTypes\": [],\n  \"pages\": \"xxxx\",\n  \"abilities\": [],\n  \"metadata\": [ // 配置如下信息\n    {\n      \"name\": \"client_id\",\n      \"value\": \"xxxxxx\"\n    }\n  ]\n} 

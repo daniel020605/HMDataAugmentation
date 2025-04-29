@@ -1,6 +1,8 @@
 import os
 import json
 
+
+
 def count_ui_code_and_functions(folder_path):
     total_ui_code_count = 0
     total_function_count = 0
@@ -182,29 +184,60 @@ def process_out_json_file(json_file, origin = False):
     except Exception as e:
         print(f"Error processing file {json_file}: {str(e)}")
         return None, None
+import json
+
+def count_json_items(file_path):
+    """
+    统计 JSON 文件中的项数
+    :param file_path: JSON 文件路径
+    :return: 项数
+    """
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            return len(data)
+    except Exception as e:
+        print(f"读取文件 {file_path} 时发生错误: {e}")
+        return 0
 
 if __name__ == "__main__":
-    folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/analysis_results"
-    ui_code_count, function_count = count_ui_code_and_functions(folder_path)
-    print(f"总的 ui_code 数量: {ui_code_count}")
-    print(f"总的 functions 数量: {function_count}")
-
-    folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/code_classification/function"
-    print(count_json_items_in_folder(folder_path))
-
-    # folder_path = "/Users/liuxuejin/Downloads/github_cloned_repos_1min_stars/19-CialloOpenHarmony"
-    # print(check_project_version(folder_path))
-    folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/complete_function"
-    print(count_json_items_in_folder(folder_path))
-
-    # folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/function_with_import"
+    # folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/analysis_results"
+    # ui_code_count, function_count = count_ui_code_and_functions(folder_path)
+    # print(f"总的 ui_code 数量: {ui_code_count}")
+    # print(f"总的 functions 数量: {function_count}")
+    #
+    # folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/code_classification/function"
     # print(count_json_items_in_folder(folder_path))
-
-    folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/code_classification/UI"
-    print(count_json_items_in_folder(folder_path))
-
-    folder_path = "/Users/liuxuejin/Desktop/Projects/PythonTools/test/UIOut"
-    print(count_json_items_in_folder(folder_path))
-
-    folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/function_with_import_plain_ORIGIN_ONLY"
-    print(count_json_items_in_folder(folder_path))
+    #
+    # # folder_path = "/Users/liuxuejin/Downloads/github_cloned_repos_1min_stars/19-CialloOpenHarmony"
+    # # print(check_project_version(folder_path))
+    # folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/complete_function"
+    # print(count_json_items_in_folder(folder_path))
+    #
+    # # folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/function_with_import"
+    # # print(count_json_items_in_folder(folder_path))
+    #
+    # folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/code_classification/UI"
+    # print(count_json_items_in_folder(folder_path))
+    #
+    # folder_path = "/Users/liuxuejin/Desktop/Projects/PythonTools/test/UIOut"
+    # print(count_json_items_in_folder(folder_path))
+    #
+    # folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/function_with_import_plain_ORIGIN_ONLY"
+    # print(count_json_items_in_folder(folder_path))
+    file_path = "/Users/liuxuejin/Desktop/Data/生成、解释、补全数据/CD_code_description_0423.json"
+    print(count_json_items(file_path))
+    file_path = "/Users/liuxuejin/Desktop/Data/生成、解释、补全数据/CD_UI_code_description_0423.json"
+    print(count_json_items(file_path))
+    file_path = "/Users/liuxuejin/Desktop/Data/生成、解释、补全数据/EG_code_description.json"
+    print(count_json_items(file_path))
+    file_path = "/Users/liuxuejin/Desktop/Data/生成、解释、补全数据/EG_generate_instruction.json"
+    print(count_json_items(file_path))
+    file_path = "/Users/liuxuejin/Desktop/Data/生成、解释、补全数据/IC_dataset_functions_match.json"
+    print(count_json_items(file_path))
+    file_path = "/Users/liuxuejin/Desktop/Data/生成、解释、补全数据/IC_dataset_ui_code_0401.json"
+    print(count_json_items(file_path))
+    file_path = "/Users/liuxuejin/Desktop/Data/生成、解释、补全数据/IC_generate_instruction.json"
+    print(count_json_items(file_path))
+    file_path = "/Users/liuxuejin/Desktop/Data/生成、解释、补全数据/IC_UI_generate_instruction.json"
+    print(count_json_items(file_path))

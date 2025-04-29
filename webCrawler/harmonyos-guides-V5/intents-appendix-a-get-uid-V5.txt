@@ -1,2 +1,0 @@
-附录A：获取华为账号对应UID的方式
-电脑使用浏览器（以Chrome为例）登录华为商城，并且在网页上面登录华为账号。 按F12进入开发者工具界面，按照“Application -> cookies -> https://www.vmall.com -> uid”的路径获取uid。

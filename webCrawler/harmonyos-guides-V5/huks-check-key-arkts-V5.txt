@@ -1,5 +1,0 @@
-查询密钥是否存在(ArkTS)
-HUKS提供了接口供应用查询指定密钥是否存在。
-开发步骤
- 指定密钥别名keyAlias，密钥别名最大长度为64字节。 初始化密钥属性集。用于查询时指定密钥的属性TAG，当查询单个密钥时，TAG字段可传空。 调用接口hasKeyItem，查询密钥是否存在。 
-import { huks } from '@kit.UniversalKeystoreKit';\n\n/* 1.确定密钥别名 */\nlet keyAlias = 'test_key';\nlet isKeyExist: Boolean;\n/* 2.构造空对象 */\nlet huksOptions: huks.HuksOptions = {\n  properties: []\n}\ntry {\n  /* 3.判断密钥是否存在 */\n  huks.hasKeyItem(keyAlias, huksOptions, (error, data) => {\n    if (error) {\n      console.error(`callback: hasKeyItem failed, ` + JSON.stringify(error));\n    } else {\n      if (data !== null && data.valueOf() !== null) {\n        isKeyExist = data.valueOf();\n        console.info(`callback: hasKeyItem success, isKeyExist = ${isKeyExist}`);\n      }\n    }\n  });\n} catch (error) {\n  console.error(`callback: hasKeyItem input arg invalid, ` + JSON.stringify(error));\n}

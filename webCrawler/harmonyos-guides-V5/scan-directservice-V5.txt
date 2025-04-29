@@ -1,9 +1,0 @@
-接入“扫码直达”服务
-在日常生活中，人们会使用各种应用扫各式各样的码，而“扫码直达”服务则为用户带来一种全新的扫码体验。
-开发者将域名注册到“扫码直达”服务后，用户可通过控制中心等系统级的常驻入口，扫应用的二维码、条形码并跳转到应用对应服务页，实现一步直达服务的体验。
-开发者接入“扫码直达”服务，能为应用带来：
-更浅层的扫码入口和更便捷的“扫码直达”服务体验。HarmonyOS强大的扫码能力。更容易触达用户的全新渠道。
-业务流程
-开发者参考App Linking指导完成域名注册。用户通过HarmonyOS扫码入口发起扫码请求。HarmonyOS扫码入口调用系统能力解析码值，查询码值对应的应用信息后拉起应用；解析码值结果跳转应用服务页。
-开发步骤
-参考开发准备完成必要的准备工作。处理接收到的码值，完成应用内页面跳转逻辑。import { router } from '@kit.ArkUI';\nimport { hilog } from '@kit.PerformanceAnalysisKit';\nimport { AbilityConstant, UIAbility, Want } from '@kit.AbilityKit';\n\nexport default class EntryAbility extends UIAbility {\n  // 冷启动场景通过onCreate回调获取码值信息\n  onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {\n    hilog.info(0x0001, '[Scan Access]', `Succeeded in getting want in onCreate`);\n    // 从want中获取传入的链接信息。\n    // 如传入的url为：https://www.example.com/programs?router=Access\n    this.getRouterUri(want);\n  }\n\n  // 热启动场景通过onNewWant回调获取码值信息\n  onNewWant(want: Want, launchParam: AbilityConstant.LaunchParam): void {\n    hilog.info(0x0001, '[Scan Access]', `Succeeded in getting want in onNewWant`);\n    // 从want中获取传入的链接信息\n    this.getRouterUri(want);\n  }\n\n  // 解析扫码结果，跳转相应页面\n  private getRouterUri(want: Want) {\n    let uri: string | undefined = want?.uri;\n    if (uri) {\n      // 开发者根据解析的uri跳转至响应页面，例如需要跳转页面为\"pages/Access\"\n      let status: router.RouterState = router.getState();\n      if (status && status.name !== 'Access' && uri) {\n        // 根据uri参数做业务处理\n        router.pushUrl({\n          url: 'pages/Access'\n        });\n      }\n    }\n  }\n} 验证“扫码直达”服务。将配置好域名映射关系的测试应用安装到本地。打开HarmonyOS扫码入口（控制中心扫码入口），扫描应用发行的二维码。确认能否拉起应用并跳转目标服务页。 集成效果，以美团单车场景为例： 

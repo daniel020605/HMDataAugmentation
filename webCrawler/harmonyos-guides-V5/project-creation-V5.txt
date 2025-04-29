@@ -1,3 +1,0 @@
-创建新工程
-本章节从创建新工程开始，指导开发者接入“备份恢复框架”，已经创建工程的开发者可以跳过本节。
-打开DevCco Studio编译器，在菜单栏点击File > New > Create Project，创建新工程。 在创建工程界面选择创建Empty Ability工程，单击Next按钮进入下一步。 在Configure Your Project界面，根据开发者的需求，创建自己的工程，Compatible SDK栏请选择：5.0.0(12)。选择完毕之后，点击Finish按钮完成工程创建。 工程创建成功之后进入如下界面。 

@@ -1,11 +1,10 @@
 import os
-
+import csv  # 导入 csv 模块用于处理 CSV 文件
 import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
-VISITED_DOCS_FILE = './dir/visited_docs.txt'
-
+VISITED_DOCS_FILE = './dir/visited_docs.csv'  # 改为 CSV 文件
 
 def get_document_by_id(object_id, version, catalog_name, language):
     if is_document_visited(object_id):
@@ -22,7 +21,7 @@ def get_document_by_id(object_id, version, catalog_name, language):
     response = requests.post(url, json=payload)
 
     if response.status_code == 200:
-        mark_document_as_visited(object_id)
+        mark_document_as_visited(object_id, url)  # 传递 URL 到标记函数
         return response
     else:
         print(f'请求失败，状态码: {response.status_code}')
@@ -82,16 +81,22 @@ def find_leaf_nodes(tree_list):
 
 def is_document_visited(object_id):
     try:
-        with open(VISITED_DOCS_FILE, 'r') as file:
-            visited_docs = file.read().splitlines()
-            return object_id in visited_docs
+        with open(VISITED_DOCS_FILE, 'r', newline='') as file:
+            reader = csv.reader(file)
+            for row in reader:
+                if row and row[0] == object_id:
+                    return True
+        return False
     except FileNotFoundError:
         return False
 
-
-def mark_document_as_visited(object_id):
-    with open(VISITED_DOCS_FILE, 'a') as file:
-        file.write(object_id + '\n')
+def mark_document_as_visited(object_id, url):
+    file_exists = os.path.isfile(VISITED_DOCS_FILE)
+    with open(VISITED_DOCS_FILE, 'a', newline='') as file:
+        writer = csv.writer(file)
+        if not file_exists:
+            writer.writerow(['object_id', 'url'])  # 写入表头
+        writer.writerow([object_id, url])
 
 
 def doc_pipe(topic, doc_name):
@@ -101,7 +106,7 @@ def doc_pipe(topic, doc_name):
         # Ensure the directory exists
         os.makedirs(f'./{topic}', exist_ok=True)
         # print(document.json())
-        with open(f'./{topic}/{doc_name}.txt', 'w') as file:
+        with open(f'./{topic}/{doc_name}.html', 'w') as file:
             for paragraph in doc_paragraphs:
                 file.write(paragraph + '\n')
 
@@ -126,11 +131,11 @@ def get_by_topic(topic):
 if __name__ == '__main__':
     # 需要提前创建对应文件夹
     # "harmonyos-guides-V5" "harmonyos-references-V5" "best-practices-V5" "harmonyos-releases-V5" "harmonyos-faqs-V5"
-    get_by_topic("harmonyos-references-V14")
-    get_by_topic("harmonyos-releases-V14")
-    get_by_topic("best-practices-V14")
-    get_by_topic("harmonyos-faqs-V14")
-    get_by_topic("harmonyos-guides-V14")
+    # get_by_topic("harmonyos-references")
+    get_by_topic("harmonyos-releases")
+    get_by_topic("best-practices")
+    get_by_topic("harmonyos-faqs")
+    get_by_topic("harmonyos-guides")
 
     # 计算/docs目录下的文件包括多少字符：9402554
 

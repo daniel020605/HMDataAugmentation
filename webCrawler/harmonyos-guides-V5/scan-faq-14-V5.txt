@@ -1,7 +1,0 @@
-如何主动通过手势缩放变焦比
-问题现象
-自定义界面扫码如何主动通过手势缩放相机流。
-解决措施
-通过组合手势接口设置变焦比setZoom(zoomValue : number): void。
-参考如下示例代码，手势缩放跟随和手势缩放结束接口中都可以设置变焦比变化：
-import { hilog } from '@kit.PerformanceAnalysisKit';\n\n@Entry\n@Component\nstruct Index {\n  build() {\n    Column() {\n      // 绑定手势\n    }.gesture(PinchGesture({ fingers: 2 })\n      .onActionStart((event: GestureEvent) => {\n        hilog.info(0x0001, '[Scan Sample]', 'Pinch start');\n      })\n      .onActionUpdate((event: GestureEvent) => {\n        if (event) {\n          // 手势缩放比例\n          let scaleValue = event.scale;\n          // 1、手势跟随过程中设置变焦比\n        }\n      })\n      .onActionEnd((event: GestureEvent) => {\n        // 2、手势结束抬起后，设置变焦比\n      })\n    )\n  }\n}

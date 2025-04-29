@@ -1,4 +1,0 @@
-跨语言调试
-DevEco Studio支持C++和ArkTS的跨语言调试，可以同时调试这两种语言。整体操作体验与单一语言调试一致，无需额外在对应语言去手动添加断点，避免了在此过程过多的手工操作，提升了使用两种语言混合开发的调试效率。
-开启跨语言调试
-将DevEco Studio与设备进行连接。如果使用真机设备，请先对应用/元服务进行签名，具体请参考为应用/元服务进行签名。在菜单栏单击Run > Edit Configurations，选择Application下的模块名（如entry），然后在右侧窗口中选择Debugger，将Debug type设置为“Dual(ArkTS/Js + Native)”。 当调试运行到C++代码处，可以从左下角Debugger视窗看到C++和ArkTS的调用方法，点击可以切换到两种不同语言下对应的方法入口。  代码调试执行到ArkTS调用C++方法处，点击Step Into可以进入到对应的C++方法的第一行代码处。  ArkTS调用C++方法之后的代码存在断点时，点击Resume可以回到ArkTS断点的代码行，继续进行Arkts代码调试。 

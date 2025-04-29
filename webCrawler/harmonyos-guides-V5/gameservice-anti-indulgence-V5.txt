@@ -1,7 +1,0 @@
-未成年人防沉迷
-根据国家新闻出版署的最新规定，所有网络游戏企业仅可在周五、周六、周日和法定节假日每日20时至21时向未成年人提供1小时网络游戏服务，其他时间均不得以任何形式向未成年人提供网络游戏服务。因此，Game Service Kit提供了实名认证、游戏时间管控等防沉迷能力。当玩家在登录游戏时，需要对玩家的实名认证与游戏时间进行合规校验。
- 实名认证：用户在使用华为账号登录游戏时，会出现页面引导用户进行实名认证。 游戏时间管控：       已实名认证为未成年人的华为账号在非规定游戏时间内登录游戏，Game Service Kit会弹框提示用户不允许游戏，用户点击“确定”，将直接退出游戏。 已实名认证为未成年人的华为账号在规定时间内登录游戏，当游戏进行到晚上21时，Game Service Kit会弹框提示用户已到游戏时间，用户点击“确定”，将直接退出游戏。  
-前提条件
-已实现联合登录。
-开发步骤
- 调用verifyLocalPlayer接口进行账号实名认证和游戏防沉迷管控合规校验。            如果玩家未完成实名认证，Game Service Kit将向玩家弹出实名认证弹框要求玩家进行实名认证。如果玩家取消实名认证则返回1002000004错误码。游戏可再次调用unionLogin接口弹出实名认证弹框，或直接强制用户下线游戏。 如果玩家账号实名认证为未成年人，Game Service Kit将启动未成年人游戏时间自动检测功能，不在指定时间内登录游戏，Game Service Kit将强制玩家退出游戏并返回1002000006错误码。    let context = getContext(this) as common.UIAbilityContext;\nlet request: gamePlayer.ThirdUserInfo = {\n  thirdOpenId: '123xxxx', // 游戏官方账号ID\n  isRealName: true // 玩家是否实名,该值为true时表示已实名,为false时表示未实名\n};\ntry {\n  gamePlayer.verifyLocalPlayer(context, request).then(() => {\n    hilog.info(0x0000, 'testTag', `Succeeded in verifying.`);\n  }).catch((error: BusinessError) => {\n    hilog.error(0x0000, 'testTag', `Failed to verify. Code: ${error.code}, message: ${error.message}`);\n  });\n} catch (error) {\n  let err = error as BusinessError;\n  hilog.error(0x0000, 'testTag', `Failed to verify. Code: ${err.code}, message: ${err.message}`);\n} 绑定场景下/选择游戏官方账号登录场景下，当合规校验通过后，开发者需在用户首次实名认证或变更实名身份信息后自行上报用户信息至国家新闻出版署。 
