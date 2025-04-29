@@ -695,7 +695,6 @@ def guarantee_extract(soup):
             # 2. 将删除 table 后的 next_div 转换成文本
             div_text = next_div.get_text(strip=True)
             # 3. 处理 table 数据
-
             table_text = str(table2json(removed_table))
             # 4. 将处理后的 table 数据放回原位置
             new_table_tag = soup.new_tag("div")
@@ -703,11 +702,13 @@ def guarantee_extract(soup):
             next_div.append(new_table_tag)
 
         content_text = next_div.text
+
         if (table_text.strip() or content_text.strip() or h4_text.strip()):
             sql = f"""INSERT INTO HMGuarantee (Title, Module, Content) VALUES (`{title_text}`, `{h4_text}`, `{content_text}`);\n"""
             # print(sql)
             res += sql
-        next_div = next_div.find_next('div')
+        # 使用 find_next_sibling 方法找到同层级的下一个 div
+        next_div = next_div.find_next_sibling('div')
 
     return res
 
@@ -737,10 +738,10 @@ def process_folder(folder_path, output_folder):
 # find_enum_section2(soup)
 # find_functions_section(soup)
 if __name__ == '__main__':
-    path = './harmonyos-references-V5'
-    output_folder = './harmony-references-V5-sql'
-    process_folder(path, output_folder)
+    # path = './harmonyos-references-V5'
+    # output_folder = './harmony-references-V5-sql'
+    # process_folder(path, output_folder)
 
-    # output_folder = './'
-    # file_path = './harmonyos-references-V5/xengine-kit-xengine-V5.html'
-    # process_file(file_path, output_folder)
+    output_folder = './Users/liuxuejin/Desktop/Projects/HMDataAugmentation/corpusHelper'
+    file_path = '/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/corpusHelper/harmonyos-references-V5/syscap-list-phone-V5.html'
+    process_file(file_path, output_folder)
