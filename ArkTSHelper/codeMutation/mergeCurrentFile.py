@@ -4,21 +4,11 @@ import itertools
 from typing import Dict, Set, Tuple
 from ArkTSHelper.codeMutation.layoutConstructors.layoutConstructor import generate_example
 
-
-def merge_ets_files(file1_path: str, file2_path: str, output_path: str):
-    """
-    合并两个ETS文件的工具函数
-
-    :param file1_path: 第一个ets文件路径
-    :param file2_path: 第二个ets文件路径
-    :param output_path: 输出文件路径
-    """
-    # 定义正则表达式模式（增强版）
-    import re
-    from typing import Dict, Tuple, Set
-
-    # 增强版正则表达式（精确匹配三种导入类型）
-    import_pattern = re.compile(
+# 定义正则表达式模式（增强版）
+import re
+from typing import Dict, Tuple, Set
+# 增强版正则表达式（精确匹配三种导入类型）
+import_pattern = re.compile(
         r'import\s+'
         r'(?:'
         r'({[\w\s,]+})'  # 情况1：纯命名导入 {A, B}
@@ -29,8 +19,7 @@ def merge_ets_files(file1_path: str, file2_path: str, output_path: str):
         re.MULTILINE
     )
 
-
-    component_pattern = re.compile(
+component_pattern = re.compile(
         r'@Entry\s*'  
         r'@Component\w*\s*'  
         r'(?:export\s+)?'
@@ -40,104 +29,116 @@ def merge_ets_files(file1_path: str, file2_path: str, output_path: str):
         flags=re.DOTALL | re.MULTILINE | re.VERBOSE
     )
 
-    def parse_imports(content: str) -> Dict[str, Tuple[Set[str], Set[str]]]:
-        """解析导入语句，返回结构：{lib: (default_imports, named_imports)}"""
-        imports_dict = {}
 
-        for match in import_pattern.finditer(content):
-            # 正则捕获组解包
-            pure_named = match.group(1)  # 纯命名导入捕获组
-            default_mixed = match.group(2)  # 默认/混合导入捕获组
-            lib = match.group(3).strip()  # 库路径
+def parse_imports(content: str) -> Dict[str, Tuple[Set[str], Set[str]]]:
+    """解析导入语句，返回结构：{lib: (default_imports, named_imports)}"""
+    imports_dict = {}
 
-            # 初始化存储
-            default_imports = set()
-            named_imports = set()
+    for match in import_pattern.finditer(content):
+        # 正则捕获组解包
+        pure_named = match.group(1)  # 纯命名导入捕获组
+        default_mixed = match.group(2)  # 默认/混合导入捕获组
+        lib = match.group(3).strip()  # 库路径
 
-            # 情况1：处理纯命名导入 {A, B}
-            if pure_named:
-                named_str = pure_named.strip('{}').strip()
+        # 初始化存储
+        default_imports = set()
+        named_imports = set()
+
+        # 情况1：处理纯命名导入 {A, B}
+        if pure_named:
+            named_str = pure_named.strip('{}').strip()
+            if named_str:
+                named_imports.update(s.strip() for s in named_str.split(','))
+
+        # 情况2：处理默认/混合导入
+        elif default_mixed:
+            # 分离默认导入和可能的命名部分（例如："a, {B, C}"）
+            parts = [p.strip() for p in default_mixed.split(',', 1)]
+
+            # 处理默认导入部分
+            if parts[0] and not parts[0].startswith('{'):
+                default_imports.add(parts[0])
+
+            # 处理混合的命名导入部分
+            if len(parts) > 1 and parts[1].startswith('{'):
+                named_str = parts[1].strip('{}').strip()
                 if named_str:
                     named_imports.update(s.strip() for s in named_str.split(','))
 
-            # 情况2：处理默认/混合导入
-            elif default_mixed:
-                # 分离默认导入和可能的命名部分（例如："a, {B, C}"）
-                parts = [p.strip() for p in default_mixed.split(',', 1)]
+        # 合并到字典
+        if lib:
+            existing = imports_dict.get(lib, (set(), set()))
+            imports_dict[lib] = (
+                existing[0].union(default_imports),
+                existing[1].union(named_imports)
+            )
 
-                # 处理默认导入部分
-                if parts[0] and not parts[0].startswith('{'):
-                    default_imports.add(parts[0])
+    return imports_dict
 
-                # 处理混合的命名导入部分
-                if len(parts) > 1 and parts[1].startswith('{'):
-                    named_str = parts[1].strip('{}').strip()
-                    if named_str:
-                        named_imports.update(s.strip() for s in named_str.split(','))
 
-            # 合并到字典
-            if lib:
-                existing = imports_dict.get(lib, (set(), set()))
-                imports_dict[lib] = (
-                    existing[0].union(default_imports),
-                    existing[1].union(named_imports)
-                )
+def generate_imports(imports_dict: Dict[str, Tuple[Set[str], Set[str]]]) -> str:
+    """生成合并后的import语句（支持默认/命名导入分离）"""
+    output = []
+    for lib in sorted(imports_dict.keys()):
+        default_members, named_members = imports_dict[lib]
 
-        return imports_dict
+        # 处理默认导入（最多一个有效）
+        default_part = ""
+        if default_members:
+            sorted_default = sorted(default_members)
+            if len(sorted_default) > 1:
+                print(f"警告: 库 {lib} 存在多个默认导入，仅保留第一个")
+            default_part = sorted_default[0]
 
-    def generate_imports(imports_dict: Dict[str, Tuple[Set[str], Set[str]]]) -> str:
-        """生成合并后的import语句（支持默认/命名导入分离）"""
-        output = []
-        for lib in sorted(imports_dict.keys()):
-            default_members, named_members = imports_dict[lib]
+        # 处理命名导入
+        named_part = ""
+        if named_members:
+            sorted_named = sorted(named_members)
+            named_part = "{ " + ", ".join(sorted_named) + " }"
 
-            # 处理默认导入（最多一个有效）
-            default_part = ""
-            if default_members:
-                sorted_default = sorted(default_members)
-                if len(sorted_default) > 1:
-                    print(f"警告: 库 {lib} 存在多个默认导入，仅保留第一个")
-                default_part = sorted_default[0]
+        # 组合语句逻辑
+        if default_part and named_part:
+            line = f"import {default_part}, {named_part} from '{lib}';"
+        elif default_part:
+            line = f"import {default_part} from '{lib}';"
+        elif named_part:
+            line = f"import {named_part} from '{lib}';"
+        else:
+            continue  # 跳过空导入
 
-            # 处理命名导入
-            named_part = ""
-            if named_members:
-                sorted_named = sorted(named_members)
-                named_part = "{ " + ", ".join(sorted_named) + " }"
+        output.append(line)
 
-            # 组合语句逻辑
-            if default_part and named_part:
-                line = f"import {default_part}, {named_part} from '{lib}';"
-            elif default_part:
-                line = f"import {default_part} from '{lib}';"
-            elif named_part:
-                line = f"import {named_part} from '{lib}';"
-            else:
-                continue  # 跳过空导入
+    return "\n".join(output)
 
-            output.append(line)
 
-        return "\n".join(output)
+def parse_file(file_path: str) -> tuple[dict[str, tuple[set[str], set[str]]], str, str, str]:
+    """解析文件返回结构化数据"""
+    content = Path(file_path).read_text(encoding='utf-8')
 
-    def parse_file(file_path: str) -> tuple[dict[str, tuple[set[str], set[str]]], str, str, str]:
-        """解析文件返回结构化数据"""
-        content = Path(file_path).read_text(encoding='utf-8')
+    # 解析imports
+    imports_dict = parse_imports(content)
+    # 处理组件内容
+    component_match = component_pattern.search(content)
+    if not component_match:
+        raise ValueError(f"未找到有效组件结构：{file_path}")
 
-        # 解析imports
-        imports_dict = parse_imports(content)
-        # 处理组件内容
-        component_match = component_pattern.search(content)
-        if not component_match:
-            raise ValueError(f"未找到有效组件结构：{file_path}")
+    start = component_match.start()
+    end = component_match.end()
+    pre_content = re.sub(import_pattern, '', content[:start]).strip()  # 移除已解析的import
+    component_content = component_match.group(0)
+    post_content = content[end:].strip()
 
-        start = component_match.start()
-        end = component_match.end()
-        pre_content = re.sub(import_pattern, '', content[:start]).strip()  # 移除已解析的import
-        component_content = component_match.group(0)
-        post_content = content[end:].strip()
+    return imports_dict, pre_content, component_content, post_content
 
-        return imports_dict, pre_content, component_content, post_content
 
+def merge_ets_files(file1_path: str, file2_path: str, output_path: str):
+    """
+    合并两个ETS文件的工具函数
+
+    :param file1_path: 第一个ets文件路径
+    :param file2_path: 第二个ets文件路径
+    :param output_path: 输出文件路径
+    """
     # 解析文件
     imports1, pre1, comp1, post1 = parse_file(file1_path)
     imports2, pre2, comp2, post2 = parse_file(file2_path)
@@ -161,7 +162,6 @@ def merge_ets_files(file1_path: str, file2_path: str, output_path: str):
 
         merged_imports[lib] = (merged_default, merged_named)
 
-    print(generate_imports(merged_imports))
     # 合并其他内容
     merged_pre = '\n\n'.join(filter(None, [pre1, pre2]))
     merged_post = '\n\n'.join(filter(None, [post1, post2]))
