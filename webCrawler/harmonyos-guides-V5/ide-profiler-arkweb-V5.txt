@@ -1,7 +1,0 @@
-加载丢帧：ArkWeb分析
-应用开发过程中，会通过在APP中嵌入webView以提高开发效率，可能面临ArkWeb加载和丢帧等问题。DevEco Profiler提供ArkWeb分析模板，可以结合ArkWeb执行流程的关键trace点来定位问题发生的阶段。如果问题发生在渲染阶段，可以结合H:RosenWeb数据，线程运行状态以及帧渲染流程打点数据，进一步分析丢帧问题。
-ArkWeb加载问题分析
-创建ArkWeb模板，完成一次录制，录制期间触发Web相关场景。 定界web问题发生的阶段，分析Web加载问题。根据web页面加载过程中的关键trace点，划分了五个阶段，分别是：点击事件（Click Event）， 组件初始化（Component Initialization），主资源下载（PrimaryResource Download），子资源下载（Sub-Resource Download），渲染输出（Render And Output）。   详情区可以跳转关键trace所在泳道，进一步分析加载问题。框选可以查看泳道的耗时阶段划分的关键trace点，并可以根据trace信息，关联到所在线程信息。  
-ArkWeb丢帧问题分析
-分析RenderService内的H:RosenWeb的trace，查看是否有buffer缓存，没有缓存的情况下即为丢帧。 
-ArkWeb子泳道聚合了Web相关线程的trace信息，通过分析Web渲染过程的关键函数的trace点，可以分析出每一帧的执行流程。聚合的Web线程信息如下：H:RosenWeb：用于记录准备提交给RenderService进行统一渲染的数据量。如果超过一定时间（vsync周期）为空，则表示丢帧。Web应用进程：UI主线程，VSync-Webview, VizCompositorTh（Viz）， CompositorGpu（drdc）， Chrome_InProcGpu（Gpu主线程）等。Web应用Render进程： 主线程，Compositor（CC)。Render_Service进程： Render_Service（主线程），Vsync-rs， VsyncGenerator。  

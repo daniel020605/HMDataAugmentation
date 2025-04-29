@@ -1,5 +1,0 @@
-在端侧调用云函数
-前提条件
-请确保云函数已正确开发并部署。
-操作步骤
-在代码文件中引入Cloud Foundation Kit。import { cloudFunction } from '@kit.CloudFoundationKit'\nimport { BusinessError } from '@kit.BasicServicesKit';   调用您云侧部署的云函数。关于云函数接口的更详细信息，请参考Cloud Foundation Kit API参考-云函数模块。//填入需要调用的云函数名称\ncloudFunction.call({name: 'xxxx'})\n.then((res: cloudFunction.FunctionResult) => {  \n  // 处理调用返回\n}).catch((err: BusinessError) => {\n  // 调用云函数异常时的处理逻辑\n}) 例如，CloudFunction.ets调用的是云侧示例函数“id-generator”，以实现在端侧调用云函数执行“id-generator”来生成UUID。  

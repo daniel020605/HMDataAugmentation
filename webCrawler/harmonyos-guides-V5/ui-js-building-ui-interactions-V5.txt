@@ -1,9 +1,0 @@
-添加交互
-添加交互可以通过在组件上关联事件实现。本节将介绍如何用div、text、image组件关联click事件，构建一个如下图所示的点赞按钮。
-点赞按钮通过一个div组件关联click事件实现。div组件包含一个image组件和一个text组件：
-image组件用于显示未点赞和点赞的效果。click事件函数会交替更新点赞和未点赞图片的路径。 text组件用于显示点赞数，点赞数会在click事件的函数中同步更新。 
-click事件作为一个函数定义在js文件中，可以更改isPressed的状态，从而更新显示的image组件。如果isPressed为真，则点赞数加1。该函数在hml文件中对应的div组件上生效，点赞按钮各子组件的样式设置在css文件当中。具体的实现示例如下：
-<!-- xxx.hml -->\n<!-- 点赞按钮 -->\n<div>\n  <div class=\"like\" onclick=\"likeClick\">\n    <image class=\"like-img\" src=\"{{likeImage}}\" focusable=\"true\"></image>\n    <text class=\"like-num\" focusable=\"true\">{{total}}</text>\n  </div>\n</div>
-/* xxx.css */\n.like {\n  width: 104px;\n  height: 54px;\n  border: 2px solid #bcbcbc;\n  justify-content: space-between;\n  align-items: center;\n  margin-left: 72px;\n  border-radius: 8px;\n}\n.like-img {\n  width: 33px;\n  height: 33px;\n  margin-left: 14px;\n}\n.like-num {\n  color: #bcbcbc;\n  font-size: 20px;\n  margin-right: 17px;\n}
-// xxx.js\nexport default {\n  data: {\n    likeImage: '/common/unLike.png',\n    isPressed: false,\n    total: 20,\n  },\n  likeClick() {\n    var temp;\n    if (!this.isPressed) {\n      temp = this.total + 1;\n      this.likeImage = '/common/like.png';\n    } else {\n      temp = this.total - 1;\n      this.likeImage = '/common/unLike.png';\n    }\n    this.total = temp;\n    this.isPressed = !this.isPressed;\n  },\n}
-除此之外，还提供了很多表单组件，例如开关、标签、滑动选择器等，以便于开发者在页面布局时灵活使用和提高交互性，详见容器组件。

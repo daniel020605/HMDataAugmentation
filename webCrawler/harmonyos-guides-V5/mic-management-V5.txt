@@ -1,6 +1,0 @@
-管理麦克风
-因为在录制过程中需要使用麦克风录制相关音频数据，所以建议开发者在调用录制接口前查询麦克风状态，并在录制过程中监听麦克风的状态变化，避免影响录制效果。
-在音频录制过程中，用户可以将麦克风静音，此时录音过程正常进行，录制生成的数据文件的大小随录制时长递增，但写入文件的数据均为0，即无声数据（空白数据）。
-开发步骤及注意事项
-在AudioVolumeGroupManager中提供了管理麦克风状态的方法，接口的详细说明请参考API文档。
- 创建audioVolumeGroupManager对象。 import { audio } from '@kit.AudioKit';\n\nlet audioVolumeGroupManager: audio.AudioVolumeGroupManager;\n\n// 创建audioVolumeGroupManager对象\nasync function loadVolumeGroupManager() {\n  const groupid = audio.DEFAULT_VOLUME_GROUP_ID;\n  audioVolumeGroupManager = await audio.getAudioManager().getVolumeManager().getVolumeGroupManager(groupid);\n  console.info('audioVolumeGroupManager create success.');\n} 调用isMicrophoneMute查询麦克风当前静音状态，返回true为静音，false为非静音。 // 查询麦克风是否静音\nasync function isMicrophoneMute() {\n  await audioVolumeGroupManager.isMicrophoneMute().then((value: boolean) => {\n    console.info(`isMicrophoneMute is: ${value}.`);\n  });\n} 

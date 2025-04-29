@@ -1,5 +1,0 @@
-图形渲染服务处理节点数小于500
-检测逻辑
-打开滑动或者点击操作对应的trace。滑动场景查找滑动泳道：H:APP_LIST_FLING H:APP_SWIPER_SCROLL H:WEB_LIST_FLING 点击转场场景查找泳道：H:ABILITY_OR_PAGE_SWITCH H:APP_TRANSITION_FROM_OTHER_APP H:APP_TRANSITION_TO_OTHER_APP H:APP_SWIPER_NO_ANIMATION_SWITCH H:APP_TABS_NO_ANIMATION_SWITCH H:APP_TABS_FLING  以H:APP_LIST_FLING泳道为例，如下图：在泳道时序范围内，每一个RenderFrame为一帧，找到这一帧所有的ProcessedNodes字段，提取节点数累加求和（每一帧可能对应多个ProcessedNodes，所以需要累加求和），即每帧渲染的节点数 = Σ ProcessedNodes。  
-计算逻辑
-每帧渲染的节点数小于等于500。

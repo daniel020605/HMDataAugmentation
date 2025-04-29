@@ -1,2 +1,0 @@
-上架申请
-将HarmonyOS NEXT游戏打包成APP包后可在AppGallery Connect上架，具体操作参见发布应用（APP）。

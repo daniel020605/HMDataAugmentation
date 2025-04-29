@@ -1,7 +1,0 @@
-创建和运行Hello World
-DevEco Studio安装完成后，可以通过运行Hello World工程来验证环境设置是否正确。接下来以创建一个支持Phone设备的工程为例进行介绍。
-创建一个新工程
-打开DevEco Studio，在欢迎页单击Create Project，创建一个新工程。根据工程创建向导，选择创建Application或Atomic Service。选择Empty Ability模板，然后单击Next。关于工程模板的介绍和支持的设备类型，请参考工程模板介绍。 填写工程相关信息，单击Finish。关于各个参数的详细介绍，请参考创建一个新的工程。  工程创建完成后，DevEco Studio会自动进行工程的同步。 
-运行Hello World
-将搭载HarmonyOS系统的真机与电脑连接。具体指导及要求，可查看运行应用/元服务。点击File > Project Structure... > Project > SigningConfigs界面勾选“Support HarmonyOS”和“Automatically generate signature”，点击界面提示的“Sign In”，使用华为账号登录。等待自动签名完成后，点击“OK”即可。如下图所示： 在编辑窗口右上角的工具栏，点击按钮运行。效果如下图所示： 
-至此，您已成功运行了第一个应用，接下来可以通过一个简单的DEMO工程示例，来详细了解应用的开发过程，具体请参见HarmonyOS应用开发快速入门。

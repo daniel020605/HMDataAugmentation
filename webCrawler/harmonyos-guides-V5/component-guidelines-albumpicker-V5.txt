@@ -1,6 +1,0 @@
-使用AlbumPicker组件访问相册列表
-开发者可以在布局中嵌入AlbumPickerComponent组件，通过此组件，应用无需申请权限，即可访问公共目录中的相册列表。
-需配合PhotoPickerComponent一起使用，用户通过AlbumPickerComponent组件选择对应相册并通知PhotoPickerComponent组件刷新成对应相册的图片和视频。
-界面效果如图所示。
-开发步骤
-导入相册组件模块文件。 import { AlbumPickerComponent, AlbumPickerOptions, AlbumInfo} from '@kit.MediaLibraryKit'; 创建相册组件配置选项实例（AlbumPickerOptions）。 通过AlbumPickerOptions，开发者可配置相册页主题颜色，详见AlbumPickerOptions API参考。// 用于相册组件初始化时设置参数信息\nalbumOptions: AlbumPickerOptions = new AlbumPickerOptions();  初始化组件配置选项实例（AlbumPickerOptions）。/**\n * 设置相册页颜色模式， 默认AUTO。\n * AUTO：跟随系统的模式， LIGHT：浅色模式， DARK：深色模式\n */\nthis.albumOptions.themeColorMode = PickerColorMode.AUTO; 创建AlbumPickerComponent组件。AlbumPickerComponent({\n  // 设置组件选择选项实例\n  albumPickerOptions: this.albumOptions,\n\n  /**\n   *相册被选中回调，返回相册信息\n   * AlbumInfo（uri）\n   */\n  onAlbumClick: (albumInfo: AlbumInfo): boolean => this.onAlbumClick(albumInfo),\n}) 与PhotoPicker组件联动，将相册URI给到应用，根据相册URI更新PhotoPicker组件宫格页内容。private onAlbumClick(albumInfo: AlbumInfo): boolean {\n    if (albumInfo?.uri) {\n        // 根据相册url更新宫格页内容\n        this.pickerController.setData(DataType.SET_ALBUM_URI, albumInfo.uri);      \n    }\n    return true;\n} 

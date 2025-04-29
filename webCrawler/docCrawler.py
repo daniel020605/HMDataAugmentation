@@ -101,7 +101,7 @@ def doc_pipe(topic, doc_name):
         # Ensure the directory exists
         os.makedirs(f'./{topic}', exist_ok=True)
         # print(document.json())
-        with open(f'./{topic}/{doc_name}.txt', 'w') as file:
+        with open(f'./{topic}/{doc_name}.html', 'w', encoding="UTF-8") as file:
             for paragraph in doc_paragraphs:
                 file.write(paragraph + '\n')
 

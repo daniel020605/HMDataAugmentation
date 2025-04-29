@@ -1,8 +1,0 @@
-app.js
-应用生命周期
-每个应用可以在app.js自定义应用级生命周期的实现逻辑，以下示例仅在生命周期函数中打印对应日志：
-// app.js\nexport default {\n    onCreate() {\n        console.info('Application onCreate')\n    },\n\n    onDestroy() {\n        console.info('Application onDestroy')\n    },\n}
-应用对象6+
-示例如下：
-// app.js\nexport default {\n    data: {\n        test: \"by getAPP\"\n    },\n    onCreate() {\n        console.info('AceApplication onCreate')\n    },\n    onDestroy() {\n        console.info('AceApplication onDestroy')\n    },\n}
-// test.js 自定义逻辑代码\nexport var appData = getApp().data

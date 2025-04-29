@@ -1,8 +1,0 @@
-开发准备
-下载HUAWEI DevEco Studio，完成开发工具的安装，具体操作请参考安装DevEco Studio。
-在调用XEngine Kit能力前，需要先通过Syscap查询您的目标设备是否支持SystemCapability.Graphic.XEngine系统能力。
-软件要求
-推荐使用Ubuntu 16.04及以上版本、MacOS 10.14及以上版本、Windows 10及以上版本安装应用开发环境DevEco Studio。DevEco Studio版本：DevEco Studio NEXT Developer Beta1及以上。HarmonyOS SDK版本：HarmonyOS NEXT Developer  Beta1 SDK及以上。
-硬件要求
-支持的设备类型如下表。 功能  支持设备类型    空域GPU超分  支持马良910 GPU及以上的华为手机   空域AI超分  支持马良910 GPU及以上的华为手机   时域AI超分  支持马良920 GPU及以上的华为手机   自适应VRS  支持马良910 GPU及以上的华为手机   Subpass Shading  支持马良910 GPU及以上的华为手机     
-支持的HarmonyOS系统如下表。 功能  支持系统    空域GPU超分  支持HarmonyOS NEXT Developer  Beta1及以上   空域AI超分  支持HarmonyOS NEXT Developer  Beta1及以上   时域AI超分  支持HarmonyOS 5.0.0 Release及以上   自适应VRS  支持HarmonyOS NEXT Developer  Beta1及以上   Subpass Shading  支持HarmonyOS NEXT Developer  Beta1及以上     

@@ -1,6 +1,0 @@
-停止PageAbility
-停止PageAbility通过featureAbility中的terminateSelf接口实现。
- 表1 featureAbility接口说明
-如下示例展示了停止Ability的方法。
-import featureAbility from '@ohos.ability.featureAbility';\nimport hilog from '@ohos.hilog';\n\nconst TAG: string = 'PagePageAbilityFirst';\nconst domain: number = 0xFF00;
-//...\n(async (): Promise<void> => {\n  try {\n    hilog.info(domain, TAG, 'Begin to terminateSelf');\n    await featureAbility.terminateSelf();\n    hilog.info(domain, TAG, 'terminateSelf succeed');\n  } catch (error) {\n    hilog.error(domain, TAG, 'terminateSelf failed with ' + error);\n  }\n})()\n//...

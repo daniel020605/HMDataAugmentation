@@ -1,7 +1,0 @@
-请求通知授权
-应用需要获取用户授权才能发送通知。在通知发布前调用requestEnableNotification()方法，弹窗让用户选择是否允许发送通知，后续再次调用requestEnableNotification()方法时，则不再弹窗。
-接口说明
-接口详情参见API参考。
-表1 通知授权接口功能介绍
-开发步骤
- 导入NotificationManager模块。 import { notificationManager } from '@kit.NotificationKit';\nimport { BusinessError } from '@kit.BasicServicesKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';\nimport { common } from '@kit.AbilityKit';\n\nconst TAG: string = '[PublishOperation]';\nconst DOMAIN_NUMBER: number = 0xFF00; 请求通知授权。 可通过requestEnableNotification的错误码判断用户是否授权。若返回的错误码为1600004，即为拒绝授权。 let context = getContext(this) as common.UIAbilityContext;\nnotificationManager.isNotificationEnabled().then((data: boolean) => {\n  hilog.info(DOMAIN_NUMBER, TAG, \"isNotificationEnabled success, data: \" + JSON.stringify(data));\n  if(!data){\n    notificationManager.requestEnableNotification(context).then(() => {\n      hilog.info(DOMAIN_NUMBER, TAG, `[ANS] requestEnableNotification success`);\n    }).catch((err : BusinessError) => {\n      if(1600004 == err.code){\n        hilog.error(DOMAIN_NUMBER, TAG, `[ANS] requestEnableNotification refused, code is ${err.code}, message is ${err.message}`);\n      } else {\n        hilog.error(DOMAIN_NUMBER, TAG, `[ANS] requestEnableNotification failed, code is ${err.code}, message is ${err.message}`);\n      }\n    });\n  }\n}).catch((err : BusinessError) => {\n    hilog.error(DOMAIN_NUMBER, TAG, `isNotificationEnabled fail, code is ${err.code}, message is ${err.message}`);\n}); 

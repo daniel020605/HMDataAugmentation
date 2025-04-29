@@ -1,4 +1,0 @@
-响应校验
-本协议栈框架支持校验响应功能，应用添加了响应校验器后，可在ResponseValidationCallback中判断响应是否符合预期，不符合那么框架会抛异常。
-开发步骤
-导包。import { rcp } from '@kit.RemoteCommunicationKit'; 添加响应校验器并且发起请求。const HTTP_SERVER: string = \"https://www.example.com\";\n\n// 如果响应码不等于200，会抛异常\nconst processingOKByFunc = async (done: Function): Promise<void> => {\n  const session = rcp.createSession();\n  const request = new rcp.Request(HTTP_SERVER);\n  const validate: rcp.ResponseValidationCallback = (response: rcp.Response): boolean | Promise<boolean> => {\n    return response.statusCode === 200;\n  };\n  const processing: rcp.ProcessingConfiguration = {\n    validateResponse: validate,\n  }\n  request.configuration = {\n    processing: processing,\n  };\n  const resp = await session.fetch(request);\n  session.close();\n  done();\n} 
