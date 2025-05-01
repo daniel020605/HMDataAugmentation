@@ -1,4 +1,0 @@
-元数据资源配置文件适配
-开发者通过元数据资源配置文件，启用备份恢复，并定义备份恢复框架需要传输的文件。
-以下步骤以空工程为例，介绍如何配置元数据资源文件：
-在entry/src/main/resources/base/profile/目录下，点击 New > File 创建backup_config.json文件。 参考示例代码实现元数据资源文件配置。 {\n  \"allowToBackupRestore\": true,\n  \"extraInfo\": {\n    \"supportScene\": [\n      \"hmos2next\"\n    ]\n  }\n} 

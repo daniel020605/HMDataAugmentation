@@ -1,8 +1,0 @@
-删除数据
-您可以通过delete()删除单个对象或者一组对象。删除数据时，云数据库会根据传入对象主键删除相应的数据，不会比对该对象其它属性与存储的数据是否一致。删除一组对象时，删除操作是原子性的，即对象列表中的对象要么全部删除成功，要么全部删除失败。
-调用删除数据方法，有两种返回方式，返回一个Promise对象或者在参数中传入一个callback对象返回，本文以Promise为例详细说明。
-注意事项：
-删除一组对象时，该组中的对象必须属于同一个对象类型，否则会导致删除失败。
-代码示例：
-将对象删除，如果删除成功，返回删除对象的个数；执行失败，抛出异常。
-async delete() {\n  try {\n    let book = new BookInfo();\n    book.id = 1;\n    let deleteNum = await databaseZone.delete(book);\n    console.info(`Succeeded in deleting , result: ` + JSON.stringify(deleteNum));\n  } catch (err) {\n    console.error(`Failed to delete , Code: ${err.code}, message: ${err.message}`);\n  }\n}

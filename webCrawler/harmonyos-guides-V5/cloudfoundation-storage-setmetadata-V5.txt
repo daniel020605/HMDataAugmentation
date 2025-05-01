@@ -1,8 +1,0 @@
-设置云侧文件的元数据
-文件元数据包含云侧文件名、文件大小、文件类型等常用属性，也包括用户自定义的文件属性。
-文件保存至云侧后，您可以设置文件的自定义属性。
-前提条件
- 您已初始化存储实例。 您已在云侧上传文件。 
-操作步骤
-调用StorageBucket.setMetadata可以设置云侧文档的元数据信息。
-import { cloudStorage } from '@kit.CloudFoundationKit';\nimport { BusinessError } from '@kit.BasicServicesKit';\n\nlet storageBucket: cloudStorage.StorageBucket = cloudStorage.bucket();\n\n@Component\nexport struct testPage {\n  build() {\n  }\n\n  // 设置元数据\n  setMetaData() {\n    // 设置云存储默认实例中screenshot_xxx.jpg文件的元数据信息\n    storageBucket.setMetadata('screenshot_xxx.jpg', {\n      customMetadata: {\n        key1: \"value1\",\n        key2: \"value2\"\n      }\n    }).then((metadata: cloudStorage.Metadata) => {\n      console.info(`setMetadata: ${JSON.stringify(metadata)}`);\n    }).catch((err: BusinessError) => {\n      console.error(`setMetadata failed, Code: ${err.code}, message: ${err.message}`);\n    });\n  }\n}

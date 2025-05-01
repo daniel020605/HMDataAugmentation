@@ -1,5 +1,0 @@
-导入模块
-在接入Game Service Kit相关能力前，您需先导入所需模块。
-开发步骤
-导入Account Kit模块、Game Service Kit模块及相关公共模块。
-import { authentication } from '@kit.AccountKit';\nimport { gamePlayer } from '@kit.GameServiceKit';\nimport { common } from '@kit.AbilityKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';\nimport { Callback, BusinessError } from '@kit.BasicServicesKit';\nimport { window } from '@kit.ArkUI';\nimport { util } from '@kit.ArkTS';

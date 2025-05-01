@@ -1,8 +1,0 @@
-集成ABR后，从游戏引擎获取到的Native纹理内容为空，该如何解决?
-现象描述
-以团结引擎为例，游戏应用集成ABR，在游戏引擎中通过GetNativeTexturePtr获取Buffer关联的纹理，获取到的纹理内容为空。
-原因分析
-由于ABR对Buffer进行了自适应分辨率调整，并对ABR自适应缩放后的GLES纹理进行绘制，因而原始分辨率的GLES纹理中没有内容。
-处理步骤
-为解决此问题，需要通过HMS_ABR_GetScaledTexture_GLES接口获取到ABR自适应缩放后的GLES纹理索引。
-// 在Buffer渲染后调用\nGLuint originTexture;\nGLuint scaledTexture;\nerrorCode = HMS_ABR_GetScaledTexture_GLES(context_, originTexture, &scaledTexture);\nif (errorCode != ABR_SUCCESS) {\n    GOLOGE(\"HMS_ABR_GetScaledTexture_GLES execution failed, error code: %d.\", errorCode);\n}

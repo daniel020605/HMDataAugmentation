@@ -1,9 +1,0 @@
-单点部署
-ohpm-repo 私仓不允许使用 root 用户启动，请使用其他用户安装运行。
-安装ohpm-repo工具
-ohpm-repo 依赖于 node 运行，支持 node.js 18.x 及以上版本，请提前安装 nodejs,并完成环境变量的配置。Node.js 安装请参考 Node.js官方网站。 下载 ohpm-repo 工具包，点击链接获取。 解压 ohpm-repo私仓工具包。  
-请将ohpm-repo工具包解压目录中bin目录的路径配置到系统环境变量path中，执行如下查询命令:ohpm-repo -v 终端输出版本号（如：2.0.0），则表示安装包解压无问题。如有报错，请参考FAQ解决。  针对Linux和Mac系统，建议使用bash作为命令行界面。  进入ohpm-repo解压目录的 conf 目录中，修改配置文件 config.yaml：检查 listen 配置，默认配置为 localhost:8088 ，表示仅支持监听本机地址；如果希望其他机器通过ip/域名访问，则建议修改 listen 配置为ohpm-repo部署机器的ip：listen: <部署ohpm-repo机器的ip>:8088 检查deploy_root配置：如果选择不配置，会存储在默认地址中。禁止该路径配置为ohpm-repo解压根目录。数据存储 db 模块使用filedb： db:\n  type: filedb\n  config:\n    path: ./db 文件存储 store 模块使用fs： store:\n  type: fs\n  config:\n    path: ./storage\n    #server: http://localhost:8088 检查是否配置了 store.config.server，用于指定ohpm-repo仓库内容的下载地址，不配置取默认值，具体请参考server: 仓库内容的下载地址。如果listen的host为0.0.0.0，且本机存在多个网络接口，那么该值必须配置，建议手动修改server的 host 为本机指定的 ip/域名，例如 listen 为 0.0.0.0:8088，故 server 需配置为  http://<指定部署机器的ip/域名>:8088。  如果为ohpm-repo服务配置了反向代理服务器，则store.config.server必须填写为反向代理服务器的ip/域名地址，且需要配置use_reverse_proxy值为true。config.yaml 中各项配置的详细描述请见：配置文件。   进入ohpm-repo解压目录的 bin 目录下，执行安装命令:ohpm-repo install   不配置参数 --config，默认使用ohpm-repo根目录中 conf 目录内自带的配置文件 config.yaml。  启动成功日志信息如下：  安装成功后，必须根据给出的提示信息及时刷新环境变量，针对 Window 系统和 Linux/Mac 系统，有不同处理方式： Window 系统： 关闭当前窗口，重新开启一个窗口。Linux 系统或 Mac 系统： 在命令行中执行刷新命令：当shell为bash时执行source ~/.bashrc 或者 . ~/.bashrc ；当shell为zsh时，执行source ~/.zshrc 或者 . ~/.zshrc 。  
-启动ohpm-repo
-执行 start 命令启动ohpm-repo。
-ohpm-repo start 
-启动成功日志信息如下：

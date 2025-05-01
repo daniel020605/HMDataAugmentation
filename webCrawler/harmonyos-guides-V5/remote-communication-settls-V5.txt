@@ -1,5 +1,0 @@
-设置TLS版本号和加密套件
-场景介绍
-本协议栈框架支持设置TLS版本号以及指定加密套件。
-开发步骤
-导包。import { rcp } from '@kit.RemoteCommunicationKit'; 定义TLS版本号和加密套件。type TlsOption = rcp.CipherSuite[] | rcp.TlsV13Option | rcp.TlsV12Option | rcp.TlsV11Option | rcp.TlsV10Option;\nconst tlsOption: TlsOption = {\n  tlsVersion: 'TlsV1.2',\n  cipherSuite: [\n    'TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256'\n  ]\n}; 将定义的TLS相关设置加入到配置中并发起请求。function newRequest(tlsOptions: 'system' | TlsOption): rcp.Request {\n  const request = new rcp.Request(HOST); // 请根据自身业务定义HOST\n  request.configuration = {\n    tracing: {\n      infoToCollect: {\n        textual: true\n      }\n    },\n    security: {\n      tlsOptions: tlsOptions,\n      remoteValidation: 'skip'\n    }\n  };\n  return request;\n}\nconst session = rcp.createSession();\nconst request = newRequest(tlsOption);\nconst resp = await session.fetch(request); 

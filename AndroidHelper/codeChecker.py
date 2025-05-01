@@ -1,6 +1,28 @@
 import os
 import subprocess
 
+# 指定 Android 项目的路径
+project_path = """C:/Users/74187/AndroidStudioProjects/MinApplication"""
+object_file = project_path + "/app/src/main/res/layout/activity_main.xml"
+
+def replace_or_create_file(file_path, content):
+    """
+    Replaces the content of a file. If the file does not exist, it creates a new one.
+
+    :param file_path: Path to the file
+    :param content: Content to write into the file
+    """
+    try:
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+        # Open the file in write mode and replace its content
+        with open(file_path, 'w', encoding='utf-8') as file:
+            file.write(content)
+        print(f"File '{file_path}' has been updated successfully.")
+    except Exception as e:
+        print(f"Error while processing the file: {e}")
+
 def run_command(command, cwd=None):
     """
     运行命令行工具命令并实时打印输出
@@ -71,7 +93,16 @@ def check_and_build_android_project(project_path):
     print("Sync, lint, and build completed successfully!")
     return True
 
-if __name__ == "__main__":
-    # 指定 Android 项目的路径
-    project_path = "/Users/daniel/Desktop/Android/chatgpt-android"
-    check_and_build_android_project(project_path)
+def lint(file_path):
+    """
+    运行 lint 检查
+    """
+    lint_command = f"lint {file_path}"
+    result = run_command(lint_command)
+    if result:
+        print(f"Lint check passed for {file_path}")
+    else:
+        print(f"Lint check failed for {file_path}")
+
+
+# if __name__ == "__main__":

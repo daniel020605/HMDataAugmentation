@@ -1,9 +1,0 @@
-取消注册监听系统导航信息和指令
-取消注册监听系统导航信息和指令。
-接口说明
-接口名
-描述
-unregisterSystemNavigationListener(): void
-取消注册监听系统导航信息和指令。
-开发步骤
- 导入Car Kit模块。import { navigationInfoMgr } from '@kit.CarKit';  获取NavigationController实例。let navInfoController: navigationInfoMgr.NavigationController = navigationInfoMgr.getNavigationController();  取消注册监听系统导航信息和指令。navInfoController.unregisterSystemNavigationListener();  

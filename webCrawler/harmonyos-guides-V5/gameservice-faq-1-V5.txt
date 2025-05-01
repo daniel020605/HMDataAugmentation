@@ -1,2 +1,0 @@
-如何和HarmonyOS/EMUI系统的游戏数据互通？需要游戏侧开发适配吗？
-Game Service Kit提供了游戏进度转移能力，支持将本游戏华为账号下的数据从HarmonyOS/EMUI系统转移至HarmonyOS NEXT系统，具体请参见转移游戏进度流程。

@@ -1,3 +1,0 @@
-openPreview打开显示预览失败
-Preview Kit的openPreview接口在传入文件预览信息时，当前仅支持传入文件的uri，不支持传入文件的沙箱路径。
-如果调用openPreview接口后，显示预览失败，请检查传入的是否为uri并且检查传入的uri是否存在。

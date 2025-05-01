@@ -1,2 +1,0 @@
-当切换游戏账号或进行其他操作时，如何强制拉起联合登录弹框？
-游戏提供官方账号登录方式时，调用unionLogin接口，将loginParam中的showLoginDialog字段设置为true。

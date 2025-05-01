@@ -1,6 +1,0 @@
-初始化存储实例
-前提条件
-您已开通云存储服务。
-操作步骤
-在使用云存储服务前，需要调用cloudStorage.bucket初始化一个存储实例，您可以使用两种方式初始化实例。
- 使用默认实例import { cloudStorage } from '@kit.CloudFoundationKit';\n\nlet bucket: cloudStorage.StorageBucket = cloudStorage.bucket(); // 将启动异步任务查询云侧默认实例 以“使用默认实例”方式初始化云存储实例，将启动异步任务去云侧查询默认实例。因此，当涉及多次云存储操作时，建议只初始化一次，后续的操作基于初始化一次的云存储实例进行，而非每次操作都初始化云存储实例。 // 只初始化一次云存储实例\nlet bucket: cloudStorage.StorageBucket = cloudStorage.bucket(); \nbucket.list(...); \nbucket.uploadFile(...); 不建议： // 多次初始化云存储实例\ncloudStorage.bucket().list(...);\ncloudStorage.bucket().uploadFile(...);  使用指定的实例import { cloudStorage } from '@kit.CloudFoundationKit';\n\nlet bucket: cloudStorage.StorageBucket = cloudStorage.bucket('bucket001-ki6tc'); // 指定 bucket001-ki6tc 实例     以“使用指定的实例”方式初始化云存储实例，请确保当前云侧存在该存储实例，否则后续操作将出现找不到存储实例错误。   

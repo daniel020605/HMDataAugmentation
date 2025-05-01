@@ -1,6 +1,0 @@
-取消动态订阅公共事件
-场景介绍
-动态订阅者完成业务需求后，应主动取消订阅。通过调用unsubscribe()方法，取消订阅事件。
-接口说明
-开发步骤
- 导入模块。 import { BusinessError, commonEventManager } from '@kit.BasicServicesKit';\nimport { hilog } from '@kit.PerformanceAnalysisKit';\n\nconst TAG: string = 'ProcessModel';\nconst DOMAIN_NUMBER: number = 0xFF00; 根据动态订阅公共事件章节的步骤来订阅某个事件。 调用CommonEvent中的unsubscribe()方法取消订阅某事件。 // subscriber为订阅事件时创建的订阅者对象\nif (subscriber !== null) {\n  commonEventManager.unsubscribe(subscriber, (err: BusinessError) => {\n    if (err) {\n      hilog.error(DOMAIN_NUMBER, TAG, `Failed to unsubscribe. code is ${err.code}, message is ${err.message}`);\n    } else {\n      hilog.info(DOMAIN_NUMBER, TAG, `Succeeded in unsubscribing.`);\n      subscriber = null;\n    }\n  })\n} 

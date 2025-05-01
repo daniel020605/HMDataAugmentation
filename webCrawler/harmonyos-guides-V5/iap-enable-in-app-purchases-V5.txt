@@ -1,2 +1,0 @@
-开启和激活应用内购买服务
-使用IAP Kit功能前，必须打开应用内购买服务(HarmonyOS NEXT) 开关。此开关是应用级别的，即所有使用IAP Kit功能的应用均需执行此步骤，具体操作请参见打开应用内购买服务(HarmonyOS NEXT) API开关。开启应用内购买服务(HarmonyOS NEXT) 开关后，开发者需进一步激活应用内购买服务 (HarmonyOS NEXT)，具体请参见激活服务和配置事件通知。
