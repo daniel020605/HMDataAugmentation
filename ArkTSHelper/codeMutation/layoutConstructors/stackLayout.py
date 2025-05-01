@@ -8,7 +8,7 @@ class StackLayout(BaseLayout):
         """Stack子元素增强处理"""
         enhanced = []
         for child in children:
-            if child .startswith('Blank'):
+            if child .startswith('Blank') or child.startswith('this.'):
                 continue
             # 40%概率添加定位偏移
             if random.random() < 0.4:

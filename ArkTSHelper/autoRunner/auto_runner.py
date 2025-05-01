@@ -1,7 +1,7 @@
 
 import shutil
 
-SINGLE_FILE_PROJECTS_DIR = r"/Users/jiaoyiyang/harmonyProject/repos/combined_failed"
+SINGLE_FILE_PROJECTS_DIR = r"/Users/jiaoyiyang/harmonyProject/repos/mutated_projects"
 EMPTY_PROJECT_INDEX_PATH = r"/Users/jiaoyiyang/harmonyProject/repos/emptyProject/entry/src/main/ets/pages/Index.ets"
 SCREENSHOT_OUTPUT_DIR = r"/Users/jiaoyiyang/harmonyProject/repos/UIPictures"
 IMG_PATH = r"/Users/jiaoyiyang/harmonyProject/repos/emptyProject/entry/src/main/resources/base/media"
@@ -13,9 +13,9 @@ import time
 
 AUTO = True
 BUTTON_COORDINATES = [
-    (800, 52),
-    (1370, 375),
-    (1300, 520)
+    (802, 52),
+    (1398, 375),
+    (1300, 515)
 ]
 
 def run_deveco_project():
@@ -32,7 +32,7 @@ def run_deveco_project():
         print("未找到命令行工具，请确保环境变量配置正确。")
 
 
-def take_screenshot(output_folder,timeout=600, interval=0.5):
+def take_screenshot(output_folder,timeout=600, interval=0.2):
     """
     轮询指定文件夹，直到检测到新截图文件出现为止。
 

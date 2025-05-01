@@ -2,7 +2,7 @@ import os
 import shutil
 
 from ArkTSHelper.autoRunner.failedFileDeleter import is_fail
-root_floder = '/Users/jiaoyiyang/harmonyProject/repos/combined_failed'
+root_floder = '/Users/jiaoyiyang/harmonyProject/repos/combined'
 
 target_root = '/Users/jiaoyiyang/harmonyProject/repos/combined_collected'
 fail_root = '/Users/jiaoyiyang/harmonyProject/repos/combined_failed'

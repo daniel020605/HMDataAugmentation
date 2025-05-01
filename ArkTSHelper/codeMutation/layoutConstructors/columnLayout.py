@@ -9,14 +9,41 @@ class ColumnLayout(BaseLayout):
         strategy = random.choice(['equal', 'weighted'])
 
         if strategy == 'equal':
-            # 90%概率使用留白高度，10%概率撑满
+            normal_children = [child for child in children if not child.startswith('this.')]
+            this_components = [child for child in children if child.startswith('this.')]
+
+            total = len(normal_children)
             height = f"{(90 // total)}%" if random.random() < 0.9 else f"{(100 // total)}%"
-            return [f"{child}.height('{height}')" for child in children]
+            if total == 0:
+                return children  # 没有需要布局的组件时直接返回原始列表
+
+            result = []
+            for child in children:
+                if child in this_components:
+                    result.append(child)  # 保留原始this组件
+                else:
+                    result.append(f"{child}.height('{height}')")
+            return result
+
+
 
         elif strategy == 'weighted':
-            # 保持权重分配逻辑，主元素占更大比例
-            weights = self._generate_weights(total)
-            return [f"{child}.layoutWeight({w})" for child, w in zip(children, weights)]
+            # 分离组件类型
+            layout_children = [child for child in children if not child.startswith('this.')]
+            weights = self._generate_weights(len(layout_children)) if layout_children else []
+
+            result = []
+            weight_idx = 0
+            for child in children:
+                if child.startswith('this.'):
+                    result.append(child)
+                else:
+                    if weight_idx < len(weights):
+                        result.append(f"{child}.layoutWeight({weights[weight_idx]})")
+                        weight_idx += 1
+                    else:
+                        result.append(child)
+            return result
 
         else:
             return children

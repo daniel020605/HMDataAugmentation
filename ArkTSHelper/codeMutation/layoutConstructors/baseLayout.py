@@ -174,7 +174,7 @@ class BaseLayout(ABC):
         # 随机删除 (保留至少1个元素)
         if len(all_components) > 1:
             all_components = [c for c in all_components
-                              if (not c.startswith('this.')  # 保护 this. 组件
+                              if (not c.startswith('this.')
                               and random.random() > delete_rate) or c.startswith('this.')]
 
         # 随机换位

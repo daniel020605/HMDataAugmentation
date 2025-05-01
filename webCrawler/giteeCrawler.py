@@ -79,7 +79,7 @@ def search_multiple_keywords(keywords, minStars):
 if __name__ == "__main__":
     # 关键词列表，可以修改为你需要的多个关键词
     keywords = ["Harmony", "HarmonyOS", "OpenHarmony", "鸿蒙", "ArkTs", "harmony", "arkts"]
-    minStars = 5  # 设置最小星标数
+    minStars = 1  # 设置最小星标数
     file_path = f"./ArkTsReposOnGitee_{minStars}stars.txt"
 
     # 检查文件是否已经完成列表获取

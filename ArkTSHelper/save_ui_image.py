@@ -2,7 +2,7 @@ import os
 import json
 import time
 from PIL import Image
-from NJUBoxHleper.NJUBoxUploader import upload_image
+from NJUBoxHelper.NJUBoxUploader import upload_image
 
 # 当前存放已经提取出的UI函数的位置
 UICodeDir = '.\\ArkTS_UICode'

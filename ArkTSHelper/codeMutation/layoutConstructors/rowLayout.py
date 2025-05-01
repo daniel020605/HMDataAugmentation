@@ -9,13 +9,38 @@ class RowLayout(BaseLayout):
         strategy = random.choice(['equal', 'weighted'])
 
         if strategy == 'equal':
+            normal_children = [child for child in children if not child.startswith('this.')]
+            this_components = [child for child in children if child.startswith('this.')]
+
+            total = len(normal_children)
             width = f"{(90 // total)}%" if random.random() < 0.9 else f"{(100 // total)}%"
-            return [f"{child}.width('{width}')" for child in children]
+            if total == 0:
+                return children  # 没有需要布局的组件时直接返回原始列表
+
+            result = []
+            for child in children:
+                if child in this_components:
+                    result.append(child)  # 保留原始this组件
+                else:
+                    result.append(f"{child}.width('{width}')")
+            return result
 
         elif strategy == 'weighted':
-            # 权重分配（主元素权重更高）
-            weights = self._generate_weights(total)
-            return [f"{child}.layoutWeight({w})" for child, w in zip(children, weights)]
+            # 分离组件类型
+            layout_children = [child for child in children if not child.startswith('this.')]
+            weights = self._generate_weights(len(layout_children)) if layout_children else []
+            result = []
+            weight_idx = 0
+            for child in children:
+                if child.startswith('this.'):
+                    result.append(child)
+                else:
+                    if weight_idx < len(weights):
+                        result.append(f"{child}.layoutWeight({weights[weight_idx]})")
+                        weight_idx += 1
+                    else:
+                        result.append(child)
+            return result
 
         else:
             return children

@@ -1,4 +1,4 @@
-from NJUBoxHleper.NJUBoxClient import NJUBoxClient
+from NJUBoxHelper.NJUBoxClient import NJUBoxClient
 import os
 # 配置初始化参数
 NJU_ID = "211250095"  # 替换成你自己的 NJU ID

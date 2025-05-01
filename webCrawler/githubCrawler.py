@@ -1,6 +1,5 @@
 import time
-from urllib.request import urlopen
-from urllib.request import Request
+from urllib.request import urlopen, Request
 import json
 import urllib.parse
 
@@ -53,7 +52,7 @@ if __name__ == '__main__':
     # 设置请求头，包含 GitHub 的 Personal Access Token 进行身份验证
     headers = {
         'User-Agent': 'Mozilla/5.0',
-        'Authorization': 'token your_token',  #todo: 替换为你的 GitHub token
+        'Authorization': 'token ',  #todo: 替换为你的 GitHub token
         'Content-Type': 'application/json',
         'Accept': 'application/json'
     }
@@ -90,5 +89,5 @@ if __name__ == '__main__':
         print(f"符合筛选要求的仓库数为：{count}")
 
     clone_directory = f"github_cloned_repos_{minStars}min_stars"
-    clone_repos(file_path, clone_directory)
-    remove_folders_without_ets(clone_directory)
+    #clone_repos(file_path, clone_directory)
+    #remove_folders_without_ets(clone_directory)
