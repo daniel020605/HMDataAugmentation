@@ -27,8 +27,8 @@ def generate_example_1(children: List[str]) -> Tuple[str, List[str]]:
     """生成包含多个子组件的布局示例"""
     # 随机选择布局类型（与wrap_children_array逻辑匹配）
     layouts = [
-        FlexLayout(), RowLayout(), ColumnLayout(),
-        StackLayout(), FlexLayout(), ColumnLayout() , ColumnLayout()
+        FlexLayout(), RowLayout(), ColumnLayout(),FlexLayout(), StackLayout(),
+        StackLayout(), FlexLayout(), ColumnLayout() , ColumnLayout(),ColumnLayout() ,ColumnLayout()
     ]
     layout = random.choice(layouts)
 

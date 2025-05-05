@@ -93,7 +93,7 @@ def extract_build_content(build_content: str) -> List[str]:
                     break
 
             i = skip_whitespace_and_comments(content, i)
-            if content[i] == '{':
+            if i < n and content[i] == '{':
                 while i < n:
                     if content[i] == '}':
                         depth -= 1
@@ -104,7 +104,7 @@ def extract_build_content(build_content: str) -> List[str]:
                         break
 
             i = skip_whitespace_and_comments(content, i)
-            if content[i] == '.':
+            if i < n and content[i] == '.':
                 in_chain = True
             while in_chain:
                 while i < n:
@@ -253,5 +253,5 @@ def skip_whitespace_and_comments(s: str, start: int) -> int:
     return i
 
 if __name__ == '__main__':
-    filePath = "/Users/jiaoyiyang/harmonyProject/repos/mutate_test/0/0.ets"
+    filePath = "/Users/jiaoyiyang/harmonyProject/repos/mutate_test/26154/26154.ets"
     print(process_single_ets_file(filePath))
