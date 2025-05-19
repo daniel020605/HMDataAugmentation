@@ -1,6 +1,5 @@
 from pathlib import Path
 import logging
-from typing import Optional
 
 from projectAbstractor import ProjectAbstractor
 from scripts.delete_test_files import delete_test_files
@@ -15,9 +14,9 @@ logger = logging.getLogger(__name__)
 # projects_dir = Path('/Users/liuxuejin/Downloads/gitee_cloned_repos_5min_stars')
 # project_output_dir = Path('./data/projects_abstracted')
 log_dir = Path('./data/log')
-
-projects_dir = Path('/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/test/tt')
-project_output_dir = Path('/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/test')
+#
+projects_dir = Path('/Users/liuxuejin/Downloads/test')
+project_output_dir = Path('/Users/liuxuejin/Downloads/test_abstracted')
 
 def process_project(project_path: Path) -> bool:
     """处理单个项目"""
@@ -26,14 +25,14 @@ def process_project(project_path: Path) -> bool:
         project_abstractor = ProjectAbstractor(output_dir=project_output_dir, log_dir=log_dir)
         project_abstractor.analyze_project(project_path)
         
-        # # 删除测试文件
+        # 删除测试文件
         # delete_test_files(project_output_dir)
-        #
-        # # 分类代码
+
+        # 分类代码
         # code_classifier = CodeClassifier(base_output_dir=project_output_dir)
         # code_classifier.classify_code(project_output_dir)
-        #
-        # # 添加导入
+
+        # 添加导入
         # add_import_directory(project_output_dir)
         
         return True

@@ -118,18 +118,20 @@ def analyze_imports(content, file_path):
     
     # 匹配导入语句的正则表达式
     import_pattern = re.compile(
-        r'import\s*'  # import关键字，允许任意空白
-        r'(?:(\w+)\s*,\s*)?'  # 可选的默认导入
-        r'(?:\{([^}]+)\})?'  # 可选的命名导入
-        r'\s+from\s+[\'"]([^\'"]+)[\'"]'  # 模块路径
+        # r'import\s*'  # import关键字，允许任意空白
+        # r'(?:([\w]+)\s*,\s*)?'  # 可选的默认导入
+        # r'(?:\{([^}]+)})?'  # 可选的命名导入
+        # r'\s+from\s+[\'"]([^\'"]+)[\'"]'  # 模块路径
+
+        r'import\s*(?:(\w+)(?:\s*,\s*\{([^}]+)})?|\{([^}]+)})?\s+from\s+[\'\"]([^\'\"]+)[\'\"]'
     )
 
     # 查找所有导入语句
     for match in import_pattern.finditer(content):
         try:
-            default_import = match.group(1)
-            named_imports = match.group(2)
-            module_name = match.group(3)
+            default_import = match.group(1)  # 默认导入
+            named_imports = match.group(2) or match.group(3)  # 命名导入
+            module_name = match.group(4)  # 模块路径
 
             # 处理默认导入
             if default_import:
@@ -142,7 +144,6 @@ def analyze_imports(content, file_path):
 
             # 处理命名导入
             if named_imports:
-                # 处理多个命名导入
                 components = [c.strip() for c in named_imports.split(',')]
                 for component in components:
                     if component:
@@ -162,3 +163,11 @@ def analyze_imports(content, file_path):
     # 更新分析结果中的引用列表
     analysis.references = optimized_references
     return analysis
+
+if __name__ == '__main__':
+    file_path = "/Users/liuxuejin/Downloads/gitee_cloned_repos_5min_stars/帝心_HarmonyOS应用开发教程/NEXT/base/NextBase/entry/src/main/ets/pages/ArkUI/TextDemo.ets"
+    with open(file_path, 'r') as f:
+        content = f.read()
+        res = analyze_imports(content, file_path)
+        for r in res.references:
+            print(r['full_import'])

@@ -25,8 +25,8 @@ def save_to_file(data, file_path):
 
 if __name__ == '__main__':
     root_folder = '/Users/liuxuejin/Desktop/Projects/PythonTools/output_0415'
-    ui_code_output_file = './dataset_ui_code_0423.json'
-    functions_output_file = './dataset_functions_0423.json'
+    ui_code_output_file = './dataset_ui_code_0505.json'
+    functions_output_file = './dataset_functions_0505.json'
 
     all_ui_code, all_functions = collect_ui_code_and_functions(root_folder)
     save_to_file(all_ui_code, ui_code_output_file)

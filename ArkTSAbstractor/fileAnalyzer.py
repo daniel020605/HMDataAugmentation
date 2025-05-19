@@ -142,14 +142,12 @@ def process_resource_references(content, resource_dir):
                     return f'$r("app.media.startIcon")'
                 # 构建json文件路径
                 json_path = os.path.join(resource_dir, 'element', f'{key_name}.json')
-                print(json_path)
                 if os.path.exists(json_path):
                     with open(json_path, 'r', encoding='utf-8') as f:
                         data = json.load(f)
                         # 查找匹配的键名和name
                         for item in data.get(key_name, []):
                             if item.get('name') == name:
-                                print(item.get("value"))
                                 return f'"{item.get("value")}"'
                 # print(json_path)
                 return match.group(0)  # 如果找不到对应的value，保持原样
@@ -223,7 +221,6 @@ def analyze_ets_file(file_path):
 
         # 优化导入语句
         analysis.imports = references.references
-
         # 提取类、结构体和导出模块
         # 1. 提取类定义
         class_pattern = re.compile(r'class\s+(\w+)(?:\s+extends\s+(\w+))?(?:\s+implements\s+([^{]+))?\s*\{')
@@ -444,7 +441,6 @@ def analyze_ets_file(file_path):
             except Exception as e:
                 logger.error(f"Error processing function in {file_path}: {str(e)}")
                 continue
-
         return analysis
     except Exception as e:
         logger.error(f"Error reading {file_path}: {str(e)}")
@@ -453,4 +449,4 @@ def analyze_ets_file(file_path):
 
 
 if __name__ == '__main__':
-    print(analyze_ets_file("/Users/liuxuejin/Downloads/gitee_cloned_repos_5min_stars/Duke_hrouter/entry/src/ohosTest/ets/testability/TestAbility.ets").imports)
+    print(analyze_ets_file("/Users/liuxuejin/Downloads/gitee_cloned_repos_5min_stars/帝心_HarmonyOS应用开发教程/NEXT/base/NextBase/entry/src/main/ets/pages/ArkUI/TextDemo.ets").imports)

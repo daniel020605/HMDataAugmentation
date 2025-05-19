@@ -237,7 +237,7 @@ if __name__ == "__main__":
     print(count_json_items(file_path))
     file_path = "/Users/liuxuejin/Desktop/Data/生成、解释、补全数据/IC_dataset_ui_code_0401.json"
     print(count_json_items(file_path))
-    file_path = "/Users/liuxuejin/Desktop/Data/生成、解释、补全数据/IC_generate_instruction.json"
+    file_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/dataset_functions_0505.json"
     print(count_json_items(file_path))
-    file_path = "/Users/liuxuejin/Desktop/Data/生成、解释、补全数据/IC_UI_generate_instruction.json"
+    file_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/dataset_ui_code_0505.json"
     print(count_json_items(file_path))

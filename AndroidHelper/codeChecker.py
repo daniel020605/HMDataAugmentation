@@ -104,5 +104,76 @@ def lint(file_path):
     else:
         print(f"Lint check failed for {file_path}")
 
+import os
 
+def process_xml_files(xml_files, project_path, target_file_path):
+    """
+    批量处理XML文件：替换模板项目中的文件内容并运行Lint检查。
+
+    :param xml_files: 包含XML代码的列表，每个元素是一个字典，格式为 {'file_name': '文件名', 'content': 'XML内容'}
+    :param project_path: 模板项目的路径
+    :param target_file_path: 模板项目中目标文件的相对路径
+    """
+    for xml_file in xml_files:
+        try:
+            file_name = xml_file['file_name']
+            content = xml_file['content']
+            full_file_path = os.path.join(project_path, target_file_path, file_name)
+
+            # 替换或创建文件
+            replace_or_create_file(full_file_path, content)
+
+            # 运行Lint检查
+            lint(full_file_path)
+        except Exception as e:
+            print(f"Error processing file {xml_file['file_name']}: {e}")
+
+def process_ets_files(ets_files, project_path, target_file_path):
+    """
+    批量处理ETS文件：替换模板项目中的文件内容并运行Lint检查。
+
+    :param ets_files: 包含ETS代码的列表，每个元素是一个字典，格式为 {'file_name': '文件名', 'content': 'ETS内容'}
+    :param project_path: 模板项目的路径
+    :param target_file_path: 模板项目中目标文件的相对路径
+    """
+    for ets_file in ets_files:
+        try:
+            file_name = ets_file['file_name']
+            content = ets_file['content']
+            full_file_path = os.path.join(project_path, target_file_path, file_name)
+
+            # 替换或创建文件
+            replace_or_create_file(full_file_path, content)
+
+            # 运行Lint检查
+            lint(full_file_path)
+        except Exception as e:
+            print(f"Error processing file {ets_file['file_name']}: {e}")
+
+# # 示例调用
+# if __name__ == "__main__":
+#     # 模板项目路径
+#     project_path = "C:/Users/74187/AndroidStudioProjects/MinApplication"
+#     target_file_path = "app/src/main/ets"
+#
+#     # 示例ETS文件列表
+#     ets_files = [
+#         {'file_name': 'MainAbility.ets', 'content': 'export default class MainAbility {}'},
+#         {'file_name': 'SecondAbility.ets', 'content': 'export default class SecondAbility {}'}
+#     ]
+#
+#     process_ets_files(ets_files, project_path, target_file_path)
+# 示例调用
+if __name__ == "__main__":
+    # 模板项目路径
+    project_path = "C:/Users/74187/AndroidStudioProjects/MinApplication"
+    target_file_path = "app/src/main/res/layout"
+
+    # 示例XML文件列表
+    xml_files = [
+        {'file_name': 'activity_main.xml', 'content': '<LinearLayout></LinearLayout>'},
+        {'file_name': 'activity_second.xml', 'content': '<RelativeLayout></RelativeLayout>'}
+    ]
+
+    process_xml_files(xml_files, project_path, target_file_path)
 # if __name__ == "__main__":
