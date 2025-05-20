@@ -6,15 +6,18 @@ from ArkTSAbstractor.importAnalyzer import analyze_imports
 from ArkTSAbstractor.logger import setup_logger, log_directory
 from tool import load_reserved_words
 
+# 结果输出路径
 function_folder = './complete_function'
 ui_folder = './ui_with_import'
-
+# 保留字加载
 reserved_words = load_reserved_words()
+# 日志
 logger = setup_logger('file_analyzer_logger', os.path.join(log_directory, 'file_analyzer.log'))
 
 class ETSFileAnalysis:
     def __init__(self, file_path):
         self.file_path = file_path
+        self.file_content = None
         self.file_type = None
         self.ui_code = []  # 现在存储的是包含完整信息的字典
         self.variables = []
@@ -24,6 +27,14 @@ class ETSFileAnalysis:
         self.structs = []
         self.modules = []
 
+    def set_file_content(self, file_path):
+        try:
+            with open(file_path, 'r', encoding='utf-8') as file:
+                self.file_content = file.read()
+        except Exception as e:
+            logger.error(f"Error reading file {file_path}: {str(e)}")
+            self.file_content = None
+
     def set_file_type(self, file_type):
         self.file_type = file_type
 
@@ -31,18 +42,22 @@ class ETSFileAnalysis:
         ui_info = {
             'content': ui_code,
             'imports': imports or [],
-            'variables': variables or []
+            'variables': variables or [],
         }
         self.ui_code.append(ui_info)
 
     def add_variable(self, variable):
         self.variables.append(variable)
 
-    def add_function(self, function, imports=None, variables=None):
+    def add_class_or_interface(self, declaration):
+        self.classes.append(declaration)
+
+    def add_function(self, function, imports=None, variables=None, name=None):
         function_info = {
+            'name': name,
             'content': function,
             'imports': imports or [],
-            'variables': variables or []
+            'variables': variables or [],
         }
         self.functions.append(function_info)
 
@@ -55,12 +70,13 @@ class ETSFileAnalysis:
     def add_module(self, module_info):
         self.modules.append(module_info)
 
+
     def add_reference(self, import_type, module_name, full_import, component_name=None, alias=None):
         reference = {
             'import_type': import_type,
             'module_name': module_name,
             'full_import': full_import,
-            'component_name': component_name,
+            'name': component_name,
             'alias': alias
         }
         self.imports.append(reference)
@@ -321,7 +337,7 @@ def analyze_ets_file(file_path):
 
                         # 检查UI代码中使用的导入
                         for imp in analysis.imports:
-                            if imp.get('component_name') and imp['component_name'] in ui_code:
+                            if imp.get('name') and imp['name'] in ui_code:
                                 used_imports.append(imp)
 
                         # 检查UI代码中使用的变量
@@ -344,6 +360,70 @@ def analyze_ets_file(file_path):
         for start, end in matches:
             file_contents = file_contents[:start] + file_contents[end:]
 
+
+        # 识别接口声明
+        interface_pattern = re.compile(
+            r'(?:export\s+)?interface\s+(\w+)'  # 接口名
+            r'(?:\s+extends\s+([^{]+))?'  # 可选的继承
+            r'\s*\{'  # 开始大括号
+        )
+
+        for match in interface_pattern.finditer(file_contents):
+            try:
+                interface_name = match.group(1)
+                extends = [x.strip() for x in match.group(2).split(',')] if match.group(2) else []
+
+                # 找到接口主体
+                start_pos = match.end() - 1
+                end_pos = find_balanced_braces(file_contents, start_pos)
+
+                if end_pos != -1:
+                    interface_content = file_contents[match.start():end_pos + 1].strip()
+                    interface_info = {
+                        'type': 'interface',
+                        'name': interface_name,
+                        'extends': extends,
+                        'content': interface_content,
+                        'is_export': 'export' in match.group(0)
+                    }
+                    analysis.add_class_or_interface(interface_info)
+            except Exception as e:
+                logger.error(f"Error processing interface in {file_path}: {str(e)}")
+                continue
+
+        # 识别类声明
+        class_pattern = re.compile(
+            r'(?:export\s+)?class\s+(\w+)'  # 类名
+            r'(?:\s+extends\s+(\w+))?'  # 可选的继承
+            r'(?:\s+implements\s+([^{]+))?'  # 可选的接口实现
+            r'\s*\{'  # 开始大括号
+        )
+
+        for match in class_pattern.finditer(file_contents):
+            try:
+                class_name = match.group(1)
+                extends = match.group(2) if match.group(2) else None
+                implements = [x.strip() for x in match.group(3).split(',')] if match.group(3) else []
+
+                # 找到类主体
+                start_pos = match.end() - 1
+                end_pos = find_balanced_braces(file_contents, start_pos)
+
+                if end_pos != -1:
+                    class_content = file_contents[match.start():end_pos + 1].strip()
+                    class_info = {
+                        'type': 'class',
+                        'name': class_name,
+                        'extends': extends,
+                        'implements': implements,
+                        'content': class_content,
+                        'is_export': 'export' in match.group(0)
+                    }
+                    analysis.add_class_or_interface(class_info)
+            except Exception as e:
+                logger.error(f"Error processing class in {file_path}: {str(e)}")
+                continue
+
         variable_pattern = re.compile(
             r'(?m)^\s*'  # 行首空白
             r'(?:(?:@\w+\s+)*'  # 多个装饰器
@@ -364,10 +444,22 @@ def analyze_ets_file(file_path):
                 if match.group(1) in reserved_words:
                     continue
 
-                # 检查是否在类或接口定义内
-                context = file_contents[max(0, match.start() - 100):match.start()]
-                if re.search(r'class\s+\w+\s*{|interface\s+\w+\s*{', context):
-                    continue
+                # 获取变量声明的位置
+                var_start = match.start()
+
+                # 检查是否在接口或类定义内
+                is_in_interface = False
+                for interface_info in analysis.classes:
+                    if interface_info.get('type') == 'interface':
+                        interface_content = interface_info.get('content', '')
+                        # 找到接口内容在原文件中的位置
+                        interface_pos = file_contents.find(interface_content)
+                        if interface_pos != -1 and interface_pos < var_start < interface_pos + len(interface_content):
+                            is_in_interface = True
+                            break
+
+                if is_in_interface:
+                    continue  # 如果在接口定义内，跳过这个变量声明
 
                 # 检查是否在函数调用参数中
                 context = file_contents[max(0, match.start() - 100):match.start()]
@@ -392,14 +484,32 @@ def analyze_ets_file(file_path):
                 if 'static' in full_match:
                     modifiers.append('static')
 
+                variable_name = match.group(1).strip()
+                variable_type = match.group(2).strip() if match.group(2) else None
+                variable_value = match.group(3).strip() if match.group(3) else None
+
+                # 检查变量值是否为列表
+                if variable_value and variable_value == '[':
+                    start_pos = match.end() - 1
+                    brace_count = 0
+                    for i in range(start_pos, len(file_contents)):
+                        if file_contents[i] == '[':
+                            brace_count += 1
+                        elif file_contents[i] == ']':
+                            brace_count -= 1
+                        if brace_count == 0:
+                            variable_value = file_contents[start_pos:i + 1].strip()
+                            break
+
                 variable = {
                     'modifiers': modifiers,
-                    'name': match.group(1).strip(),
-                    'type': match.group(2).strip() if match.group(2) else None,
-                    'value': match.group(3).strip() if match.group(3) else None,
+                    'name': variable_name,
+                    'type': variable_type,
+                    'value': variable_value,
                     'full_variable': match.group(0)
                 }
                 analysis.add_variable(variable)
+
             except Exception as e:
                 logger.error(f"Error processing variable in {file_path}: {str(e)}")
                 continue
@@ -428,7 +538,7 @@ def analyze_ets_file(file_path):
 
                             # 检查函数中使用的导入
                             for imp in analysis.imports:
-                                if imp.get('component_name') and imp['component_name'] in function:
+                                if imp.get('name') and imp['name'] in function:
                                     used_imports.append(imp)
 
                             # 检查函数中使用的变量
@@ -437,10 +547,11 @@ def analyze_ets_file(file_path):
                                     used_variables.append(var)
 
                             # 保存函数及其依赖信息
-                            analysis.add_function(function, used_imports, used_variables)
+                            analysis.add_function(function, used_imports, used_variables, function_name)
             except Exception as e:
                 logger.error(f"Error processing function in {file_path}: {str(e)}")
                 continue
+
         return analysis
     except Exception as e:
         logger.error(f"Error reading {file_path}: {str(e)}")

@@ -1,3 +1,4 @@
+# 安卓项目代码检查模板
 import os
 import subprocess
 
@@ -150,19 +151,7 @@ def process_ets_files(ets_files, project_path, target_file_path):
         except Exception as e:
             print(f"Error processing file {ets_file['file_name']}: {e}")
 
-# # 示例调用
-# if __name__ == "__main__":
-#     # 模板项目路径
-#     project_path = "C:/Users/74187/AndroidStudioProjects/MinApplication"
-#     target_file_path = "app/src/main/ets"
-#
-#     # 示例ETS文件列表
-#     ets_files = [
-#         {'file_name': 'MainAbility.ets', 'content': 'export default class MainAbility {}'},
-#         {'file_name': 'SecondAbility.ets', 'content': 'export default class SecondAbility {}'}
-#     ]
-#
-#     process_ets_files(ets_files, project_path, target_file_path)
+
 # 示例调用
 if __name__ == "__main__":
     # 模板项目路径

@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 # project_output_dir = Path('./data/projects_abstracted')
 log_dir = Path('./data/log')
 #
-projects_dir = Path('/Users/liuxuejin/Downloads/test')
-project_output_dir = Path('/Users/liuxuejin/Downloads/test_abstracted')
+projects_dir = Path(r"E:\HMProjects")
+project_output_dir = Path(r"E:\HMOutput")
 
 def process_project(project_path: Path) -> bool:
     """处理单个项目"""

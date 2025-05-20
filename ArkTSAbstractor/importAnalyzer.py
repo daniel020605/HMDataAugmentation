@@ -13,7 +13,7 @@ class ImportAnalysis:
             'import_type': import_type,
             'module_name': module_name,
             'full_import': full_import,
-            'component_name': component_name,
+            'name': component_name,
             'alias': alias
         }
         self.references.append(reference)
@@ -80,27 +80,27 @@ def optimize_imports(references, file_path):
     """
     optimized_imports = []
     for ref in references:
-        component_name = ref['component_name']
+        component_name = ref['name']
         bracket_pattern = re.compile(rf'(\{{[\w\s,]*{re.escape(component_name)}[\w\s,]*\}})')
         if bracket_pattern.search(ref['full_import']):
             # 处理命名导入
-            full_import = f"import {{ {ref['component_name']} }} from '{ref['module_name']}';"
+            full_import = f"import {{ {ref['name']} }} from '{ref['module_name']}';"
             optimized_imports.append({
                 'import_type': ref['import_type'],
                 'module_name': ref['module_name'],
                 'full_import': full_import,
-                'component_name': ref['component_name'],
+                'name': ref['name'],
                 'alias': ref['alias'],
                 'component_content': None
             })
         else:
             # 处理默认导入
-            full_import = f"import {ref['component_name']} from '{ref['module_name']}';"
+            full_import = f"import {ref['name']} from '{ref['module_name']}';"
             optimized_imports.append({
                 'import_type': ref['import_type'],
                 'module_name': ref['module_name'],
                 'full_import': full_import,
-                'component_name': ref['component_name'],
+                'name': ref['name'],
                 'alias': ref['alias'],
                 'component_content': None
             })

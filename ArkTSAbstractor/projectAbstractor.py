@@ -60,7 +60,8 @@ class ProjectAbstractor:
                     'ui_code': analysis.ui_code,
                     'variables': analysis.variables,
                     'functions': analysis.functions,
-                    'imports': analysis.imports
+                    'imports': analysis.imports,
+                    'classes': analysis.classes,
                 }
         except Exception as e:
             self.file_logger.error(f"分析文件 {file_path} 时出错: {e}")

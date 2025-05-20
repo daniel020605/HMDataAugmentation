@@ -1,3 +1,4 @@
+# 用于判断当前运行系统环境，已弃置
 import platform
 import subprocess
 import os
