@@ -38,28 +38,52 @@ class ETSFileAnalysis:
     def set_file_type(self, file_type):
         self.file_type = file_type
 
-    def add_ui_code(self, ui_code, imports=None, variables=None):
+    def add_ui_code(self, ui_code, dependencies=None):
         ui_info = {
             'content': ui_code,
-            'imports': imports or [],
-            'variables': variables or [],
+            'dependencies': dependencies or {
+                'imports': [],
+                'variables': [],
+                'functions': [],
+                'classes': [],
+                'interfaces': []
+            }
         }
         self.ui_code.append(ui_info)
 
-    def add_variable(self, variable):
+    def add_variable(self, variable, dependencies=None):
+        variable['dependencies'] = dependencies or {
+            'imports': [],
+            'variables': [],
+            'functions': [],
+            'classes': [],
+            'interfaces': []
+        }
         self.variables.append(variable)
 
-    def add_class_or_interface(self, declaration):
-        self.classes.append(declaration)
-
-    def add_function(self, function, imports=None, variables=None, name=None):
+    def add_function(self, function, name=None, dependencies=None):
         function_info = {
             'name': name,
             'content': function,
-            'imports': imports or [],
-            'variables': variables or [],
+            'dependencies': dependencies or {
+                'imports': [],
+                'variables': [],
+                'functions': [],
+                'classes': [],
+                'interfaces': []
+            }
         }
         self.functions.append(function_info)
+
+    def add_class_or_interface(self, declaration, dependencies=None):
+        declaration['dependencies'] = dependencies or {
+            'imports': [],
+            'variables': [],
+            'functions': [],
+            'classes': [],
+            'interfaces': []
+        }
+        self.classes.append(declaration)
 
     def add_class(self, class_info):
         self.classes.append(class_info)
@@ -177,6 +201,41 @@ def process_resource_references(content, resource_dir):
     except Exception as e:
         logger.error(f"Error processing resource references: {str(e)}")
         return content
+
+def analyze_dependencies(content, analysis):
+    """分析代码块中的依赖关系"""
+    dependencies = {
+        'imports': [],
+        'variables': [],
+        'functions': [],
+        'classes': [],
+        'interfaces': []
+    }
+
+    # 检查导入依赖
+    for imp in analysis.imports:
+        if imp.get('name') and imp['name'] in content:
+            dependencies['imports'].append(imp)
+
+    # 检查变量依赖
+    for var in analysis.variables:
+        if var.get('name') and var['name'] in content:
+            dependencies['variables'].append(var)
+
+    # 检查函数依赖
+    for func in analysis.functions:
+        if func.get('name') and func['name'] in content:
+            dependencies['functions'].append(func)
+
+    # 检查类依赖
+    for cls in analysis.classes:
+        if cls.get('name') and cls['name'] in content:
+            if cls.get('type') == 'interface':
+                dependencies['interfaces'].append(cls)
+            else:
+                dependencies['classes'].append(cls)
+
+    return dependencies
 
 def remove_comments(content):
     """移除代码中的注释"""
@@ -330,23 +389,25 @@ def analyze_ets_file(file_path):
                         ui_code = file_contents[match_start:end_pos + 1].strip()
                         if not ui_code:  # 如果UI代码为空，跳过
                             continue
+                        dependencies = analyze_dependencies(ui_code, analysis)
+                        analysis.add_ui_code(ui_code, dependencies)
 
-                        # 检查UI代码中使用的导入和变量
-                        used_imports = []
-                        used_variables = []
-
-                        # 检查UI代码中使用的导入
-                        for imp in analysis.imports:
-                            if imp.get('name') and imp['name'] in ui_code:
-                                used_imports.append(imp)
-
-                        # 检查UI代码中使用的变量
-                        for var in analysis.variables:
-                            if var.get('name') and var['name'] in ui_code:
-                                used_variables.append(var)
-
-                        # 保存UI代码及其依赖信息
-                        analysis.add_ui_code(ui_code, used_imports, used_variables)
+                        # # 检查UI代码中使用的导入和变量
+                        # used_imports = []
+                        # used_variables = []
+                        #
+                        # # 检查UI代码中使用的导入
+                        # for imp in analysis.imports:
+                        #     if imp.get('name') and imp['name'] in ui_code:
+                        #         used_imports.append(imp)
+                        #
+                        # # 检查UI代码中使用的变量
+                        # for var in analysis.variables:
+                        #     if var.get('name') and var['name'] in ui_code:
+                        #         used_variables.append(var)
+                        #
+                        # # 保存UI代码及其依赖信息
+                        # analysis.add_ui_code(ui_code, used_imports, used_variables)
                         # 记录需要删除的区间
                         matches.append((match_start, end_pos + 1))
                 except Exception as e:
@@ -411,6 +472,7 @@ def analyze_ets_file(file_path):
 
                 if end_pos != -1:
                     class_content = file_contents[match.start():end_pos + 1].strip()
+                    dependencies = analyze_dependencies(class_content, analysis)
                     class_info = {
                         'type': 'class',
                         'name': class_name,
@@ -419,7 +481,7 @@ def analyze_ets_file(file_path):
                         'content': class_content,
                         'is_export': 'export' in match.group(0)
                     }
-                    analysis.add_class_or_interface(class_info)
+                    analysis.add_class_or_interface(class_info, dependencies)
             except Exception as e:
                 logger.error(f"Error processing class in {file_path}: {str(e)}")
                 continue
@@ -508,7 +570,8 @@ def analyze_ets_file(file_path):
                     'value': variable_value,
                     'full_variable': match.group(0)
                 }
-                analysis.add_variable(variable)
+                dependencies = analyze_dependencies(match.group(0), analysis)
+                analysis.add_variable(variable, dependencies)
 
             except Exception as e:
                 logger.error(f"Error processing variable in {file_path}: {str(e)}")
@@ -531,23 +594,26 @@ def analyze_ets_file(file_path):
                     if end_pos != -1:
                         if function_name and file_contents[start_pos:end_pos + 1].strip():
                             function = file_contents[match.start():end_pos + 1].strip()
+                            dependencies = analyze_dependencies(function, analysis)
+                            analysis.add_function(function, function_name, dependencies)
 
-                            # 检查函数中使用的导入和变量
-                            used_imports = []
-                            used_variables = []
-
-                            # 检查函数中使用的导入
-                            for imp in analysis.imports:
-                                if imp.get('name') and imp['name'] in function:
-                                    used_imports.append(imp)
-
-                            # 检查函数中使用的变量
-                            for var in analysis.variables:
-                                if var.get('name') and var['name'] in function:
-                                    used_variables.append(var)
-
-                            # 保存函数及其依赖信息
-                            analysis.add_function(function, used_imports, used_variables, function_name)
+                            #
+                            # # 检查函数中使用的导入和变量
+                            # used_imports = []
+                            # used_variables = []
+                            #
+                            # # 检查函数中使用的导入
+                            # for imp in analysis.imports:
+                            #     if imp.get('name') and imp['name'] in function:
+                            #         used_imports.append(imp)
+                            #
+                            # # 检查函数中使用的变量
+                            # for var in analysis.variables:
+                            #     if var.get('name') and var['name'] in function:
+                            #         used_variables.append(var)
+                            #
+                            # # 保存函数及其依赖信息
+                            # analysis.add_function(function, used_imports, used_variables, function_name)
             except Exception as e:
                 logger.error(f"Error processing function in {file_path}: {str(e)}")
                 continue
