@@ -79,7 +79,7 @@ class ProjectAbstractor:
 
             ets_files = self.get_ets_files(project_path)
             self.stats.total_files += len(ets_files)
-            
+
             project_analysis = []
             with ThreadPoolExecutor() as executor:
                 for result in executor.map(self.analyze_ets_file, ets_files):
@@ -87,14 +87,17 @@ class ProjectAbstractor:
                         project_analysis.append(result)
                         self.stats.processed_files += 1
 
+            # 在所有文件分析完成后解析内部依赖
             if project_analysis:
+                self.resolve_internal_imports(project_analysis)  # 添加依赖解析步骤
+
                 output_file.parent.mkdir(parents=True, exist_ok=True)
                 with open(output_file, 'w', encoding='utf-8') as f:
                     json.dump(project_analysis, f, indent=4, ensure_ascii=False)
-                
+
                 with open(self.log_dir / 'processed_projects.log', 'a', encoding='utf-8') as f:
                     f.write(f"{project_name}\n")
-                
+
                 self.stats.processed_projects += 1
                 return True
 
@@ -102,6 +105,46 @@ class ProjectAbstractor:
             self.file_logger.error(f"处理项目 {project_path} 时出错: {e}")
             self.stats.failed_projects += 1
         return False
+
+    def resolve_internal_imports(self, project_analysis):
+        """解析内部依赖并匹配具体内容"""
+        file_map = {item['file']: item for item in project_analysis}  # 文件路径到分析结果的映射
+        visited = set()
+        stack = set()
+        def resolve_file(file_path):
+            if file_path in stack:
+                raise ValueError(f"检测到循环依赖: {' -> '.join(stack)} -> {file_path}")
+            if file_path in visited:
+                return
+            stack.add(file_path)
+            item = file_map.get(file_path)
+            if item:
+                for imp in item.get('imports', []):
+                    module_name = imp.get('module_name', '')
+                    if module_name.startswith('.'):  # 内部依赖
+                        base_path = os.path.dirname(file_path)
+                        absolute_path = os.path.abspath(os.path.join(base_path, module_name)) + '.ets'
+                        if absolute_path in file_map:
+                            imp['resolved_file'] = absolute_path
+                            resolve_file(absolute_path)  # 递归解析依赖
+
+                            # 匹配具体内容
+                            resolved_item = file_map[absolute_path]
+                            name_to_find = imp.get('name')
+                            if name_to_find:
+                                # 在 variables、functions 和 classes 中查找
+                                for module in ['variables', 'functions', 'classes']:
+                                    for entry in resolved_item.get(module, []):
+                                        if entry.get('name') == name_to_find:
+                                            imp['component_content'] = entry  # 保存匹配到的内容
+                                            break
+                        else:
+                            imp['resolved_file'] = None  # 如果文件不存在，标记为未解析
+                stack.remove(file_path)
+            visited.add(file_path)
+
+        for file_path in file_map:
+            resolve_file(file_path)
 
     def process_projects(self, projects_dir: Path):
         """处理目录中的所有项目"""
