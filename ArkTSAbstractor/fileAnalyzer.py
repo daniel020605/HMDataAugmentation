@@ -5,7 +5,7 @@ import json
 from ArkTSAbstractor.importAnalyzer import analyze_imports
 from ArkTSAbstractor.logger import setup_logger, log_directory
 from tool import load_reserved_words
-
+from dependencyResolver import DependencyResolver
 # 结果输出路径
 function_folder = './complete_function'
 ui_folder = './ui_with_import'
@@ -277,8 +277,7 @@ def analyze_ets_file(file_path):
     try:
         # 移除注释
         file_contents = remove_comments(file_contents)
-        file_basename = os.path.basename(file_path)
-        analysis = ETSFileAnalysis(file_contents)
+        analysis = ETSFileAnalysis(file_path)
         references = analyze_imports(file_contents, file_path)
 
         # 获取资源目录路径
@@ -389,8 +388,8 @@ def analyze_ets_file(file_path):
                         ui_code = file_contents[match_start:end_pos + 1].strip()
                         if not ui_code:  # 如果UI代码为空，跳过
                             continue
-                        dependencies = analyze_dependencies(ui_code, analysis)
-                        analysis.add_ui_code(ui_code, dependencies)
+                        # dependencies = analyze_dependencies(ui_code, analysis)
+                        analysis.add_ui_code(ui_code)
 
                         # # 检查UI代码中使用的导入和变量
                         # used_imports = []
@@ -472,7 +471,7 @@ def analyze_ets_file(file_path):
 
                 if end_pos != -1:
                     class_content = file_contents[match.start():end_pos + 1].strip()
-                    dependencies = analyze_dependencies(class_content, analysis)
+                    # dependencies = analyze_dependencies(class_content, analysis)
                     class_info = {
                         'type': 'class',
                         'name': class_name,
@@ -481,7 +480,7 @@ def analyze_ets_file(file_path):
                         'content': class_content,
                         'is_export': 'export' in match.group(0)
                     }
-                    analysis.add_class_or_interface(class_info, dependencies)
+                    analysis.add_class_or_interface(class_info)
             except Exception as e:
                 logger.error(f"Error processing class in {file_path}: {str(e)}")
                 continue
@@ -570,20 +569,32 @@ def analyze_ets_file(file_path):
                     'value': variable_value,
                     'full_variable': match.group(0)
                 }
-                dependencies = analyze_dependencies(match.group(0), analysis)
-                analysis.add_variable(variable, dependencies)
+                # dependencies = analyze_dependencies(match.group(0), analysis)
+                analysis.add_variable(variable)
 
             except Exception as e:
                 logger.error(f"Error processing variable in {file_path}: {str(e)}")
                 continue
 
+        # 保留函数，用于解决Circular Dependencies的问题
+        reserved_functions = {
+            'build',
+            'Column',
+            'Row',
+            'Text',
+            'Image',
+            'TextInput',
+            'Button',
+        }
         # Extract function declarations
         function_pattern = re.compile(
             r'(\w+\s)?(\w+\s?)(=\s?)?\(\s?((\.\.\.)?((\w+\??\s?:\s?[^)]+\s?)(,\s?\w+\??\s?:\s?[^)]+)*)?)\)\s*?\s?(=>\s?)?(:\s?\w+\s?)?\{')
         for match in function_pattern.finditer(file_contents):
             try:
                 function_name = match.group(2).strip() if match.group(2) else None
-                if not function_name or function_name in reserved_words:
+                if (not function_name or
+                        function_name in reserved_words or
+                        function_name in reserved_functions):  # Add reserved functions check
                     continue
 
                 if function_name != 'build':
@@ -594,8 +605,7 @@ def analyze_ets_file(file_path):
                     if end_pos != -1:
                         if function_name and file_contents[start_pos:end_pos + 1].strip():
                             function = file_contents[match.start():end_pos + 1].strip()
-                            dependencies = analyze_dependencies(function, analysis)
-                            analysis.add_function(function, function_name, dependencies)
+                            analysis.add_function(function, function_name)
 
                             #
                             # # 检查函数中使用的导入和变量
@@ -617,6 +627,137 @@ def analyze_ets_file(file_path):
             except Exception as e:
                 logger.error(f"Error processing function in {file_path}: {str(e)}")
                 continue
+
+        def get_immediate_dependencies(item):
+            """Returns list of items that this item directly depends on based on type"""
+            content = item.get('content', '')
+            item_type = item.get('type', '')
+            file_name = os.path.basename(file_path)
+            base_name = os.path.splitext(file_name)[0] if file_name else ''  # Remove extension
+            deps = []
+
+            # Imports have no dependencies
+            if 'import_type' in item:
+                return []
+
+            # Classes and Interfaces can only depend on imports
+            elif item_type in ['class', 'interface']:
+                for imp in analysis.imports:
+                    if imp.get('name') and imp['name'] in content:
+                        # Skip if import name matches file name
+                        if imp['name'] != base_name:
+                            deps.append(imp)
+
+            # Variables can depend on imports, functions, classes, and interfaces
+            elif 'full_variable' in item:
+                # Check import dependencies
+                for imp in analysis.imports:
+                    if imp.get('name') and imp['name'] in content:
+                        if imp['name'] != base_name:
+                            deps.append(imp)
+
+                # Check function dependencies
+                for func in analysis.functions:
+                    if func.get('name') and func['name'] in content:
+                        if func['name'] != base_name:
+                            deps.append(func)
+
+                # Check class/interface dependencies
+                for cls in analysis.classes:
+                    if cls['name'] in content:
+                        if cls['name'] != base_name:
+                            deps.append(cls)
+
+            # Functions can depend on imports, other functions, classes, and interfaces
+            elif 'name' in item and 'content' in item:  # Function case
+                # Check import dependencies
+                for imp in analysis.imports:
+                    if imp.get('name') and imp['name'] in content:
+                        if imp['name'] != base_name:
+                            deps.append(imp)
+
+                # Check function dependencies (excluding self-reference)
+                for func in analysis.functions:
+                    if func.get('name') and func['name'] in content and func['name'] != item['name']:
+                        if func['name'] != base_name:
+                            deps.append(func)
+
+                # Check class/interface dependencies
+                for cls in analysis.classes:
+                    if cls['name'] in content:
+                        if cls['name'] != base_name:
+                            deps.append(cls)
+
+            return deps
+
+        def analyze_item_dependencies(item):
+            """Sets dependencies based on item type"""
+            content = item.get('content', '')
+            item_type = item.get('type', '')
+            file_name = os.path.basename(file_path)
+
+            base_name = os.path.splitext(file_name)[0] if file_name else ''
+            dependencies = {
+                'imports': [],
+                'variables': [],
+                'functions': [],
+                'classes': [],
+                'interfaces': []
+            }
+
+            # Imports have no dependencies
+            if 'import_type' in item:
+                return
+
+            # Classes and Interfaces can only depend on imports
+            elif item_type in ['class', 'interface']:
+                for imp in analysis.imports:
+                    if imp.get('name') and imp['name'] in content:
+                        if imp['name'] != base_name:
+                            dependencies['imports'].append(imp)
+
+            # Variables and Functions can depend on imports, functions, classes, and interfaces
+            else:
+                for imp in analysis.imports:
+                    if imp.get('name') and imp['name'] in content:
+                        if imp['name'] != base_name:
+                            dependencies['imports'].append(imp)
+
+                # Only add function and class dependencies for variables and functions
+                if 'full_variable' in item or ('name' in item and 'content' in item):
+                    for func in analysis.functions:
+                        if func.get('name') and func['name'] in content:
+                            if ('name' not in item or func['name'] != item['name']) and func['name'] != base_name:
+                                dependencies['functions'].append(func)
+
+                    for cls in analysis.classes:
+                        if cls['name'] in content:
+                            if cls['name'] != base_name:
+                                if cls.get('type') == 'interface':
+                                    dependencies['interfaces'].append(cls)
+                                else:
+                                    dependencies['classes'].append(cls)
+
+            item['dependencies'] = dependencies
+
+        # === Third Pass: Resolve dependencies ===
+        resolver = DependencyResolver()
+
+        # Resolve class dependencies
+        for cls in analysis.classes:
+            resolver.resolve(cls, get_immediate_dependencies, analyze_item_dependencies)
+
+        # Resolve variable dependencies
+        for var in analysis.variables:
+            resolver.resolve(var, get_immediate_dependencies, analyze_item_dependencies)
+
+        # Resolve function dependencies
+        for func in analysis.functions:
+            resolver.resolve(func, get_immediate_dependencies, analyze_item_dependencies)
+
+        # Resolve UI code dependencies
+        for ui in analysis.ui_code:
+            resolver.resolve(ui, get_immediate_dependencies, analyze_item_dependencies)
 
         return analysis
     except Exception as e:
