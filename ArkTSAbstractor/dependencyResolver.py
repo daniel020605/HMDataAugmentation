@@ -9,7 +9,8 @@ class DependencyResolver:
         if isinstance(item, dict):
             item_type = item.get('type', '')
             item_name = item.get('name', '')
-            return f"{item_type}:{item_name}"
+            item_file = item.get('file', '')  # Include file path for uniqueness
+            return f"{item_type}:{item_name}:{item_file}"
         return id(item)
 
     def resolve(self, item, get_deps_func, analyze_deps_func):
@@ -18,6 +19,10 @@ class DependencyResolver:
         """
         item_id = self.get_item_id(item)
         self.dependency_graph[item_id] = set()
+
+        # Skip resolution if the item is in the same file
+        if item.get('file') == item.get('current_file'):
+            return
 
         if item_id in self.being_resolved:
             path = self._find_cycle(item_id)
