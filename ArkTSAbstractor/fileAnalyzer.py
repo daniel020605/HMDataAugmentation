@@ -144,6 +144,7 @@ def find_component_or_function(file_path, component_name):
                     return content[start_pos:end_pos + 1].strip()
             
             # 查找函数
+            # todo:函数识别逻辑需要优化
             function_pattern = re.compile(r'function\s+' + re.escape(component_name) + r'\s*\(')
             if function_pattern.search(content):
                 # 找到函数，提取整个函数定义
