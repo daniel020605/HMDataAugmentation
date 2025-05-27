@@ -7,6 +7,8 @@ from typing import Dict, List, Optional
 from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor
 import logging
+import uuid
+
 
 from ArkTSAbstractor.fileAnalyzer import analyze_ets_file
 from ArkTSAbstractor.tool import check_project_version
@@ -55,6 +57,7 @@ class ProjectAbstractor:
             analysis = analyze_ets_file(str(file_path))
             if analysis:
                 return {
+                    'id': str(uuid.uuid4()),
                     'file': str(file_path),
                     'file_type': analysis.file_type,
                     'ui_code': analysis.ui_code,

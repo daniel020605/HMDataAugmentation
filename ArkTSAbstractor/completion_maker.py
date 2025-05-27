@@ -87,6 +87,7 @@ class CodeBlockProcessor:
             if "content" in func:
                 for snippet in self.split_code_block(func["content"]):
                     record = {
+                        "id": func.get("id", ""),  # Use function ID if available
                         "url": code_data.get("repo_url", ""),
                         "file_path": code_data["file"],
                         "xl_context": self._get_xl_context(code_data),
@@ -104,6 +105,7 @@ class CodeBlockProcessor:
             if "content" in ui:
                 for snippet in self.split_ui_code_block(ui["content"]):  # Use the new method
                     record = {
+                        "id": ui.get("id", ""),  # Use ui_code ID if available
                         "url": code_data.get("repo_url", ""),
                         "file_path": code_data["file"],
                         "xl_context": self._get_xl_context(code_data),
