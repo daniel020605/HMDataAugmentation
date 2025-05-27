@@ -111,35 +111,40 @@ class ProjectAbstractor:
         file_map = {item['file']: item for item in project_analysis}  # 文件路径到分析结果的映射
         visited = set()
         stack = set()
+
         def resolve_file(file_path):
             if file_path in stack:
                 raise ValueError(f"检测到循环依赖: {' -> '.join(stack)} -> {file_path}")
             if file_path in visited:
                 return
             stack.add(file_path)
-            item = file_map.get(file_path)
-            if item:
-                for imp in item.get('imports', []):
-                    module_name = imp.get('module_name', '')
-                    if module_name.startswith('.'):  # 内部依赖
-                        base_path = os.path.dirname(file_path)
-                        absolute_path = os.path.abspath(os.path.join(base_path, module_name)) + '.ets'
-                        if absolute_path in file_map:
-                            imp['resolved_file'] = absolute_path
-                            resolve_file(absolute_path)  # 递归解析依赖
+            try:
+                item = file_map.get(file_path)
+                if item:
+                    for imp in item.get('imports', []):
+                        module_name = imp.get('module_name', '')
+                        if module_name.startswith('.'):  # 内部依赖
+                            base_path = os.path.dirname(file_path)
+                            absolute_path = os.path.abspath(os.path.join(base_path, module_name)) + '.ets'
+                            if absolute_path in file_map:
+                                if absolute_path in stack:
+                                    raise ValueError(f"检测到循环依赖: {' -> '.join(stack)} -> {absolute_path}")
+                                imp['resolved_file'] = absolute_path
+                                resolve_file(absolute_path)  # 递归解析依赖
 
-                            # 匹配具体内容
-                            resolved_item = file_map[absolute_path]
-                            name_to_find = imp.get('name')
-                            if name_to_find:
-                                # 在 variables、functions 和 classes 中查找
-                                for module in ['variables', 'functions', 'classes']:
-                                    for entry in resolved_item.get(module, []):
-                                        if entry.get('name') == name_to_find:
-                                            imp['component_content'] = entry  # 保存匹配到的内容
-                                            break
-                        else:
-                            imp['resolved_file'] = None  # 如果文件不存在，标记为未解析
+                                # 匹配具体内容
+                                resolved_item = file_map[absolute_path]
+                                name_to_find = imp.get('name')
+                                if name_to_find:
+                                    # 在 variables、functions 和 classes 中查找
+                                    for module in ['variables', 'functions', 'classes']:
+                                        for entry in resolved_item.get(module, []):
+                                            if entry.get('name') == name_to_find:
+                                                imp['component_content'] = entry  # 保存匹配到的内容
+                                                break
+                            else:
+                                imp['resolved_file'] = None  # 如果文件不存在，标记为未解析
+            finally:
                 stack.remove(file_path)
             visited.add(file_path)
 

@@ -746,19 +746,19 @@ def analyze_ets_file(file_path):
 
         # Resolve class dependencies
         for cls in analysis.classes:
-            resolver.resolve(cls, get_immediate_dependencies, analyze_item_dependencies)
+            resolver.resolve(cls, get_immediate_dependencies, analyze_item_dependencies, 1)
 
         # Resolve variable dependencies
         for var in analysis.variables:
-            resolver.resolve(var, get_immediate_dependencies, analyze_item_dependencies)
+            resolver.resolve(var, get_immediate_dependencies, analyze_item_dependencies, 1)
 
         # Resolve function dependencies
         for func in analysis.functions:
-            resolver.resolve(func, get_immediate_dependencies, analyze_item_dependencies)
+            resolver.resolve(func, get_immediate_dependencies, analyze_item_dependencies, 1)
 
         # Resolve UI code dependencies
         for ui in analysis.ui_code:
-            resolver.resolve(ui, get_immediate_dependencies, analyze_item_dependencies)
+            resolver.resolve(ui, get_immediate_dependencies, analyze_item_dependencies, 1)
 
         return analysis
     except Exception as e:
