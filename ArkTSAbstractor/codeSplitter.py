@@ -3,6 +3,8 @@ import random
 from typing import Dict, Optional, Tuple
 import ast
 
+
+
 def split_arkts_code(code: str) -> Optional[Dict[str, str]]:
     """保证fim_target非空的分割函数"""
 
@@ -168,11 +170,41 @@ def process_test_cases(test_cases):
         results[idx] = result
     return results
 
-if __name__ == "__main__":
+import os
+import json
 
-    test_cases = read_pre_from_json("/Users/liuxuejin/Desktop/Projects/PythonTools/output/extracted_pre_tags_with_instructions.json")
-    all_results = process_test_cases(test_cases)
-    # 你可以在这里添加保存结果的逻辑，例如保存到JSON文件
-    import json
-    with open('code_split_results.json', 'w', encoding='utf-8') as f:
-        json.dump(all_results, f, ensure_ascii=False, indent=4)
+def process_json_files(input_folder: str, output_folder: str) -> None:
+    """Process all JSON files in a folder and save the results to another folder."""
+    os.makedirs(output_folder, exist_ok=True)  # Ensure the output folder exists
+
+    for file_name in os.listdir(input_folder):
+        if file_name.endswith('.json'):
+            input_file_path = os.path.join(input_folder, file_name)
+            output_file_path = os.path.join(output_folder, file_name)  # Use the same file name in the output folder
+
+            with open(input_file_path, 'r', encoding='utf-8') as input_file:
+                data = json.load(input_file)  # Load JSON data
+                processed_data = process_data(data)  # Process the data (customize this function)
+
+            with open(output_file_path, 'w', encoding='utf-8') as output_file:
+                json.dump(processed_data, output_file, indent=2, ensure_ascii=False)  # Save processed data
+
+def process_data(data):
+    """Custom data processing logic."""
+    # Example: Return the data as-is without modification
+
+    return process_test_cases(test_cases)
+
+if __name__ == "__main__":
+    input_folder = r"E:\HMOutput"  # Replace with your input folder path
+    output_folder = r"E:\ProcessedOutput"  # Replace with your output folder path
+    process_json_files(input_folder, output_folder)
+    print(f"Processing completed. Results saved to {output_folder}")
+# if __name__ == "__main__":
+#
+#     test_cases = read_pre_from_json("/Users/liuxuejin/Desktop/Projects/PythonTools/output/extracted_pre_tags_with_instructions.json")
+#     all_results = process_test_cases(test_cases)
+#     # 你可以在这里添加保存结果的逻辑，例如保存到JSON文件
+#     import json
+#     with open('code_split_results.json', 'w', encoding='utf-8') as f:
+#         json.dump(all_results, f, ensure_ascii=False, indent=4)

@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import uuid
 
 from ArkTSAbstractor.importAnalyzer import analyze_imports
 from ArkTSAbstractor.logger import setup_logger, log_directory
@@ -40,6 +41,7 @@ class ETSFileAnalysis:
 
     def add_ui_code(self, ui_code, dependencies=None):
         ui_info = {
+            'id': str(uuid.uuid4()),
             'content': ui_code,
             'dependencies': dependencies or {
                 'imports': [],
@@ -63,6 +65,7 @@ class ETSFileAnalysis:
 
     def add_function(self, function, name=None, dependencies=None):
         function_info = {
+            'id': str(uuid.uuid4()),
             'name': name,
             'content': function,
             'dependencies': dependencies or {
@@ -390,7 +393,8 @@ def analyze_ets_file(file_path):
                         if not ui_code:  # 如果UI代码为空，跳过
                             continue
                         # dependencies = analyze_dependencies(ui_code, analysis)
-                        analysis.add_ui_code(ui_code)
+                        dependencies = None
+                        analysis.add_ui_code(ui_code, dependencies)
 
                         # # 检查UI代码中使用的导入和变量
                         # used_imports = []
@@ -473,6 +477,7 @@ def analyze_ets_file(file_path):
                 if end_pos != -1:
                     class_content = file_contents[match.start():end_pos + 1].strip()
                     # dependencies = analyze_dependencies(class_content, analysis)
+                    dependencies = None
                     class_info = {
                         'type': 'class',
                         'name': class_name,
@@ -481,7 +486,7 @@ def analyze_ets_file(file_path):
                         'content': class_content,
                         'is_export': 'export' in match.group(0)
                     }
-                    analysis.add_class_or_interface(class_info)
+                    analysis.add_class_or_interface(class_info, dependencies)
             except Exception as e:
                 logger.error(f"Error processing class in {file_path}: {str(e)}")
                 continue
@@ -571,7 +576,8 @@ def analyze_ets_file(file_path):
                     'full_variable': match.group(0)
                 }
                 # dependencies = analyze_dependencies(match.group(0), analysis)
-                analysis.add_variable(variable)
+                dependencies = None
+                analysis.add_variable(variable, dependencies)
 
             except Exception as e:
                 logger.error(f"Error processing variable in {file_path}: {str(e)}")
@@ -746,19 +752,19 @@ def analyze_ets_file(file_path):
 
         # Resolve class dependencies
         for cls in analysis.classes:
-            resolver.resolve(cls, get_immediate_dependencies, analyze_item_dependencies, 1)
+            resolver.resolve(cls, get_immediate_dependencies, analyze_item_dependencies, 2)
 
         # Resolve variable dependencies
         for var in analysis.variables:
-            resolver.resolve(var, get_immediate_dependencies, analyze_item_dependencies, 1)
+            resolver.resolve(var, get_immediate_dependencies, analyze_item_dependencies, 2)
 
         # Resolve function dependencies
         for func in analysis.functions:
-            resolver.resolve(func, get_immediate_dependencies, analyze_item_dependencies, 1)
+            resolver.resolve(func, get_immediate_dependencies, analyze_item_dependencies, 2)
 
         # Resolve UI code dependencies
         for ui in analysis.ui_code:
-            resolver.resolve(ui, get_immediate_dependencies, analyze_item_dependencies, 1)
+            resolver.resolve(ui, get_immediate_dependencies, analyze_item_dependencies, 2)
 
         return analysis
     except Exception as e:
