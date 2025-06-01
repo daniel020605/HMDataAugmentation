@@ -189,15 +189,29 @@ def process_json_files(input_folder: str, output_folder: str) -> None:
             with open(output_file_path, 'w', encoding='utf-8') as output_file:
                 json.dump(processed_data, output_file, indent=2, ensure_ascii=False)  # Save processed data
 
-def process_data(data):
-    """Custom data processing logic."""
-    # Example: Return the data as-is without modification
 
-    return process_test_cases(test_cases)
+def process_data(data):
+    """处理从JSON文件加载的数据，提取代码片段并进行分割处理。"""
+    code_samples = []
+    for item in data:
+        if "pre" in item:
+            try:
+                # 使用 ast.literal_eval 转换转义符号
+                processed_pre = ast.literal_eval('"' + item["pre"] + '"')
+                code_samples.append(processed_pre)
+            except SyntaxError:
+                print(f"处理 {item['pre']} 时发生语法错误，跳过此条数据。")
+                continue
+            except Exception as e:
+                print(f"处理数据时发生错误: {e}")
+                continue
+
+    # 处理提取的代码样本
+    return process_test_cases(code_samples)
 
 if __name__ == "__main__":
-    input_folder = r"E:\HMOutput"  # Replace with your input folder path
-    output_folder = r"E:\ProcessedOutput"  # Replace with your output folder path
+    input_folder = r"/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/projects_abstracted"  # Replace with your input folder path
+    output_folder = r"/Users/liuxuejin/Downloads/ProcessedOutput/OriginOutput"  # Replace with your output folder path
     process_json_files(input_folder, output_folder)
     print(f"Processing completed. Results saved to {output_folder}")
 # if __name__ == "__main__":

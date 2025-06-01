@@ -11,12 +11,14 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # 配置路径
-# projects_dir = Path('/Users/liuxuejin/Downloads/gitee_cloned_repos_5min_stars')
-# project_output_dir = Path('./data/projects_abstracted')
+projects_dir = Path('/Users/liuxuejin/Downloads/gitee_cloned_repos_5min_stars')
+# projects_dir = Path('/Users/liuxuejin/Downloads/github_cloned_repos_1min_stars')
+project_output_dir = Path('./projects_abstracted')
+# project_output_dir = Path('./level9_projects')
 log_dir = Path('./data/log')
 #
-projects_dir = Path(r"E:\HMProjects")
-project_output_dir = Path(r"E:\HMOutput")
+# projects_dir = Path(r"E:\HMProjects")
+# project_output_dir = Path(r"E:\HMOutput")
 
 def process_project(project_path: Path) -> bool:
     """处理单个项目"""
