@@ -23,21 +23,13 @@ class DependencyResolver:
         item_id = self.get_item_id(item)
         self.dependency_graph[item_id] = set()
 
-        # Skip resolution if the item is in the same file
-        if item.get('file') == item.get('current_file'):
-            return
-
-        # Stop processing if the file is already in the dependency chain
-        if item.get('file') in {dep.get('file') for dep in self.being_resolved if isinstance(dep, dict)}:
-            return
-
         if item_id in self.being_resolved:
             path = self._find_cycle(item_id)
             raise CircularDependencyError(f"Circular dependency detected: {' -> '.join(path)}")
         if item_id in self.resolved:
             return
 
-        self.being_resolved.add(item)
+        self.being_resolved.add(item_id)  # Use item_id instead of item
 
         try:
             # Get immediate dependencies
@@ -53,7 +45,7 @@ class DependencyResolver:
             analyze_deps_func(item)
 
         finally:
-            self.being_resolved.remove(item)
+            self.being_resolved.remove(item_id)  # Use item_id instead of item
             self.resolved.add(item_id)
 
     def _find_cycle(self, start_id):
