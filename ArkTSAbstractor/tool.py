@@ -96,6 +96,8 @@ def check_project_version(directory):
             version_pattern = re.compile(r'(("compileSdkVersion")|("compatibleSdkVersion"))\s?:\s*((\d+)|"([\d.()]+)")')
             for match in version_pattern.finditer(content):
                 if match.group(5) and match.group(5).strip().isnumeric():
+                    # if int(match.group(5)) == 9 :
+                    #     return True
                     if int(match.group(5)) < 10:
                         print(f"跳过项目 {directory}: 不支持的版本 {match.group(5)}")
                         return False
@@ -200,7 +202,54 @@ def count_json_items(file_path):
         print(f"读取文件 {file_path} 时发生错误: {e}")
         return 0
 
+
+def count_functions_and_ui_code(folder_path):
+    """
+    统计指定文件夹下所有JSON文件中functions和ui_code的总条数
+
+    Args:
+        folder_path (str): JSON文件所在的文件夹路径
+
+    Returns:
+        tuple: (functions总条数, ui_code总条数)
+    """
+    total_functions_count = 0
+    total_ui_code_count = 0
+    processed_files = 0
+
+    # 遍历文件夹中所有JSON文件
+    for filename in os.listdir(folder_path):
+        if filename.endswith('.json'):
+            file_path = os.path.join(folder_path, filename)
+            try:
+                with open(file_path, 'r', encoding='utf-8') as file:
+                    data = json.load(file)
+
+                    # 遍历JSON文件中的每条数据
+                    for item in data:
+                        # 统计functions条数
+                        functions = item.get("functions", [])
+                        total_functions_count += len(functions)
+
+                        # 统计ui_code条数
+                        ui_code = item.get("ui_code", [])
+                        total_ui_code_count += len(ui_code)
+
+                    processed_files += 1
+            except Exception as e:
+                print(f"处理文件 {file_path} 时出错: {str(e)}")
+
+    print(f"处理完成，共处理 {processed_files} 个JSON文件")
+    return total_functions_count, total_ui_code_count
+
+# 使用示例
 if __name__ == "__main__":
+    folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/level9_projects"
+    functions_count, ui_code_count = count_functions_and_ui_code(folder_path)
+    print(f"函数总条数: {functions_count}")
+    print(f"UI代码总条数: {ui_code_count}")
+
+# if __name__ == "__main__":
     # folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/analysis_results"
     # ui_code_count, function_count = count_ui_code_and_functions(folder_path)
     # print(f"总的 ui_code 数量: {ui_code_count}")
@@ -225,19 +274,19 @@ if __name__ == "__main__":
     #
     # folder_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/function_with_import_plain_ORIGIN_ONLY"
     # print(count_json_items_in_folder(folder_path))
-    file_path = "/Users/liuxuejin/Desktop/Data/生成、解释、补全数据/CD_code_description_0423.json"
-    print(count_json_items(file_path))
-    file_path = "/Users/liuxuejin/Desktop/Data/生成、解释、补全数据/CD_UI_code_description_0423.json"
-    print(count_json_items(file_path))
-    file_path = "/Users/liuxuejin/Desktop/Data/生成、解释、补全数据/EG_code_description.json"
-    print(count_json_items(file_path))
-    file_path = "/Users/liuxuejin/Desktop/Data/生成、解释、补全数据/EG_generate_instruction.json"
-    print(count_json_items(file_path))
-    file_path = "/Users/liuxuejin/Desktop/Data/生成、解释、补全数据/IC_dataset_functions_match.json"
-    print(count_json_items(file_path))
-    file_path = "/Users/liuxuejin/Desktop/Data/生成、解释、补全数据/IC_dataset_ui_code_0401.json"
-    print(count_json_items(file_path))
-    file_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/dataset_functions_0505.json"
-    print(count_json_items(file_path))
-    file_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/dataset_ui_code_0505.json"
-    print(count_json_items(file_path))
+    # file_path = "/Users/liuxuejin/Desktop/Data/生成、解释、补全数据/CD_code_description_0423.json"
+    # print(count_json_items(file_path))
+    # file_path = "/Users/liuxuejin/Desktop/Data/生成、解释、补全数据/CD_UI_code_description_0423.json"
+    # print(count_json_items(file_path))
+    # file_path = "/Users/liuxuejin/Desktop/Data/生成、解释、补全数据/EG_code_description.json"
+    # print(count_json_items(file_path))
+    # file_path = "/Users/liuxuejin/Desktop/Data/生成、解释、补全数据/EG_generate_instruction.json"
+    # print(count_json_items(file_path))
+    # file_path = "/Users/liuxuejin/Desktop/Data/生成、解释、补全数据/IC_dataset_functions_match.json"
+    # print(count_json_items(file_path))
+    # file_path = "/Users/liuxuejin/Desktop/Data/生成、解释、补全数据/IC_dataset_ui_code_0401.json"
+    # print(count_json_items(file_path))
+    # file_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/dataset_functions_0505.json"
+    # print(count_json_items(file_path))
+    # file_path = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/dataset_ui_code_0505.json"
+    # print(count_json_items(file_path))

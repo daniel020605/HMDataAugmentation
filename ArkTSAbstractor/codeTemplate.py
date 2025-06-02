@@ -27,32 +27,34 @@ def get_ui_code(data, file_name="Index"):
     xl_context = []
     for imp in data.get('import', []):
         if imp['module_name'].startswith('.'):
-            xl_context.append(imp["component_content"])
+            xl_context.append(imp.get("component_content",""))
         else:
-            imports.append(imp['full_import'])
-    variables = [v['full_variable'] for v in data.get('variables', [])]
+            imports.append(imp.get('full_import', ''))
+    variables = [v.get('full_variable','') for v in data.get('variables', [])]
     solution = data.get('content', '')
     return xl_context, BUILD_TEMPLATE.format(
                         file_name=file_name,
                         imports="\n".join(imports),
                         variables="\n".join(v for v in variables),
-                        build=solution)
+                        build=solution,
+                        solution="",)
 
 def get_fx_code(data, file_name="Index"):
     imports = []
     xl_context = []
     for imp in data.get('import', []):
         if imp['module_name'].startswith('.'):
-            xl_context.append(imp["component_content"])
+            xl_context.append(imp.get("component_content",""))
         else:
-            imports.append(imp['full_import'])
-    variables = [v['full_variable'] for v in data.get('variables', [])]
+            imports.append(imp.get('full_import', ''))
+    variables = [v.get('full_variable','') for v in data.get('variables', [])]
     solution = data.get('content', '')
     return xl_context, FUNC_TEMPLATE.format(
                         file_name=file_name,
                         imports="\n".join(imports),
                         variables="\n".join(v for v in variables),
-                        solution=solution)
+                        solution=solution,
+                        build="",)
 
 
 # if __name__ == "__main__":

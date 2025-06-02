@@ -5,8 +5,8 @@ import ast
 
 
 
-def split_arkts_code(code: str) -> Optional[Dict[str, str]]:
-    """保证fim_target非空的分割函数"""
+def split_arkts_code(code: str) -> Dict[str, str]:
+    """保证fim_target非空的分割函数，添加默认分割保证所有代码都能被处理"""
 
     patterns = {
         'build': re.compile(
@@ -25,7 +25,44 @@ def split_arkts_code(code: str) -> Optional[Dict[str, str]]:
         match = patterns['generic'].search(code)
         func_type = 'generic'
         if not match:
-            return None
+            # 默认分割策略 - 不再返回None
+            print("使用默认分割策略")
+            code_lines = code.split('\n')
+            mid_point = len(code_lines) // 2
+            
+            # 找到更好的分割点 - 尝试在空行或语句结束处分割
+            for i in range(mid_point, len(code_lines) - 1):
+                if not code_lines[i].strip() or code_lines[i].strip().endswith((';', '}')):
+                    mid_point = i + 1
+                    break
+            
+            # 确保分割后两部分都不为空
+            if mid_point == 0:
+                mid_point = 1
+            elif mid_point >= len(code_lines):
+                mid_point = len(code_lines) - 1
+                
+            before_code = '\n'.join(code_lines[:mid_point])
+            after_code = '\n'.join(code_lines[mid_point:])
+            
+            # 如果其中一部分为空，进行调整
+            if not before_code.strip():
+                mid_point = 1
+                before_code = code_lines[0]
+                after_code = '\n'.join(code_lines[1:])
+            elif not after_code.strip():
+                mid_point = len(code_lines) - 1
+                before_code = '\n'.join(code_lines[:mid_point])
+                after_code = code_lines[-1]
+                
+            return {
+                'fim_target': after_code,
+                'fim_task_sector_start': before_code,
+                'fim_task_sector_end': '}',
+                'above_context_without_fim_start': '',
+                'follow_context_without_fim_end': '',
+                'function_type': 'default'
+            }
 
     func_head = match.group(1).rstrip()
     func_body = match.group(2)
@@ -209,11 +246,196 @@ def process_data(data):
     # 处理提取的代码样本
     return process_test_cases(code_samples)
 
+
+import os
+import json
+import random
+import re
+import ast
+from typing import Dict, Tuple, List, Any
+from codeTemplate import get_ui_code, get_fx_code
+
+def process_abstracted_json(input_folder: str, output_folder: str, force_reprocess=False) -> None:
+    """处理ProjectAbstractor生成的结果文件，为functions和ui_code生成完整代码并分割"""
+    # 确保输出文件夹存在
+    os.makedirs(output_folder, exist_ok=True)
+
+    # 获取所有JSON文件
+    json_files = [f for f in os.listdir(input_folder) if f.endswith('.json')]
+
+    skipped_count = 0
+    processed_count = 0
+    error_count = 0
+    processed_items_count = 0  # 记录成功处理的代码段数量
+
+    function_count = 0
+    ui_code_count = 0
+    default_split_count = 0
+
+    for json_file in json_files:
+        input_path = os.path.join(input_folder, json_file)
+        output_path = os.path.join(output_folder, json_file)
+
+        # 检查文件是否已处理
+        if os.path.exists(output_path) and not force_reprocess:
+            print(f"跳过已处理文件: {json_file}")
+            skipped_count += 1
+            continue
+
+        # 处理当前文件
+        print(f"处理文件: {json_file}")
+
+        try:
+            with open(input_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+
+            processed_results = []
+
+            # 遍历每个文件项
+            for file_item in data:
+                file_name = os.path.basename(file_item.get("file", "unknown_file")).split('.')[0]
+                file_path = file_item.get("file", "")
+
+                # 处理functions
+                for function in file_item.get("functions", []):
+                    try:
+                        function_id = function.get("id", "")
+                        function_name = function.get("name", "")
+                        function_content = function.get("content", "")
+
+                        if not function_content:
+                            continue
+
+                        # 构造数据对象
+                        function_data = {
+                            'import': [],
+                            'variables': [],
+                            'content': function_content
+                        }
+
+                        # 获取依赖信息
+                        dependencies = function.get("dependencies", {})
+                        imports = dependencies.get("imports", [])
+                        if imports:
+                            function_data['import'] = imports
+
+                        # 生成完整代码
+                        try:
+                            xl_context, full_code = get_fx_code(function_data, file_name=file_name)
+                        except Exception as e:
+                            # 如果使用模板生成失败，直接使用原始内容
+                            xl_context = []
+                            full_code = function_content
+                            print(f"  - 生成函数代码失败: {str(e)[:100]}...")
+
+                        # 分割代码
+                        split_result = split_arkts_code(full_code)
+
+                        if split_result['function_type'] == 'default':
+                            default_split_count += 1
+                        function_count += 1
+
+                        # 由于split_arkts_code总是返回结果，不需要再检查split_result是否为None
+                        processed_results.append({
+                            "id": function_id,
+                            "name": function_name,
+                            "file": file_path,
+                            "original_content": function_content,
+                            "xl_context": xl_context,
+                            "full_code": full_code,
+                            "split_result": split_result,
+                            "type": "function"
+                        })
+                        processed_items_count += 1
+                    except Exception as e:
+                        print(f"  - 处理函数时出错: {str(e)}")
+                        continue
+
+                # 处理UI代码
+                for ui_code in file_item.get("ui_code", []):
+                    try:
+                        ui_id = ui_code.get("id", "")
+                        ui_name = ui_code.get("name", "")
+                        ui_content = ui_code.get("content", "")
+
+                        if not ui_content:
+                            continue
+
+                        # 构造数据对象
+                        ui_data = {
+                            'import': [],
+                            'variables': [],
+                            'content': ui_content
+                        }
+
+                        # 获取依赖信息
+                        dependencies = ui_code.get("dependencies", {})
+                        imports = dependencies.get("imports", [])
+                        if imports:
+                            ui_data['import'] = imports
+
+                        # 生成完整代码
+                        try:
+                            xl_context, full_code = get_ui_code(ui_data, file_name=file_name)
+                        except Exception as e:
+                            # 如果使用模板生成失败，直接使用原始内容
+                            xl_context = []
+                            full_code = ui_content
+                            print(f"  - 生成UI代码失败: {str(e)[:100]}...")
+
+                        # 分割代码 - 现在总是会返回结果
+                        split_result = split_arkts_code(full_code)
+                        
+                        ui_code_count += 1
+
+                        # 由于split_arkts_code总是返回结果，不需要再检查split_result是否为None
+                        processed_results.append({
+                            "id": ui_id,
+                            "name": ui_name,
+                            "file": file_path,
+                            "original_content": ui_content,
+                            "xl_context": xl_context,
+                            "full_code": full_code,
+                            "split_result": split_result,
+                            "type": "ui_code"
+                        })
+                        processed_items_count += 1
+                    except Exception as e:
+                        print(f"  - 处理UI代码时出错: {str(e)}")
+                        continue
+
+            # 保存处理结果
+            if processed_results:
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    json.dump(processed_results, f, ensure_ascii=False, indent=2)
+                processed_count += 1
+            else:
+                print(f"  - 没有找到可处理的代码片段")
+                error_count += 1
+
+        except Exception as e:
+            print(f"处理文件 {json_file} 时出错: {str(e)}")
+            error_count += 1
+
+    print(f"所有文件处理完成，共处理 {processed_count} 个文件，跳过 {skipped_count} 个文件，失败 {error_count} 个文件")
+    print(f"成功处理 {processed_items_count} 个代码段（包括函数和UI组件）")
+    print(f"结果已保存到 {output_folder}")
+    print(f"处理完成，共处理 {processed_count} 个JSON文件")
+    print(f"函数总条数: {function_count} UI代码总条数: {ui_code_count}")
+    print(f"使用默认分割方式的条数: {default_split_count}")
+
+# 下面可以添加主函数调用
 if __name__ == "__main__":
-    input_folder = r"/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/projects_abstracted"  # Replace with your input folder path
-    output_folder = r"/Users/liuxuejin/Downloads/ProcessedOutput/OriginOutput"  # Replace with your output folder path
-    process_json_files(input_folder, output_folder)
-    print(f"Processing completed. Results saved to {output_folder}")
+    input_folder = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/level9_projects"
+    output_folder = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/level9_split_1"
+
+    process_abstracted_json(input_folder, output_folder, force_reprocess=False)
+#
+# if __name__ == "__main__":
+#     input_folder = r"/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/level9_projects"  # Replace with your input folder path
+#     output_folder = r"/Users/liuxuejin/Downloads/ProcessedOutput/level9Output"  # Replace with your output folder path
+#     process_json_files(input_folder, output_folder)
+#     print(f"Processing completed. Results saved to {output_folder}")
 # if __name__ == "__main__":
 #
 #     test_cases = read_pre_from_json("/Users/liuxuejin/Desktop/Projects/PythonTools/output/extracted_pre_tags_with_instructions.json")
