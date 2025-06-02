@@ -174,16 +174,20 @@ class ProjectAbstractor:
 
                 # 生成引用唯一标识符
                 ref_key = f"{absolute_path}:{name_to_find}"
+                # 在循环引用检测处
                 if ref_key in processed_refs:
-                    # 跳过已处理的引用，但保留基本信息
+                    # 跳过已处理的引用，但保留基本信息和代码内容
                     self.file_logger.info(f"跳过重复引用: {ref_key}")
 
-                    # 获取基本信息而不是简单地标记循环引用
+                    # 获取包含代码内容的基本信息
+                    component_info = self.extract_basic_info(file_map, absolute_path, name_to_find)
                     imp['component_content'] = {
                         "circular_ref": True,
-                        "basic_info": self.extract_basic_info(file_map, absolute_path, name_to_find),
+                        "basic_info": component_info,
                         "ref_module": module_name,
-                        "ref_name": name_to_find
+                        "ref_name": name_to_find,
+                        # 将代码内容从basic_info提升到顶层
+                        "content": component_info.get("content", ""),
                     }
                     continue
 
@@ -216,7 +220,7 @@ class ProjectAbstractor:
                             break
 
     def extract_basic_info(self, file_map, file_path, name):
-        """提取组件的基本信息，避免循环引用"""
+        """提取组件的基本信息和代码内容，避免循环引用"""
         resolved_item = file_map.get(file_path)
         if not resolved_item:
             return {"name": name, "status": "file_not_found"}
@@ -230,12 +234,20 @@ class ProjectAbstractor:
                         "content_type": module[:-1],  # 'variable', 'function', or 'class'
                     }
 
+                    # 添加代码内容 - 这是关键修改
+                    if "content" in entry:
+                        basic_info["content"] = entry["content"]
+
                     # 添加特定类型的信息
                     if module == 'functions':
                         basic_info["params_count"] = len(entry.get('params', []))
+                        basic_info["params"] = entry.get('params', [])
                     elif module == 'classes':
                         basic_info["methods_count"] = len(entry.get('methods', []))
                         basic_info["properties_count"] = len(entry.get('properties', []))
+                        # 可以选择性添加一些方法和属性
+                        if len(entry.get('methods', [])) > 0:
+                            basic_info["methods_sample"] = [m.get('name') for m in entry.get('methods', [])[:3]]
 
                     return basic_info
 
@@ -284,14 +296,20 @@ class ProjectAbstractor:
                         "resolved_file": obj.get("resolved_file", ""),
                     }
 
-                    # 保留组件内容的基本信息
+                    # 保留组件内容的基本信息和代码
                     if "component_content" in obj and isinstance(obj["component_content"], dict):
+                        # 获取代码内容
+                        content = obj["component_content"].get("content", "")
+                        if not content and "basic_info" in obj["component_content"]:
+                            content = obj["component_content"]["basic_info"].get("content", "")
+
                         preserved["component_content"] = {
                             "circular_ref": True,
                             "name": obj["component_content"].get("name", ""),
                             "type": obj["component_content"].get("type", ""),
                             "content_type": obj["component_content"].get("content_type", ""),
-                            "ref_path": visited[obj_id]
+                            "ref_path": visited[obj_id],
+                            "content": content  # 保留代码内容
                         }
                     else:
                         preserved["component_content"] = {
