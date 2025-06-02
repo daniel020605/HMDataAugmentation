@@ -162,21 +162,11 @@ def find_component_or_function(file_path, component_name):
         return None
 
 def process_resource_references(content, resource_dir):
-    """处理资源引用
-    Args:
-        content: 文件内容
-        resource_dir: 资源目录路径
-    Returns:
-        处理后的内容
-    """
+    """处理资源引用"""
     try:
-        # 处理media资源引用
-        # media_pattern = r'\$r\([\'"](app\.media\.[^\'"]+)[\'"]\)'
-        # content = re.sub(media_pattern, r'$r("app.media.startIcon")', content)
-
         # 处理element资源引用
         element_pattern = r'\$r\([\'"](app\.[^\'"]+)[\'"]\)'
-        
+
         def replace_element_value(match):
             try:
                 resource_path = match.group(1)
@@ -184,18 +174,29 @@ def process_resource_references(content, resource_dir):
                 _, key_name, name = resource_path.split('.')
                 if key_name == 'media':
                     return f'$r("app.media.startIcon")'
+
                 # 构建json文件路径
                 json_path = os.path.join(resource_dir, 'element', f'{key_name}.json')
                 if os.path.exists(json_path):
-                    with open(json_path, 'r', encoding='utf-8') as f:
-                        data = json.load(f)
-                        # 查找匹配的键名和name
-                        for item in data.get(key_name, []):
-                            if item.get('name') == name:
-                                return f'"{item.get("value")}"'
-                # print(json_path)
-                return match.group(0)  # 如果找不到对应的value，保持原样
+                    try:
+                        with open(json_path, 'r', encoding='utf-8') as f:
+                            # 尝试修复JSON内容
+                            content = f.read()
+                            try:
+                                data = json.loads(content)
+                            except json.JSONDecodeError:
+                                # 尝试修复JSON并重新解析
+                                fixed_content = fix_json_content(content)
+                                data = json.loads(fixed_content)
 
+                            # 查找匹配的键名和name
+                            for item in data.get(key_name, []):
+                                if item.get('name') == name:
+                                    return f'"{item.get("value")}"'
+                    except Exception as e:
+                        logger.error(f"处理资源文件出错: {json_path}, {str(e)}")
+                        return match.group(0)
+                return match.group(0)  # 如果找不到对应的value，保持原样
             except Exception as e:
                 logger.error(f"Error processing element resource: {str(e)}")
                 return match.group(0)
@@ -495,8 +496,8 @@ def analyze_ets_file(file_path):
             r'(?m)^\s*'  # 行首空白
             r'(?:(?:@\w+\s+)*'  # 多个装饰器
             r'(?:(?:private|public|readonly|export)\s+)?'  # 单个访问修饰符
-            r'(?:static\s+)?'  # 单个static修饰符
-            r'(?:(?:const|let|val|var)\s+)?'  # 可选的变量声明关键字
+            r'(?:(?:static|const|let|val|var)\s+)?'  # 单个static修饰符
+            r'(?:(?:\w+\??\s?:\s?[^)]+\s?)(,\s?\w+\??\s?:\s?[^)]+)*)?\s*'  # 可选的变量声明关键字
             r'(\w+)\s*\??:\s*'  # 变量名和类型声明
             r'([a-zA-Z_][^=;\n{]+)'  # 类型声明
             r'(?:\s*=\s*([^;\n{]+))?'  # 可选的初始化值
@@ -698,12 +699,23 @@ def analyze_ets_file(file_path):
             return deps
 
         def analyze_item_dependencies(item):
-            """Sets dependencies based on item type"""
+            """Sets dependencies based on item type, prevents circular references"""
+            # 检查是否已经处理过依赖，避免重复处理
+            if item.get('dependencies_processed'):
+                return
+            
+            # 处理项开始前记录项目ID
+            processed_items = set()
+            item_id = id(item)
+            if item_id in processed_items:
+                return
+            processed_items.add(item_id)
+
             content = item.get('content', '')
             item_type = item.get('type', '')
             file_name = os.path.basename(file_path)
-
             base_name = os.path.splitext(file_name)[0] if file_name else ''
+            
             dependencies = {
                 'imports': [],
                 'variables': [],
@@ -714,38 +726,55 @@ def analyze_ets_file(file_path):
 
             # Imports have no dependencies
             if 'import_type' in item:
+                item['dependencies'] = dependencies
+                item['dependencies_processed'] = True
                 return
 
-            # Classes and Interfaces can only depend on imports
-            elif item_type in ['class', 'interface']:
-                for imp in analysis.imports:
-                    if imp.get('name') and imp['name'] in content:
-                        if imp['name'] != base_name:
-                            dependencies['imports'].append(imp)
+            # 处理依赖，只添加字面量引用
+            # 1. 导入依赖
+            for imp in analysis.imports:
+                if imp.get('name') and imp['name'] in content:
+                    if imp['name'] != base_name:
+                        # 只添加基本引用信息，不包含完整对象
+                        ref = {
+                            'ref_type': 'import',
+                            'module_name': imp.get('module_name'),
+                            'name': imp.get('name')
+                        }
+                        dependencies['imports'].append(ref)
 
-            # Variables and Functions can depend on imports, functions, classes, and interfaces
-            else:
-                for imp in analysis.imports:
-                    if imp.get('name') and imp['name'] in content:
-                        if imp['name'] != base_name:
-                            dependencies['imports'].append(imp)
+            # 2. 类/接口依赖 - 不是类/接口项才添加类依赖
+            if item_type not in ['class', 'interface']:
+                for cls in analysis.classes:
+                    if cls.get('name') and cls['name'] in content:
+                        if cls['name'] != base_name and ('name' not in item or cls['name'] != item.get('name')):
+                            # 只添加基本引用信息
+                            ref = {
+                                'ref_type': cls.get('type', 'class'),
+                                'name': cls.get('name')
+                            }
+                            if cls.get('type') == 'interface':
+                                dependencies['interfaces'].append(ref)
+                            else:
+                                dependencies['classes'].append(ref)
+        
+            # 3. 只为变量和函数添加函数依赖
+            if 'full_variable' in item or ('name' in item and 'content' in item and item_type != 'class'):
+                for func in analysis.functions:
+                    if func.get('name') and func['name'] in content:
+                        # 避免自引用和同名文件引用
+                        if func['name'] != base_name and ('name' not in item or func['name'] != item.get('name')):
+                            # 只添加基本引用信息
+                            ref = {
+                                'ref_type': 'function',
+                                'name': func.get('name'),
+                                'id': func.get('id')
+                            }
+                            dependencies['functions'].append(ref)
 
-                # Only add function and class dependencies for variables and functions
-                if 'full_variable' in item or ('name' in item and 'content' in item):
-                    for func in analysis.functions:
-                        if func.get('name') and func['name'] in content:
-                            if ('name' not in item or func['name'] != item['name']) and func['name'] != base_name:
-                                dependencies['functions'].append(func)
-
-                    for cls in analysis.classes:
-                        if cls['name'] in content:
-                            if cls['name'] != base_name:
-                                if cls.get('type') == 'interface':
-                                    dependencies['interfaces'].append(cls)
-                                else:
-                                    dependencies['classes'].append(cls)
-
+            # 标记已处理依赖，避免重复处理
             item['dependencies'] = dependencies
+            item['dependencies_processed'] = True
 
         # === Third Pass: Resolve dependencies ===
         resolver = DependencyResolver()
@@ -771,7 +800,137 @@ def analyze_ets_file(file_path):
         logger.error(f"Error reading {file_path}: {str(e)}")
         return None
 
+def process_element(element_path, element_type="element"):
+    """安全处理JSON资源文件"""
+    try:
+        with open(element_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+            try:
+                # 尝试解析JSON
+                data = json.loads(content)
+            except json.JSONDecodeError as je:
+                logger.warning(f"JSON解析错误: {element_path}, 位置: {je.pos}, 尝试修复")
 
+                # 尝试修复并重新解析
+                fixed_content = fix_json_content(content)
+                try:
+                    data = json.loads(fixed_content)
+                    logger.info(f"成功修复JSON: {element_path}")
+                except json.JSONDecodeError as e:
+                    logger.error(f"无法修复JSON: {element_path}, {str(e)}")
+                    return None
 
-if __name__ == '__main__':
-    print(analyze_ets_file("/Users/liuxuejin/Downloads/gitee_cloned_repos_5min_stars/帝心_HarmonyOS应用开发教程/NEXT/base/NextBase/entry/src/main/ets/pages/ArkUI/TextDemo.ets").imports)
+            return data
+    except Exception as e:
+        logger.error(f"处理资源元素错误: {element_path}, {str(e)}")
+        return None
+
+def fix_json_content(content):
+    """尝试修复常见的JSON格式问题"""
+    # 修复多余的逗号
+    content = re.sub(r',\s*([}\]])', r'\1', content)
+
+    # 修复缺少引号的键名
+    content = re.sub(r'([{,])\s*(\w+):', r'\1"\2":', content)
+
+    # 移除非打印字符
+    content = ''.join(c for c in content if ord(c) >= 32 or c in '\n\r\t')
+
+    return content
+
+def create_reference_object(item):
+    """创建一个引用对象，只包含必要的标识信息而非完整对象"""
+    if not item:
+        return None
+        
+    # 如果是导入依赖
+    if 'import_type' in item:
+        return {
+            'ref_type': 'import',
+            'module_name': item.get('module_name'),
+            'name': item.get('name'),
+            'alias': item.get('alias')
+        }
+    # 如果是函数依赖
+    elif 'name' in item and 'content' in item and 'id' in item:
+        return {
+            'ref_type': 'function',
+            'id': item.get('id'),
+            'name': item.get('name')
+        }
+    # 如果是类或接口依赖
+    elif 'type' in item and item['type'] in ['class', 'interface']:
+        return {
+            'ref_type': item.get('type'),
+            'name': item.get('name')
+        }
+    # 如果是变量依赖
+    elif 'name' in item and 'full_variable' in item:
+        return {
+            'ref_type': 'variable',
+            'name': item.get('name'),
+            'type': item.get('type')
+        }
+    # 默认情况
+    return {
+        'ref_type': 'unknown',
+        'name': item.get('name', 'unnamed')
+    }
+
+def save_analysis_to_json(analysis, output_file):
+    """安全地将分析结果保存为JSON，处理可能的循环引用"""
+    try:
+        # 首先检查是否已经有处理中标记，避免死循环
+        for section in ['functions', 'classes', 'variables', 'imports', 'ui_code']:
+            items = getattr(analysis, section, [])
+            for item in items:
+                # 移除可能存在的循环引用标记
+                if hasattr(item, '_being_processed'):
+                    delattr(item, '_being_processed')
+                    
+        # 使用安全的序列化方式
+        with open(output_file, 'w', encoding='utf-8') as f:
+            json.dump(analysis.__dict__, f, ensure_ascii=False, indent=2, default=lambda o: str(o) if not isinstance(o, (dict, list, str, int, float, bool, type(None))) else o)
+        return True
+    except Exception as e:
+        logger.error(f"保存JSON时出错: {e}")
+        
+        # 更安全的备选方案 - 分段写入
+        try:
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write("{\n")
+                
+                # 写入基本属性
+                f.write(f'  "file_path": "{analysis.file_path}",\n')
+                f.write(f'  "file_type": "{analysis.file_type}",\n')
+                
+                # 逐段写入各数组
+                for i, section in enumerate(['imports', 'variables', 'functions', 'classes', 'structs', 'modules', 'ui_code']):
+                    items = getattr(analysis, section, [])
+                    f.write(f'  "{section}": [\n')
+                    
+                    # 写入数组项
+                    for j, item in enumerate(items):
+                        # 简化处理，只保留基本信息
+                        safe_item = {}
+                        for k, v in item.items():
+                            if k != 'dependencies' and isinstance(v, (str, int, float, bool, type(None))):
+                                safe_item[k] = v
+                            elif k == 'dependencies':
+                                # 保留依赖引用但不递归
+                                safe_item[k] = {
+                                    key: [{'name': d.get('name')} for d in deps]
+                                    for key, deps in v.items()
+                                }
+                        
+                        item_json = json.dumps(safe_item, ensure_ascii=False)
+                        f.write(f'    {item_json}{"," if j < len(items)-1 else ""}\n')
+                    
+                    f.write(f'  ]{"," if i < 6 else ""}\n')  # 6是数组总数-1
+                
+                f.write("}\n")
+            logger.info(f"成功使用备选方案保存分析结果到 {output_file}")
+            return True
+        except Exception as e2:
+            logger.error(f"备选保存方案也失败: {e2}")
+            return False

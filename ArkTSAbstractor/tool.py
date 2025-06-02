@@ -96,6 +96,8 @@ def check_project_version(directory):
             version_pattern = re.compile(r'(("compileSdkVersion")|("compatibleSdkVersion"))\s?:\s*((\d+)|"([\d.()]+)")')
             for match in version_pattern.finditer(content):
                 if match.group(5) and match.group(5).strip().isnumeric():
+                    # if int(match.group(5)) == 9 :
+                    #     return True
                     if int(match.group(5)) < 10:
                         print(f"跳过项目 {directory}: 不支持的版本 {match.group(5)}")
                         return False

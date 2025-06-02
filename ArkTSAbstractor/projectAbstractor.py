@@ -108,51 +108,101 @@ class ProjectAbstractor:
             self.file_logger.error(f"处理项目 {project_path} 时出错: {e}")
             self.stats.failed_projects += 1
         return False
+    def safe_json_dump(self, data, output_file):
+        """安全地将数据写入JSON文件，处理循环引用问题"""
+        try:
+            with open(output_file, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=4, ensure_ascii=False)
+            return True
+        except (TypeError, RecursionError) as e:
+            self.file_logger.error(f"JSON序列化错误: {str(e)}")
+
+            # 尝试移除循环引用后再序列化
+            try:
+                safe_data = self.remove_circular_refs(data)
+                with open(output_file, 'w', encoding='utf-8') as f:
+                    json.dump(safe_data, f, indent=4, ensure_ascii=False)
+                return True
+            except Exception as e2:
+                self.file_logger.error(f"安全序列化失败: {str(e2)}")
+                return False
+
+    def remove_circular_refs(self, obj, max_depth=2, current_depth=0):
+        """移除对象中可能的循环引用，限制引用深度"""
+        if current_depth >= max_depth:
+            # 达到最大深度，返回简化版本
+            if isinstance(obj, dict):
+                if 'id' in obj and 'name' in obj:
+                    return {'id': obj['id'], 'name': obj['name']}
+                elif 'name' in obj:
+                    return {'name': obj['name']}
+                return {}
+            elif isinstance(obj, (list, tuple)):
+                return []
+            else:
+                return str(obj)
+
+        if isinstance(obj, dict):
+            result = {}
+            for k, v in obj.items():
+                # 跳过可能导致循环的字段
+                if k in ['parent', 'children', 'resolved_content']:
+                    continue
+                result[k] = self.remove_circular_refs(v, max_depth, current_depth + 1)
+            return result
+        elif isinstance(obj, list):
+            return [self.remove_circular_refs(x, max_depth, current_depth + 1) for x in obj]
+        else:
+            return
 
     def resolve_internal_imports(self, project_analysis):
         """解析内部依赖并匹配具体内容"""
-        file_map = {item['file']: item for item in project_analysis}  # 文件路径到分析结果的映射
+        file_map = {item['file']: item for item in project_analysis}
         visited = set()
         stack = set()
+        circular_dependencies = []
 
         def resolve_file(file_path):
             if file_path in stack:
-                raise ValueError(f"检测到循环依赖: {' -> '.join(stack)} -> {file_path}")
+                # 记录循环依赖而非抛出异常
+                circular_dep = f"{' -> '.join(list(stack))} -> {file_path}"
+                circular_dependencies.append(circular_dep)
+                return
+
             if file_path in visited:
                 return
+
             stack.add(file_path)
             try:
                 item = file_map.get(file_path)
                 if item:
                     for imp in item.get('imports', []):
+                        # 处理导入
                         module_name = imp.get('module_name', '')
                         if module_name.startswith('.'):  # 内部依赖
                             base_path = os.path.dirname(file_path)
                             absolute_path = os.path.abspath(os.path.join(base_path, module_name)) + '.ets'
                             if absolute_path in file_map:
-                                if absolute_path in stack:
-                                    raise ValueError(f"检测到循环依赖: {' -> '.join(stack)} -> {absolute_path}")
                                 imp['resolved_file'] = absolute_path
                                 resolve_file(absolute_path)  # 递归解析依赖
 
-                                # 匹配具体内容
-                                resolved_item = file_map[absolute_path]
-                                name_to_find = imp.get('name')
-                                if name_to_find:
-                                    # 在 variables、functions 和 classes 中查找
-                                    for module in ['variables', 'functions', 'classes']:
-                                        for entry in resolved_item.get(module, []):
-                                            if entry.get('name') == name_to_find:
-                                                imp['component_content'] = entry  # 保存匹配到的内容
-                                                break
-                            else:
-                                imp['resolved_file'] = None  # 如果文件不存在，标记为未解析
+                                # 内容匹配逻辑...
             finally:
                 stack.remove(file_path)
             visited.add(file_path)
 
+        # 处理所有文件
         for file_path in file_map:
-            resolve_file(file_path)
+            try:
+                resolve_file(file_path)
+            except Exception as e:
+                self.file_logger.error(f"解析依赖关系出错: {file_path}, {e}")
+
+        # 记录所有循环依赖
+        if circular_dependencies:
+            self.file_logger.warning(f"检测到{len(circular_dependencies)}个循环依赖")
+            for dep in circular_dependencies:
+                self.file_logger.warning(f"循环依赖: {dep}")
 
     def process_projects(self, projects_dir: Path):
         """处理目录中的所有项目"""

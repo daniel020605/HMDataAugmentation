@@ -190,31 +190,109 @@ def process_json_file(input_file, output_file, examples, topk=5):
 import os
 
 def process_json_folder(input_folder, output_folder, examples, topk=5):
-    """
-    处理一个文件夹内的所有JSON文件，并将结果存储到另一个文件夹中的同名JSON文件。
-
-    Args:
-        input_folder (str): 输入文件夹路径
-        output_folder (str): 输出文件夹路径
-        examples (list): 示例数据列表，用于匹配
-        topk (int): 返回的相似结果数量
-    """
-    # 确保输出文件夹存在
+    """处理文件夹内的所有JSON文件，增加错误处理"""
     os.makedirs(output_folder, exist_ok=True)
-
-    # 获取输入文件夹中的所有JSON文件
     json_files = [f for f in os.listdir(input_folder) if f.endswith('.json')]
 
-    # 处理每个JSON文件
-    for json_file in json_files:
-        input_file_path = os.path.join(input_folder, json_file)
-        output_file_path = os.path.join(output_folder, json_file)
+    successful = []
+    failed = []
+
+    for json_file in tqdm(json_files, desc="处理文件"):
+        input_path = os.path.join(input_folder, json_file)
+        output_path = os.path.join(output_folder, json_file)
 
         print(f"处理文件: {json_file}")
-        process_json_file(input_file_path, output_file_path, examples, topk=topk)
+        try:
+            # 尝试修复并加载JSON
+            data = load_and_fix_json(input_path)
 
-    print(f"所有文件处理完成，结果已保存到 {output_folder}")
+            # 处理数据
+            process_single_file(data, output_path, examples, topk)
+            successful.append(json_file)
+        except Exception as e:
+            print(f"处理失败: {str(e)}")
+            failed.append((json_file, str(e)))
 
+    print(f"\n处理完成: 成功 {len(successful)}/{len(json_files)} 文件")
+    if failed:
+        print(f"失败文件列表: {len(failed)}")
+        for name, error in failed[:5]:
+            print(f"- {name}: {error}")
+
+def load_and_fix_json(file_path):
+    """加载JSON文件，尝试修复常见错误"""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except json.JSONDecodeError as e:
+        print(f"JSON解析错误，尝试修复: {e}")
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        # 1. 尝试修复常见问题：多余的逗号
+        if "Expecting value" in str(e):
+            lines = content.split('\n')
+            if e.lineno <= len(lines):
+                problem_line = lines[e.lineno-1]
+                if problem_line.rstrip().endswith(','):
+                    lines[e.lineno-1] = problem_line.rstrip().rstrip(',')
+                    fixed_content = '\n'.join(lines)
+                    try:
+                        return json.loads(fixed_content)
+                    except:
+                        pass
+
+        # 2. 尝试清理非打印字符
+        cleaned = ''.join(c for c in content if ord(c) >= 32 or c in '\n\r\t')
+        try:
+            return json.loads(cleaned)
+        except:
+            pass
+
+        raise Exception(f"无法修复JSON: {e}")
+
+def process_single_file(data, output_path, examples, topk):
+    """处理单个JSON文件数据并保存"""
+    for item in tqdm(data, desc="处理数据项"):
+        imports = item.get("imports", [])
+        if not imports:
+            continue
+
+        # 提取import代码
+        if isinstance(imports[0], dict):
+            statements = []
+            for imp in imports:
+                for field in ['statement', 'code', 'content']:
+                    if field in imp and imp[field]:
+                        statements.append(imp[field])
+                        break
+            user_code = "\n".join(statements)
+        else:
+            user_code = "\n".join(imports)
+
+        if not user_code:
+            continue
+
+        # 查找相似示例
+        str_results = find_topk_similar_examples(user_code, examples, topk)
+        chroma_results = chroma_search(user_code, topk=topk)
+        final_results = weighted_merge_results(str_results, chroma_results)
+
+        # 添加到数据项中
+        item["similar_examples"] = [
+            {
+                "id": example["id"],
+                "score": score,
+                "code_snippet": example["pre"],
+                "parent_text": example.get("parent_text", "")
+            }
+            for example, score in final_results
+            if example.get("type") != "Import"
+        ]
+
+    # 保存结果
+    with open(output_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
 # # 示例使用
 # if __name__ == "__main__":
 #
@@ -232,8 +310,10 @@ def process_json_folder(input_folder, output_folder, examples, topk=5):
 
 if __name__ == "__main__":
     # 示例文件夹路径
+    # input_folder = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/projects_abstracted"  # 输入文件夹路径
     input_folder = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/projects_abstracted"  # 输入文件夹路径
-    output_folder = "output/matchOutput"  # 输出文件夹路径
+
+    output_folder = "matchOutput"  # 输出文件夹路径
 
     # 加载示例数据
     examples = load_examples('data/extracted_harmonyos-references.json')

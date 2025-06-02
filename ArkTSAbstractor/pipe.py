@@ -5,14 +5,15 @@ from projectAbstractor import ProjectAbstractor
 from scripts.delete_test_files import delete_test_files
 from codeClassifier import CodeClassifier
 from addImport import process_directory as add_import_directory
+from tqdm import tqdm
 
 # 设置日志
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # 配置路径
-projects_dir = Path('/Users/liuxuejin/Downloads/gitee_cloned_repos_5min_stars')
-# projects_dir = Path('/Users/liuxuejin/Downloads/github_cloned_repos_1min_stars')
+# projects_dir = Path('/Users/liuxuejin/Downloads/gitee_cloned_repos_5min_stars')
+projects_dir = Path('/Users/liuxuejin/Downloads/github_cloned_repos_1min_stars')
 project_output_dir = Path('./projects_abstracted')
 # project_output_dir = Path('./level9_projects')
 log_dir = Path('./data/log')
@@ -52,7 +53,7 @@ def main():
         success_count = 0
         total_count = 0
         
-        for project_path in projects_dir.iterdir():
+        for project_path in tqdm(projects_dir.iterdir()):
             if project_path.is_dir():
                 total_count += 1
                 if process_project(project_path):
