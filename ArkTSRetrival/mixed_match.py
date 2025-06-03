@@ -308,8 +308,8 @@ def process_json_folder(input_folder, output_folder, examples, topk=5, force_rep
 
 if __name__ == "__main__":
     # 示例文件夹路径
-    input_folder = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/level9_projects"
-    output_folder = "output/level9Output"
+    input_folder = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/level9_import"
+    output_folder = "/Users/liuxuejin/Desktop/Data/HMLevel9Output"
 
     # 加载示例数据
     examples = load_examples('data/extracted_harmonyos-references.json')

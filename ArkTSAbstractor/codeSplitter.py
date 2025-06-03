@@ -426,8 +426,8 @@ def process_abstracted_json(input_folder: str, output_folder: str, force_reproce
 
 # 下面可以添加主函数调用
 if __name__ == "__main__":
-    input_folder = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/level9_projects"
-    output_folder = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/level9_split_1"
+    input_folder = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/projects_abstracted"
+    output_folder = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/projects_split"
 
     process_abstracted_json(input_folder, output_folder, force_reprocess=False)
 #

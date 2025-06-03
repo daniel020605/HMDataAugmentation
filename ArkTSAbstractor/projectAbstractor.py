@@ -94,13 +94,7 @@ class ProjectAbstractor:
             if project_analysis:
                 try:
                     self.resolve_internal_imports(project_analysis)  # 添加依赖解析步骤
-
-                    # # 在JSON序列化前移除所有循环引用
-                    # cleaned_data = self.remove_circular_references(project_analysis)
-                    #
-                    # output_file.parent.mkdir(parents=True, exist_ok=True)
-                    # with open(output_file, 'w', encoding='utf-8') as f:
-                    #     json.dump(cleaned_data, f, indent=4, ensure_ascii=False)
+                    self.process_dependencies(project_analysis)  # 添加处理依赖步骤
 
                     # 移除循环引用
                     self.file_logger.info("开始移除循环引用...")
@@ -118,7 +112,6 @@ class ProjectAbstractor:
                     return True
                 except Exception as e:
                     self.file_logger.error(f"解析或序列化项目 {project_path} 时出错: {e}")
-                    # self.file_logger.error(f"处理失败: {str(e)}")
                     import traceback
                     self.file_logger.error(traceback.format_exc())
                     self.stats.failed_projects += 1
@@ -176,19 +169,20 @@ class ProjectAbstractor:
                 ref_key = f"{absolute_path}:{name_to_find}"
                 # 在循环引用检测处
                 if ref_key in processed_refs:
-                    # 跳过已处理的引用，但保留基本信息和代码内容
-                    self.file_logger.info(f"跳过重复引用: {ref_key}")
+                    # 获取完整组件信息（包括代码内容）
 
-                    # 获取包含代码内容的基本信息
-                    component_info = self.extract_basic_info(file_map, absolute_path, name_to_find)
+
+                    # 保留完整内容的同时标记为循环引用
                     imp['component_content'] = {
                         "circular_ref": True,
-                        "basic_info": component_info,
+                        "name": name_to_find,
                         "ref_module": module_name,
                         "ref_name": name_to_find,
-                        # 将代码内容从basic_info提升到顶层
-                        "content": component_info.get("content", ""),
+                        # 直接放置代码内容在顶层
+                        "content": imp.get("content", ""),
                     }
+
+                    self.file_logger.info(f"处理循环引用: {ref_key}，已保存完整代码内容")
                     continue
 
                 processed_refs.add(ref_key)
@@ -210,6 +204,7 @@ class ProjectAbstractor:
                                 'name': entry.get('name', ''),
                                 'type': entry.get('type', ''),
                                 'file': absolute_path,
+                                # 'content': entry.get('full_import', ''),
                                 'is_reference': True,
                                 'content_type': module[:-1],  # 'variable', 'function', or 'class'
                                 'properties': entry.get('properties', [])[:3] if 'properties' in entry else []
@@ -219,39 +214,6 @@ class ProjectAbstractor:
                             queue.append((absolute_path, depth + 1))
                             break
 
-    def extract_basic_info(self, file_map, file_path, name):
-        """提取组件的基本信息和代码内容，避免循环引用"""
-        resolved_item = file_map.get(file_path)
-        if not resolved_item:
-            return {"name": name, "status": "file_not_found"}
-
-        for module in ['variables', 'functions', 'classes']:
-            for entry in resolved_item.get(module, []):
-                if entry.get('name') == name:
-                    basic_info = {
-                        "name": name,
-                        "type": entry.get('type', ''),
-                        "content_type": module[:-1],  # 'variable', 'function', or 'class'
-                    }
-
-                    # 添加代码内容 - 这是关键修改
-                    if "content" in entry:
-                        basic_info["content"] = entry["content"]
-
-                    # 添加特定类型的信息
-                    if module == 'functions':
-                        basic_info["params_count"] = len(entry.get('params', []))
-                        basic_info["params"] = entry.get('params', [])
-                    elif module == 'classes':
-                        basic_info["methods_count"] = len(entry.get('methods', []))
-                        basic_info["properties_count"] = len(entry.get('properties', []))
-                        # 可以选择性添加一些方法和属性
-                        if len(entry.get('methods', [])) > 0:
-                            basic_info["methods_sample"] = [m.get('name') for m in entry.get('methods', [])[:3]]
-
-                    return basic_info
-
-        return {"name": name, "status": "not_found_in_file"}
 
     def remove_circular_references(self, data, max_depth=15):
         """彻底清除数据结构中的循环引用，同时保留基本信息"""
@@ -287,39 +249,40 @@ class ProjectAbstractor:
             if obj_id in visited:
                 self.file_logger.warning(f"截断循环引用: {path} -> {visited[obj_id]}")
 
-                # 如果是顶层imports对象，保留关键字段
+                # 如果是顶层imports对象，保留所有关键字段和内容
                 if is_top_import and isinstance(obj, dict):
-                    preserved = {
-                        "name": obj.get("name", ""),
-                        "module_name": obj.get("module_name", ""),
-                        "import_type": obj.get("import_type", ""),
-                        "resolved_file": obj.get("resolved_file", ""),
-                    }
-
-                    # 保留组件内容的基本信息和代码
-                    if "component_content" in obj and isinstance(obj["component_content"], dict):
-                        # 获取代码内容
-                        content = obj["component_content"].get("content", "")
-                        if not content and "basic_info" in obj["component_content"]:
-                            content = obj["component_content"]["basic_info"].get("content", "")
-
-                        preserved["component_content"] = {
-                            "circular_ref": True,
-                            "name": obj["component_content"].get("name", ""),
-                            "type": obj["component_content"].get("type", ""),
-                            "content_type": obj["component_content"].get("content_type", ""),
-                            "ref_path": visited[obj_id],
-                            "content": content  # 保留代码内容
-                        }
-                    else:
-                        preserved["component_content"] = {
-                            "circular_ref": True,
-                            "ref_path": visited[obj_id]
-                        }
-
-                    preserved["_circular_ref"] = True
-                    preserved["_ref_path"] = visited[obj_id]
-                    return preserved
+                    return obj
+                    # preserved = {
+                    #     "name": obj.get("name", ""),
+                    #     "module_name": obj.get("module_name", ""),
+                    #     "import_type": obj.get("import_type", ""),
+                    #     "resolved_file": obj.get("resolved_file", ""),
+                    #     "_circular_ref": True,
+                    #     "_ref_path": visited[obj_id]
+                    # }
+                    #
+                    # # 特别处理component_content，确保保留代码内容
+                    # if "component_content" in obj and isinstance(obj["component_content"], dict):
+                    #     # 1. 直接获取顶层content
+                    #     content = obj["component_content"].get("content", "")
+                    #
+                    #     # 2. 如果没有，尝试从basic_info获取
+                    #     if not content and "basic_info" in obj["component_content"]:
+                    #         content = obj["component_content"]["basic_info"].get("content", "")
+                    #
+                    #     # 3. 创建保留所有信息的component_content
+                    #     preserved["component_content"] = {
+                    #         "circular_ref": True,
+                    #         "name": obj["component_content"].get("name", ""),
+                    #         "type": obj["component_content"].get("type", ""),
+                    #         "content_type": obj["component_content"].get("content_type", ""),
+                    #         "content": content,  # 最重要的是保留代码内容
+                    #         # 复制其他所有顶层属性
+                    #         **{k: v for k, v in obj["component_content"].items()
+                    #            if k not in ["circular_ref", "name", "type", "content_type", "content"]}
+                    #     }
+                    #
+                    # return preserved
 
                 # 对于非顶层imports的循环引用，也保留基本结构
                 if isinstance(obj, dict) and ("name" in obj or "id" in obj):
@@ -328,7 +291,8 @@ class ProjectAbstractor:
                         "ref_path": visited[obj_id],
                         "name": obj.get("name", ""),
                         "id": obj.get("id", ""),
-                        "type": obj.get("type", "")
+                        "type": obj.get("type", ""),
+                        # "content":obj.get("full_import", ""),
                     }
 
                 return {"circular_ref": True, "ref_path": visited[obj_id]}
@@ -397,6 +361,73 @@ class ProjectAbstractor:
 
         self._print_statistics()
 
+    def process_dependencies(self, project_analysis):
+        """
+        处理已解析的依赖关系，为匹配的数据添加核心字段
+
+        Args:
+            project_analysis: 项目分析结果列表
+        """
+        # 创建文件路径到文件数据的映射
+        file_map = {item['file']: item for item in project_analysis}
+
+        # 遍历每个文件
+        for file_data in project_analysis:
+            # 处理functions中的dependencies
+            for func in file_data.get('functions', []):
+                if 'dependencies' not in func:
+                    continue
+
+                for dep in func.get('dependencies', {}).get('imports', []):
+                    if dep.get('module_name', '').startswith('.'):
+                        # 解析目标文件路径
+                        base_path = os.path.dirname(file_data['file'])
+                        target_file = os.path.abspath(os.path.join(base_path, dep.get('module_name'))) + '.ets'
+
+                        # 在已提取的数据中查找目标文件
+                        if target_file in file_map:
+                            target_data = file_map[target_file]
+                            dep_name = dep.get('name')
+
+                            # 在目标文件的各部分中查找匹配组件
+                            for section in ['imports', 'variables', 'functions', 'classes']:
+                                for item in target_data.get(section, []):
+                                    if item.get('name') == dep_name:
+                                        # 根据类型添加不同字段
+                                        if section == 'imports' or dep.get('type') == 'imports':
+                                            item['full_import'] = item.get('content', f"import {dep_name}")
+                                        else:
+                                            if 'content' not in item:
+                                                item['content'] = item.get('value', '')
+                                        break
+
+            # 处理ui_code中的dependencies
+            for ui in file_data.get('ui_code', []):
+                if 'dependencies' not in ui:
+                    continue
+
+                for dep in ui.get('dependencies', {}).get('imports', []):
+                    if dep.get('module_name', '').startswith('.'):
+                        # 解析目标文件路径
+                        base_path = os.path.dirname(file_data['file'])
+                        target_file = os.path.abspath(os.path.join(base_path, dep.get('module_name'))) + '.ets'
+
+                        # 在已提取的数据中查找目标文件
+                        if target_file in file_map:
+                            target_data = file_map[target_file]
+                            dep_name = dep.get('name')
+
+                            # 在目标文件的各部分中查找匹配组件
+                            for section in ['imports', 'variables', 'functions', 'classes']:
+                                for item in target_data.get(section, []):
+                                    if item.get('name') == dep_name:
+                                        # 根据类型添加不同字段
+                                        if section == 'imports' or dep.get('type') == 'imports':
+                                            item['full_import'] = item.get('content', f"import {dep_name}")
+                                        else:
+                                            if 'content' not in item:
+                                                item['content'] = item.get('value', '')
+                                        break
     def _print_statistics(self):
         """打印处理统计信息"""
         print("\n处理完成！统计信息：")
