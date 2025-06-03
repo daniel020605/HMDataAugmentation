@@ -27,7 +27,7 @@ def get_ui_code(data, file_name="Index"):
     xl_context = []
     for imp in data.get('import', []):
         if imp['module_name'].startswith('.'):
-            xl_context.append(imp.get("component_content",""))
+            xl_context.append(imp.get("xl_content",""))
         else:
             imports.append(imp.get('full_import', ''))
     variables = [v.get('full_variable','') for v in data.get('variables', [])]
@@ -44,7 +44,7 @@ def get_fx_code(data, file_name="Index"):
     xl_context = []
     for imp in data.get('import', []):
         if imp['module_name'].startswith('.'):
-            xl_context.append(imp.get("component_content",""))
+            xl_context.append(imp.get("xl_content",""))
         else:
             imports.append(imp.get('full_import', ''))
     variables = [v.get('full_variable','') for v in data.get('variables', [])]
