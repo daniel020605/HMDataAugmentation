@@ -1,85 +1,50 @@
 import re
 import random
-from typing import Dict, Optional, Tuple
-import ast
-
+from typing import Dict, Tuple
 
 
 def split_arkts_code(code: str) -> Dict[str, str]:
     """保证fim_target非空的分割函数，添加默认分割保证所有代码都能被处理"""
-
     patterns = {
         'build': re.compile(
             r'(\bbuild\s*\(\)\s*\{)(.*?)(^\}\s*$)',
             re.DOTALL | re.MULTILINE
         ),
-        'generic': re.compile(
-            r'((?:const|let|function)?\s*\w+\s*=\s*\(.*?\)\s*:?\s*\w*\s*=>\s*\{)(.*?)(^\}\s*,?\s*$)',
+        'function': re.compile(  # 匹配常规函数声明
+            r'(function\s+\w+\s*\(.*?\)\s*\{)(.*?)(^\}\s*$)',
+            re.DOTALL | re.MULTILINE
+        ),
+        'arrow_func': re.compile(  # 匹配箭头函数
+            r'((?:const|let|var)\s+\w+\s*=\s*(?:\([^)]*\)|[^=]*?)\s*:?\s*\w*\s*=>\s*\{)(.*?)(^\}[,;]?\s*$)',
+            re.DOTALL | re.MULTILINE
+        ),
+        'try_catch': re.compile(  # 匹配try-catch结构
+            r'(\btry\s*\{)(.*?)(^\}\s*catch\s*\([^)]*\)\s*\{[^}]*\}\s*)',
             re.DOTALL | re.MULTILINE
         )
     }
 
-    match = patterns['build'].search(code)
-    func_type = 'build'
-    if not match:
-        match = patterns['generic'].search(code)
-        func_type = 'generic'
-        if not match:
-            # 默认分割策略 - 不再返回None
-            print("使用默认分割策略")
-            code_lines = code.split('\n')
-            mid_point = len(code_lines) // 2
-            
-            # 找到更好的分割点 - 尝试在空行或语句结束处分割
-            for i in range(mid_point, len(code_lines) - 1):
-                if not code_lines[i].strip() or code_lines[i].strip().endswith((';', '}')):
-                    mid_point = i + 1
-                    break
-            
-            # 确保分割后两部分都不为空
-            if mid_point == 0:
-                mid_point = 1
-            elif mid_point >= len(code_lines):
-                mid_point = len(code_lines) - 1
-                
-            before_code = '\n'.join(code_lines[:mid_point])
-            after_code = '\n'.join(code_lines[mid_point:])
-            
-            # 如果其中一部分为空，进行调整
-            if not before_code.strip():
-                mid_point = 1
-                before_code = code_lines[0]
-                after_code = '\n'.join(code_lines[1:])
-            elif not after_code.strip():
-                mid_point = len(code_lines) - 1
-                before_code = '\n'.join(code_lines[:mid_point])
-                after_code = code_lines[-1]
-                
-            return {
-                'fim_target': after_code,
-                'fim_task_sector_start': before_code,
-                'fim_task_sector_end': '}',
-                'above_context_without_fim_start': '',
-                'follow_context_without_fim_end': '',
-                'function_type': 'default'
-            }
+    # 按优先级尝试匹配不同模式
+    for func_type, pattern in patterns.items():
+        match = pattern.search(code)
+        if match:
+            break
+    else:  # 无匹配时使用默认分割
+        return default_split(code)
 
+    # 提取匹配组
     func_head = match.group(1).rstrip()
     func_body = match.group(2)
     func_tail = match.group(3).strip()
 
-    # 保证至少有一个有效分割点
-    for _ in range(3):  # 最多尝试3次
+    # 在函数体内寻找有效分割点
+    for _ in range(3):
         split_line, split_pos = find_random_split_point(func_body, func_type)
         body_before, body_after = split_body(func_body, split_line, split_pos)
-
-        # 有效性校验
-        if len(body_after.strip()) > 0:
+        if body_after.strip():
             break
-    else:  # 所有尝试都失败时使用保底策略
-        split_line = max(len(func_body.split('\n')) // 2, 1)
-        body_before, body_after = split_body(func_body, split_line, 0)
-        body_after = body_after or func_body[-10:]  # 截取最后10个字符作为保底
+    else:  # 保底策略
+        body_before, body_after = func_body[:-10], func_body[-10:]
 
     return {
         'fim_target': body_after,
@@ -88,6 +53,57 @@ def split_arkts_code(code: str) -> Dict[str, str]:
         'above_context_without_fim_start': code[:match.start()].strip(),
         'follow_context_without_fim_end': code[match.end():].strip(),
         'function_type': func_type
+    }
+
+
+def default_split(code: str) -> Dict[str, str]:
+    """优化的默认分割策略"""
+    if not code.strip():
+        return {
+            'fim_target': '',
+            'fim_task_sector_start': '',
+            'fim_task_sector_end': '',
+            'above_context_without_fim_start': '',
+            'follow_context_without_fim_end': '',
+            'function_type': 'default'
+        }
+
+    lines = code.splitlines()
+    if not lines:
+        return {
+            'fim_target': '',
+            'fim_task_sector_start': '',
+            'fim_task_sector_end': '',
+            'above_context_without_fim_start': '',
+            'follow_context_without_fim_end': '',
+            'function_type': 'default'
+        }
+
+    # 寻找语义分割点（空行/块结束符）
+    split_point = next((
+        i for i, line in enumerate(lines[1:], start=1)
+        if not line.strip()
+           or line.strip().endswith((';', '}'))
+    ), len(lines) // 2)
+
+    # 确保非空分割
+    before = "\n".join(lines[:split_point])
+    after = "\n".join(lines[split_point:])
+
+    if not before.strip():
+        before = lines[0]
+        after = "\n".join(lines[1:])
+    elif not after.strip():
+        before = "\n".join(lines[:-1])
+        after = lines[-1]
+
+    return {
+        'fim_target': after,
+        'fim_task_sector_start': before,
+        'fim_task_sector_end': '}',
+        'above_context_without_fim_start': '',
+        'follow_context_without_fim_end': '',
+        'function_type': 'default'
     }
 
 
@@ -119,16 +135,16 @@ def split_body(body: str, split_line: int, split_pos: int) -> Tuple[str, str]:
     """安全分割函数体"""
     lines = body.split('\n')
 
-    try:
-        current_line = lines[split_line]
-    except IndexError:
-        return (body, "")
+    if not lines:
+        return ("", "")
 
-    # 确保分割后内容不为空
-    if split_pos >= len(current_line.rstrip()):
-        split_line = max(split_line - 1, 0)
-        current_line = lines[split_line]
-        split_pos = len(current_line) // 2
+    # 确保split_line在有效范围内
+    split_line = max(0, min(split_line, len(lines) - 1))
+
+    current_line = lines[split_line]
+
+    # 确保分割点有效
+    split_pos = max(0, min(split_pos, len(current_line)))
 
     before = '\n'.join(lines[:split_line] + [current_line[:split_pos].rstrip()])
     after = '\n'.join([current_line[split_pos:].lstrip()] + lines[split_line + 1:])
@@ -254,7 +270,7 @@ import re
 import ast
 from typing import Dict, Tuple, List, Any
 from codeTemplate import get_ui_code, get_fx_code
-
+# 处理ProjectAbstractor生成的结果文件，为functions和ui_code生成完整代码并分割
 def process_abstracted_json(input_folder: str, output_folder: str, force_reprocess=False) -> None:
     """处理ProjectAbstractor生成的结果文件，为functions和ui_code生成完整代码并分割"""
     # 确保输出文件夹存在
@@ -423,24 +439,65 @@ def process_abstracted_json(input_folder: str, output_folder: str, force_reproce
     print(f"处理完成，共处理 {processed_count} 个JSON文件")
     print(f"函数总条数: {function_count} UI代码总条数: {ui_code_count}")
     print(f"使用默认分割方式的条数: {default_split_count}")
+import codecs
+def process_docs_json(input_file:str, output_file:str):
+    """处理ProjectAbstractor生成的结果文件，为functions和ui_code生成完整代码并分割"""
+    skipped_count = 0
+    processed_count = 0
+    error_count = 0
+    processed_items_count = 0  # 记录成功处理的代码段数量
+    default_split_count = 0
 
+    with open(input_file, 'r', encoding='utf-8') as f:
+        datas = json.load(f)
+        processed_results = []
+            # 分割代码
+        for data in datas:
+            if data.get('type', '') == 'Import':
+                continue
+            if 'pre' in data and isinstance(data['pre'], str):
+                try:
+                    data['pre'] = codecs.decode(data['pre'], 'unicode_escape')
+                except Exception as e:
+                    # 如果上面的方法失败，尝试直接替换
+                    data['pre'] = data['pre'].replace('\\n', '\n').replace('\\t', '\t').replace('\\r', '\r')
+
+            full_code = data.get('pre', '')
+            split_result = split_arkts_code(full_code)
+
+            # 由于split_arkts_code总是返回结果，不需要再检查split_result是否为None
+            processed_results.append({
+                "id": data.get('id', 0),
+                "name": data.get('function_name', ""),
+                "file": data.get('file_path', ""),
+                "original_content": full_code,
+                "xl_context": [],
+                "full_code": full_code,
+                "split_result": split_result,
+                "type": "Reference"
+            })
+            processed_items_count += 1
+            if split_result['function_type'] == 'default':
+                default_split_count += 1
+            # 保存处理结果
+        if processed_results:
+            with open(output_file, 'w', encoding='utf-8') as f:
+                json.dump(processed_results, f, ensure_ascii=False, indent=2)
+        else:
+            print(f"  - 没有找到可处理的代码片段")
+
+    print(f"所有文件处理完成，共处理 {processed_count} 个文件，跳过 {skipped_count} 个文件，失败 {error_count} 个文件")
+    print(f"成功处理 {processed_items_count} 个代码段（包括函数和UI组件）")
+    print(f"处理完成，共处理 {processed_count} 个JSON文件")
+    print(f"使用默认分割方式的条数: {default_split_count}")
 # 下面可以添加主函数调用
-if __name__ == "__main__":
-    input_folder = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/projects_abstracted"
-    output_folder = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/projects_split"
+# if __name__ == "__main__":
+#     input_folder = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/projects_abstracted"
+#     output_folder = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/projects_split"
+#
+#     process_abstracted_json(input_folder, output_folder, force_reprocess=False)
 
-    process_abstracted_json(input_folder, output_folder, force_reprocess=False)
-#
-# if __name__ == "__main__":
-#     input_folder = r"/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSAbstractor/level9_projects"  # Replace with your input folder path
-#     output_folder = r"/Users/liuxuejin/Downloads/ProcessedOutput/level9Output"  # Replace with your output folder path
-#     process_json_files(input_folder, output_folder)
-#     print(f"Processing completed. Results saved to {output_folder}")
-# if __name__ == "__main__":
-#
-#     test_cases = read_pre_from_json("/Users/liuxuejin/Desktop/Projects/PythonTools/output/extracted_pre_tags_with_instructions.json")
-#     all_results = process_test_cases(test_cases)
-#     # 你可以在这里添加保存结果的逻辑，例如保存到JSON文件
-#     import json
-#     with open('code_split_results.json', 'w', encoding='utf-8') as f:
-#         json.dump(all_results, f, ensure_ascii=False, indent=4)
+if __name__ == '__main__':
+    input_file = "/Users/liuxuejin/Desktop/Projects/HMDataAugmentation/ArkTSRetrival/data/extracted_harmonyos-references.json"
+    output_file = "/Volumes/P800/docsCode/processed_harmonyos_references.json"
+    process_docs_json(input_file, output_file)
